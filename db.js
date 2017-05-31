@@ -13,12 +13,8 @@ function initializeDB() {
   openRequest.onupgradeneeded = function (e) {
     var thisDB = e.target.result;
 
-    if (!thisDB.objectStoreNames.contains("postings")) {
-      thisDB.createObjectStore("postings");
-    }
-
-    if (!thisDB.objectStoreNames.contains("df")) {
-      thisDB.createObjectStore("df");
+    if (!thisDB.objectStoreNames.contains("wordvecs")) {
+      thisDB.createObjectStore("wordvecs");
     }
   }
 

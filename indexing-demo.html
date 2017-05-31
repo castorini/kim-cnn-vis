@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-<title>JScene Demo</title>
+<title>word2vec Demo</title>
 <!-- Bootstrap -->
 <!-- Latest compiled and minified CSS -->
 <link rel="stylesheet" href="bootstrap/bootstrap.min.css">
@@ -19,32 +19,23 @@
 
 <script type="text/javascript" src="db.js"></script>
 <script type="text/javascript" src="index.js"></script>
-<script type="text/javascript" src="tweets.js"></script></script>
+<script type="text/javascript" src="word2vec.js"></script></script>
 
 <script>
 function statsButton(e) {
   console.log("Getting stats...");
 
   try{
-    var request1 = db.transaction(["postings"], "readonly")
-                     .objectStore("postings").count();
+    var request1 = db.transaction(["wordvecs"], "readonly")
+                     .objectStore("wordvecs").count();
 
     request1.onsuccess = function(e) {
-      console.log("Total number of entries: " + e.target.result);
-      document.getElementById('numPostings').innerHTML = e.target.result;
-    }
-
-    var request2 = db.transaction(["df"], "readonly")
-                     .objectStore("df").count();
-
-    request2.onsuccess = function(e) {
-      console.log("Total number of terms: " + e.target.result);
-      document.getElementById('numTerms').innerHTML = e.target.result;
+      console.log("Total number of word vector: " + e.target.result);
+      document.getElementById('wordVecs').innerHTML = e.target.result;
     }
   } catch (e) {
     console.log("Error opening index!");
-    document.getElementById('numPostings').innerHTML = 0;
-    document.getElementById('numTerms').innerHTML = 0;
+    document.getElementById('wordVecs').innerHTML = 0;
   }
 }
 
@@ -64,8 +55,7 @@ function deleteIndex() {
 
   DBDeleteRequest.onsuccess = function(event) {
     console.log("Index deleted successfully");
-    document.getElementById('numPostings').innerHTML = 0;
-    document.getElementById('numTerms').innerHTML = 0;
+    document.getElementById('wordVecs').innerHTML = 0;
   };
 
   // reinitialize in case user wants to re-index again.
@@ -95,35 +85,8 @@ function indexButton() {
     }
   };
 
-  indexer.setPostingsMessageHandler(updateMessageHandler);
-  indexer.index(tweets);
-}
-
-function dfButton() {
-  console.log("Starting to build df table...");
-  console.log("Starting to index...");
-  document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>Starting to build the df table...</div>";
-
-  var updateMessageHandler = {
-    update: function(startTime, currentTime, i) {
-      console.log("Inserted " + i + " terms: Elapsed time = " + (currentTime - startTime) + "ms");
-      document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>Inserted " + i + " terms: Elapsed time = " + (currentTime - startTime) + " ms.</div>";
-    },
-
-    finished: function(startTime, currentTime, i) {
-      console.log("Done! Inserted " + i + " terms: Total elapsed time = " + (currentTime - startTime) + "ms");
-      document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>DF Table successfully built!</strong> Inserted " + i + " terms in " + (currentTime - startTime) + " ms.</div>";
-      statsButton();
-    },
-
-    error: function(e) {
-      console.log("Error", e.target.error.name);
-      document.getElementById('message').innerHTML = "<div class='alert alert-danger alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Error!</strong> Does an index already exist? If so, please delete old index first. (Also try refreshing the page.)</div>";
-    }
-  };
-
-  indexer.setDfTableMessageHandler(updateMessageHandler);
-  indexer.buildDfTable(tweets);
+  indexer.setWordvecsMessageHandler(updateMessageHandler);
+  indexer.index(word2vec);
 }
 
 </script>
@@ -146,14 +109,14 @@ body {
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="./index.html">JScene</a>
+          <a class="navbar-brand" href="./index.html">word2vec</a>
         </div>
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
             <li><a href="./index.html">Home</a></li>
             <li class="active"><a href="./indexing-demo.html">Demo: Indexing</a></li>
             <li><a href="./search-demo.html">Demo: Search</a></li>
-            <li><a href="https://github.com/lintool/JScene/">Code (GitHub)</a></li>
+            <li><a href="https://github.com/lafh/word2vec">Code (GitHub)</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
@@ -162,14 +125,12 @@ body {
 <div class="container"> 
 
 <div class="page-header">
-<h1>JScene <small>Indexing Demo</small></h1>
+<h1>word2vec <small>Indexing Demo</small></h1>
 </div>
 
-<p>The following demo builds the inverted index on my personal tweet
-archive (1916 tweets through August 5, 2015) using
-IndexedDB. Everything is designed to work on Chrome, so YMMV on other
+<p>The following demo builds the indices on top10K (from 6B tokens, 400K vocab) words and their vectors (300d) from <a href=https://nlp.stanford.edu/projects/glove/>Glove</a> using IndexedDB. Everything is designed to work on Chrome, so YMMV on other
 browsers.</p>
-
+<!--
 <p>If you pop open your JavaScript console, you'll find the
 variable <code>tweets</code> containing the tweets that we're going to
 index:</p>
@@ -191,16 +152,14 @@ as normal JSON objects:</p>
 &gt; tweets[1912].created_at
 "2015-08-05 12:19:21 +0000"
 </pre>
-
+-->
 <p>Okay, now we're ready to index. First click the "Build Index"
-button, then click the "Build DF Table" button. You can watch the
+button. You can watch the
 indexing progress in the JavaScript console. After that, click the
-"Get Index Stats" button: there should be 27308 postings and 6413
-terms.</p>
+"Get Index Stats" button: there should be 10000 word vectors.</p>
 
 <p>
 <button id="indexButton" onclick="indexButton()">Build Index</button>
-<button id="dfButton" onclick="dfButton()">Build DF Table</button>
 <button id="statsButton" onclick="statsButton()">Get Index Stats</button>
 <button id="deleteIndex" onclick="deleteIndex()">Delete index</button>
 </p>
@@ -210,8 +169,7 @@ terms.</p>
 <h3>Current Index Status</h3>
 
 <table class="table">
-<tr><td>Number of Postings</td><td><div id="numPostings"></div></td></tr>
-<tr><td>Number of Terms (in DF table)</td><td><div id="numTerms"></div></td></tr>
+<tr><td>Number of Word Vectors</td><td><div id="wordVecs"></div></td></tr>
 </table>
 
 </div>
