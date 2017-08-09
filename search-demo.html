@@ -40,6 +40,8 @@ twttr = (function(d, s, id) {
 
 <script type="text/javascript" src="db.js"></script>
 <script type="text/javascript" src="search.js"></script>
+<script type="text/javascript" src="bootstrap/numjs.min.js"></script>
+<script type="text/javascript" src="cnn.js"></script>
 
 <script>
 
@@ -71,8 +73,10 @@ function searchButton() {
   // Perform wordvec retrieval and twitter search 
   searcher.search(q, function(results) { 
     console.log("Results for: " + q);
-    logResults(results);
+    //logResults(results);
+    build_input(results);
   });
+
 }
 
 var topicsStart;

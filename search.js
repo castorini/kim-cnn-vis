@@ -20,7 +20,9 @@ var searcher = (function () {
       var res = e.target.result;
       if (res) {        
         resultsWordvecs[resultsWordvecs.length] = Array(queryTerms[i], res.value);
-  res.continue;
+        res.continue;
+      } else {
+        resultsWordvecs[resultsWordvecs.length] = Array(queryTerms[i], Array());
       }
       wordvecSearchInit(callback, i + 1);
     };
