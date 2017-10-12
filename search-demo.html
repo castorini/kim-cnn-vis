@@ -9,7 +9,7 @@
 <!-- Bootstrap -->
 <!-- Latest compiled and minified CSS -->
 <link rel="stylesheet" href="bootstrap/bootstrap.min.css">
-
+<link rel="stylesheet" href="d3_app.css">
 <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
 <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
 <!--[if lt IE 9]>
@@ -19,6 +19,8 @@
 
 <!-- https://dev.twitter.com/web/javascript/loading -->
 <!-- Check out this handy way of embeddin tweets: https://dev.twitter.com/web/embedded-tweets/javascript-create -->
+<script src="http://d3js.org/d3.v4.min.js"></script>
+
 <script>
 twttr = (function(d, s, id) {
   var js, fjs = d.getElementsByTagName(s)[0],
@@ -62,8 +64,8 @@ searcher.setNumDocs(1128929);
 // Querying
 
 function searchButton() {
-  var resultsDiv = document.getElementById('results');
-  resultsDiv.innerHTML = '';
+  //var resultsDiv = document.getElementById('results');
+  //resultsDiv.innerHTML = '';
   
   var q = document.querySelector("#query").value.split(" ");
 
@@ -74,7 +76,7 @@ function searchButton() {
   searcher.search(q, function(results) { 
     console.log("Results for: " + q);
     //logResults(results);
-    build_input(results);
+    display_cnn(results, q);
   });
 
 }
@@ -175,9 +177,15 @@ Be sure to <a href="indexing-demo.html">build the index</a> first!</p>
 <input type="text" id="query" placeholder="query">
 <button id="searchButton" onclick="searchButton()">Search</button> (try "the" or "they")</p>
 
-<div id="results"></div>
+<div id="results" style="padding-bottom: 50px">
+  <!-- http://playground.tensorflow.org/ -->
+  <!-- Color Map -->
+  <div><svg id="colormap" width="600" height="70"></svg></div>
+  <div align="center"> <svg id="network" height="0"></svg></div>
+</div>
 
 </div>
+
 
 <!-- Bootstrap core JavaScript
 ================================================== -->
@@ -186,7 +194,7 @@ Be sure to <a href="indexing-demo.html">build the index</a> first!</p>
 <script src="bootstrap/bootstrap.min.js"></script>
 <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
 <script src="bootstrap/ie10-viewport-bug-workaround.js"></script>
-
+<script src="d3_app.js"></script>
 </body>
 </html>
  
