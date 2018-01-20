@@ -25,6 +25,7 @@
 <script type="text/javascript" src="search.js"></script>
 <script type="text/javascript" src="bootstrap/numjs.min.js"></script>
 <script type="text/javascript" src="cnn.js"></script>
+<script type="text/javascript" src="filter.js"></script>
 
 <script>
 
@@ -45,21 +46,7 @@ searcher.setNumDocs(1128929);
 // Querying
 
 function searchButton() {
-  //var resultsDiv = document.getElementById('results');
-  //resultsDiv.innerHTML = '';
-
-  var q = document.querySelector("#query").value.split(" ");
-
-  q = q.map(function(x) { return x.replace(/(^[^A-Za-z]+)|([^A-Za-z]+$)/g, "").toLowerCase()})
-           .filter(function(x) { return x.length > 0 ? true : false; });
-
-  // Perform wordvec retrieval and twitter search
-  searcher.search(q, function(results) {
-    console.log("Results for: " + q);
-    //logResults(results);
-    display_cnn(results, q);
-  });
-
+    test();
 }
 
 var topicsStart;
@@ -139,8 +126,8 @@ p.wordvec {
           <ul class="nav navbar-nav">
             <li><a href="./index.html">Home</a></li>
             <li><a href="./indexing-demo.html">Demo: Indexing</a></li>
-            <li class="active"><a href="./search-demo.html">Demo: Search</a></li>
-            <li><a href="./filter-demo.html">Demo: Filter</a></li>
+            <li><a href="./search-demo.html">Demo: Search</a></li>
+            <li class="active"><a href="./filter-demo.html">Demo: Filter</a></li>
             <li><a href="https://github.com/lafh/word2vec">Code (GitHub)</a></li>
           </ul>
         </div><!--/.nav-collapse -->
@@ -150,7 +137,7 @@ p.wordvec {
 <div class="container">
 
 <div class="page-header">
-<h1>word2vec <small>Search Demo</small></h1>
+<h1>word2vec <small>Filter Demo</small></h1>
 </div>
 
 <p>The following demo searches word2vecs.

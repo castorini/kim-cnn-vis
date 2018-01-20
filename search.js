@@ -6,8 +6,8 @@ var searcher = (function () {
   var startTime;
 
   function wordvecSearchInit(callback, i) {
-    if (i == queryTerms.length) { 
-      console.log(resultsWordvecs); 
+    if (i == queryTerms.length) {
+      console.log(resultsWordvecs);
       callback(resultsWordvecs);
       return;
     }
@@ -18,7 +18,7 @@ var searcher = (function () {
 
     cursor.onsuccess = function (e) {
       var res = e.target.result;
-      if (res) {        
+      if (res) {
         resultsWordvecs[resultsWordvecs.length] = Array(queryTerms[i], res.value);
         res.continue;
       } else {
