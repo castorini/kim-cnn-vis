@@ -1,11 +1,13 @@
 var indexer = (function () {
   var wordvecsMessageHandler = {};
   var weightsMessageHandler = {};
+  var datasetMessageHandler = {};
   var numTokens = 0;
   var startTime;
 
   var word2vec;
   var weights;
+  var dataset;
 
   function get_weights(i) {
     if (i != 0 && i % 100 == 0) {
@@ -29,6 +31,30 @@ var indexer = (function () {
 
     request.onsuccess = function (e) {
       get_weights(i + 1);
+    }
+  }
+
+  function get_dataset(i) {
+    if (i != 0 && i % 100 == 0) {
+      datasetMessageHandler.update(startTime, new Date().getTime(), i);
+    }
+
+    if (i == dataset.length) {
+      console.log("Finished loading dataset.");
+      return;
+    }
+
+    var transaction = db.transaction(["dataset"], "readwrite");
+    var store = transaction.objectStore("dataset");
+    var request = store.add(dataset[i]["comment"], dataset[i]["label"]);
+
+    request.onerror = function (e) {
+      // Dispatch to error message handler
+      datasetMessageHandler.error(e);
+    }
+
+    request.onsuccess = function (e) {
+      get_dataset(i + 1);
     }
   }
 
@@ -65,6 +91,10 @@ var indexer = (function () {
       weightsMessageHandler = h;
     },
 
+    setDatasetMessageHandler: function(h) {
+      datasetMessageHandler = h;
+    },
+
     index: function (w) {
       startTime = new Date().getTime();
       word2vec = w;
@@ -75,6 +105,12 @@ var indexer = (function () {
       startTime = new Date().getTime();
       weights = w;
       get_weights(0);
+    },
+
+    getDataset: function (w) {
+      startTime = new Date().getTime();
+      dataset = w;
+      get_dataset(0);
     },
   };
 

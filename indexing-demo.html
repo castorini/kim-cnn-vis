@@ -21,6 +21,7 @@
 <script type="text/javascript" src="index.js"></script>
 <script type="text/javascript" src="word2vec.js"></script></script>
 <script type="text/javascript" src="weights.js"></script></script>
+<script type="text/javascript" src="dataset.js"></script></script>
 
 <script>
 function statsButton(e) {
@@ -54,6 +55,23 @@ function weightStatsButton(e) {
   } catch (e) {
     console.log("Error opening weights!");
     document.getElementById('weights').innerHTML = 0;
+  }
+}
+
+function datasetStatsButton(e) {
+  console.log("Getting sentences...");
+
+  try{
+    var request1 = db.transaction(["dataset"], "readonly")
+                     .objectStore("dataset").count();
+
+    request1.onsuccess = function(e) {
+      console.log("Total number of sentences: " + e.target.result);
+      document.getElementById('dataset').innerHTML = e.target.result;
+    }
+  } catch (e) {
+    console.log("Error opening dataset!");
+    document.getElementById('dataset').innerHTML = 0;
   }
 }
 
@@ -97,6 +115,29 @@ function deleteWeight() {
   DBDeleteRequest.onsuccess = function(event) {
     console.log("Weights deleted successfully");
     document.getElementById('weights').innerHTML = 0;
+  };
+
+  // reinitialize in case user wants to re-index again.
+  initializeDB.apply();
+}
+
+function deleteDataset() {
+  // An important item to be a aware of is the promise that is returned
+  // from the deleteDatabase method will not complete until all the other
+  // connections to the database are closed.
+
+  db.close();
+
+  console.log("Deleting dataset...");
+
+  var DBDeleteRequest = indexedDB.deleteDatabase("index");
+    DBDeleteRequest.onerror = function(event) {
+    console.log("Error deleting dataset.");
+  };
+
+  DBDeleteRequest.onsuccess = function(event) {
+    console.log("Dataset deleted successfully");
+    document.getElementById('dataset').innerHTML = 0;
   };
 
   // reinitialize in case user wants to re-index again.
@@ -155,6 +196,33 @@ function weightButton() {
 
   indexer.setWeightsMessageHandler(updateMessageHandler);
   indexer.getWeights(weights);
+}
+
+function datasetButton() {
+  console.log("Starting to get sentences...");
+  document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>Starting to get sentences...</div>";
+
+  var updateMessageHandler = {
+    update: function(startTime, currentTime, i) {
+      console.log("Indexed " + i + " documents: Elapsed time = " + (currentTime - startTime) + "ms");
+      document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>Indexed " + i + " documents: Elapsed time = " + (currentTime - startTime) + " ms</div>";
+    },
+
+    finished: function(startTime, currentTime, i) {
+      console.log("Number of docs indexed: " + i);
+      console.log("Indexing time: " + (currentTime - startTime) + "ms");
+      document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Indexing Complete!</strong> " + i + " documents indexed in " + (currentTime - startTime) + " ms.</div>";
+      statsButton();
+    },
+
+    error: function(e) {
+      console.log("Error", e.target.error.name);
+      document.getElementById('message').innerHTML = "<div class='alert alert-danger alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Error!</strong> Does an index already exist? If so, please delete old index first. (Also try refreshing the page.)</div>";
+    }
+  };
+
+  indexer.setDatasetMessageHandler(updateMessageHandler);
+  indexer.getDataset(dataset);
 }
 
 </script>
@@ -237,6 +305,11 @@ indexing progress in the JavaScript console. After that, click the
 <button id="weightStatsButton" onclick="weightStatsButton()">Get Weights Stats</button>
 <button id="deleteWeight" onclick="deleteWeight()">Delete Weights</button>
 </p>
+<p>
+<button id="datasetButton" onclick="datasetButton()">Load Dataset</button>
+<button id="datasetStatsButton" onclick="datasetStatsButton()">Get Dataset Stats</button>
+<button id="deleteDataset" onclick="deleteDataset()">Delete Dataset</button>
+</p>
 
 <div id="message"></div>
 
@@ -245,6 +318,7 @@ indexing progress in the JavaScript console. After that, click the
 <table class="table">
 <tr><td>Number of Word Vectors</td><td><div id="wordVecs"></div></td></tr>
 <tr><td>Number of Weights</td><td><div id="weights"></div></td></tr>
+<tr><td>Number of Sentences</td><td><div id="dataset"></div></td></tr>
 </table>
 
 </div>
