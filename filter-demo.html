@@ -45,9 +45,10 @@ searcher.setNumDocs(1128929);
 // Querying
 
 function searchButton() {
-  var q = document.querySelector("#query").value.split(" ");
+  //var q = document.querySelector("#query").value.split(" ");
+  var q = "no movement , no yuks , not much of anything .".split(" ");
 
-  q = q.map(function(x) { return x.replace(/(^[^A-Za-z]+)|([^A-Za-z]+$)/g, "").toLowerCase()})
+  q = q.map(function(x) { return x.toLowerCase()})
            .filter(function(x) { return x.length > 0 ? true : false; });
 
   // Perform wordvec retrieval and twitter search
@@ -55,6 +56,19 @@ function searchButton() {
     console.log("Results for: " + q);
     //logResults(results);
     display_conv(results, q);
+  });
+}
+
+function nextButton() {
+  searcher.getSentence(function(sentence) {
+    var q = sentence.split(" ");
+
+    q = q.map(function(x) { return x.toLowerCase()})
+             .filter(function(x) { return x.length > 0 ? true : false; });
+
+    searcher.showVecs(q, function(results) {
+      display_conv(results, q);
+    })
   });
 }
 
@@ -110,6 +124,7 @@ Be sure to <a href="indexing-demo.html">build the index</a> first!</p>
 
 <input type="text" id="query" placeholder="query">
 <button id="searchButton" onclick="searchButton()">Search</button> (try "the" or "they")</p>
+<button id="nextButton" onclick="nextButton()">Next</button> </p>
 
 <div id="results" style="padding-bottom: 50px">
   <!-- http://playground.tensorflow.org/ -->

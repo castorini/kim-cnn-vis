@@ -46,7 +46,7 @@ var indexer = (function () {
 
     var transaction = db.transaction(["dataset"], "readwrite");
     var store = transaction.objectStore("dataset");
-    var request = store.add(dataset[i]["comment"], dataset[i]["label"]);
+    var request = store.add(dataset[i], i);
 
     request.onerror = function (e) {
       // Dispatch to error message handler
