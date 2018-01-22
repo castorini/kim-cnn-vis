@@ -24,7 +24,6 @@
 <script type="text/javascript" src="db.js"></script>
 <script type="text/javascript" src="search.js"></script>
 <script type="text/javascript" src="bootstrap/numjs.min.js"></script>
-<script type="text/javascript" src="cnn.js"></script>
 <script type="text/javascript" src="filter.js"></script>
 
 <script>
@@ -46,51 +45,17 @@ searcher.setNumDocs(1128929);
 // Querying
 
 function searchButton() {
-    test();
-}
+  var q = document.querySelector("#query").value.split(" ");
 
-var topicsStart;
-function runTopics() {
-  topicsStart = new Date().getTime();
-  runTopics_helper(0);
-}
+  q = q.map(function(x) { return x.replace(/(^[^A-Za-z]+)|([^A-Za-z]+$)/g, "").toLowerCase()})
+           .filter(function(x) { return x.length > 0 ? true : false; });
 
-function runTopics_helper(i) {
-  query_terms = topics[i].text.split(" ");
-  searcher.search(query_terms, function(results, t) {
-    console.log(query_terms + ": " + (new Date().getTime() - t) + "ms");
-    //print_results(results, 10);
-
-    if (i < topics.length - 1) {
-      runTopics_helper(i+1);
-    } else {
-      var e = new Date().getTime();
-      console.log((i+1) + " topics, total time: " + (e - topicsStart) + "ms");
-      console.log("average query latency = " + (e - topicsStart)/(i+1) + "ms");
-    }
+  // Perform wordvec retrieval and twitter search
+  searcher.search(q, function(results) {
+    console.log("Results for: " + q);
+    //logResults(results);
+    display_conv(results, q);
   });
-}
-
-var sampled = {};
-function sampleButton() {
-  var cnt = 0;
-  var cursor = db.transaction(["df"], "readonly").objectStore("df")
-                 .openCursor();
-
-  cursor.onsuccess = function(e) {
-    var res = e.target.result;
-
-    if (res) {
-      if (res.value > 10 && res.key.match("^[#@A-Za-z]+$") && Math.random() < 0.01 ) {
-        cnt++;
-        console.log(res.key + " " + res.value);
-        sampled[res.key] = res.value;
-      }
-      res.continue();
-    } else {
-      console.log("selected terms: " + cnt);
-    }
-  };
 }
 
 </script>

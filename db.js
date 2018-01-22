@@ -8,13 +8,21 @@ function indexedDBOk() {
 function initializeDB() {
   if (!indexedDBOk) return;
 
-  var openRequest = indexedDB.open("index", 1);
+  var openRequest = indexedDB.open("index", 3);
 
   openRequest.onupgradeneeded = function (e) {
     var thisDB = e.target.result;
 
     if (!thisDB.objectStoreNames.contains("wordvecs")) {
       thisDB.createObjectStore("wordvecs");
+    }
+
+    if (!thisDB.objectStoreNames.contains("weights")) {
+      thisDB.createObjectStore("weights");
+    }
+
+    if (!thisDB.objectStoreNames.contains("dataset")) {
+      thisDB.createObjectStore("dataset");
     }
   }
 

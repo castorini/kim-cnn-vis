@@ -36,6 +36,10 @@ var searcher = (function () {
       wordvecSearchInit(callbackWordvecs, 0);
     },
 
+    search_for_filters: function (qt, callback) {
+      search
+    },
+
     setNumDocs: function (n) {
       numDocs = n;
     }

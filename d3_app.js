@@ -35,7 +35,7 @@ function show_gradient_indicator() {
 
     var x = d3.scaleLinear()
         .domain([-0.25, 0.25])
-        .range([0,144]);   
+        .range([0,144]);
     var x_axis = d3.axisBottom(x)
         .tickValues([-0.25, 0, 0.25])
         .tickFormat(d3.format("-.2f"));
@@ -55,7 +55,7 @@ function show_gradient_indicator() {
         .attr("fill", "#000")
         .attr("text-anchor", "start")
         .attr("font-weight", "bold")
-        .text("Value");    
+        .text("Value");
 }
 
 function draw_paths() {
@@ -81,7 +81,7 @@ function show_source(rect) {
         svg = d3.select("#lines");
         svg.selectAll("*").remove();
         return;
-    } 
+    }
     select_rect = d3.select(rect)
                     .classed("select", true);
     draw_paths();
@@ -96,7 +96,7 @@ function show_rect(vectors, svg, x_offset, y_offset, class_name, index0, index1,
 
     vectors.forEach(function(v, idx0) {
         vector_length = v.length > vector_length ? v.length : vector_length;
-        
+
         var tmp = [];
         var dict_tmp = [];
         // fill rect
@@ -113,7 +113,7 @@ function show_rect(vectors, svg, x_offset, y_offset, class_name, index0, index1,
                 .classed(class_name, true)
                 .on("mouseenter", function() {
                     show_source(this);
-                })  
+                })
                 .on("mouseleave", function() {
                     show_source(null);
                 });
@@ -166,12 +166,12 @@ function build_prev_dict(input, conv_res, args, polling_res, output) {
         });
     });
 
-    // polling 
+    // polling
     polling_res.forEach(function(entry, idx) {
         prev_dict[2][0][idx][0].push([1, idx, args[idx][0], args[idx][1]]);
     })
 
-    // output layer 
+    // output layer
     var prev = [];
     for (var i = 0; i < polling_res.length; i++) {
         prev.push([2, 0, i, 0]);
@@ -215,10 +215,9 @@ function show_network(words, input, conv_res, args, polling_res, output) {
     height = show_rect(polling_res, svg, x_offset, height + PADDING, "polling", 2, 0);
 
     // show output
-    x_offset = (width-(RECT_SIZE * b.size))/ 2;
+    x_offset = (width-(RECT_SIZE * 3))/ 2;  // b.size = 3
     show_rect(output, svg, x_offset, height + PADDING, "output", 3, 0);
 
     svg.append("g").attr("id", "lines");
     build_prev_dict(input, conv_res, args, polling_res, output);
 }
-
