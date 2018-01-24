@@ -4,6 +4,9 @@ var indexer = (function () {
   var weights3MessageHandler = {};
   var weights4MessageHandler = {};
   var weights5MessageHandler = {};
+  var bias3MessageHandler = {};
+  var bias4MessageHandler = {};
+  var bias5MessageHandler = {};
   var datasetMessageHandler = {};
   var numTokens = 0;
   var startTime;
@@ -11,6 +14,7 @@ var indexer = (function () {
   var word2vec;
   var word2vec_large;
   var weights;
+  var bias;
   var dataset;
   var cur_dim;
 
@@ -48,6 +52,43 @@ var indexer = (function () {
 
     request.onsuccess = function (e) {
       get_weights(i + 1);
+    }
+  }
+
+  function get_bias(i) {
+    if (i != 0 && i % 100 == 0) {
+      if (cur_dim == 3) {
+        bias3MessageHandler.update(startTime, new Date().getTime(), i);
+      } else if (cur_dim == 4) {
+        bias4MessageHandler.update(startTime, new Date().getTime(), i);
+      } else {
+        bias5MessageHandler.update(startTime, new Date().getTime(), i);
+      }
+    }
+
+    if (i == bias.length) {
+      console.log("Finished loading bias.");
+      return;
+    }
+
+    var db_name = "bias_" + cur_dim;
+    var transaction = db.transaction([db_name], "readwrite");
+    var store = transaction.objectStore(db_name);
+    var request = store.add(bias[i][0], i);
+
+    request.onerror = function (e) {
+      // Dispatch to error message handler
+      if (cur_dim == 3) {
+        bias3MessageHandler.error(e);
+      } else if (cur_dim == 4) {
+        bias4MessageHandler.error(e);
+      } else {
+        bias5MessageHandler.error(e);
+      }
+    }
+
+    request.onsuccess = function (e) {
+      get_bias(i + 1);
     }
   }
 
@@ -144,6 +185,18 @@ var indexer = (function () {
       weights5MessageHandler = h;
     },
 
+    setBias3MessageHandler: function(h) {
+      bias3MessageHandler = h;
+    },
+
+    setBias4MessageHandler: function(h) {
+      bias4MessageHandler = h;
+    },
+
+    setBias5MessageHandler: function(h) {
+      bias5MessageHandler = h;
+    },
+
     setDatasetMessageHandler: function(h) {
       datasetMessageHandler = h;
     },
@@ -165,6 +218,13 @@ var indexer = (function () {
       cur_dim = dim;
       weights = w;
       get_weights(0);
+    },
+
+    getBias: function (b, dim) {
+      startTime = new Date().getTime();
+      cur_dim = dim;
+      bias = b;
+      get_bias(0);
     },
 
     getDataset: function (w) {

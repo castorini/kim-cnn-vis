@@ -5,7 +5,8 @@ var searcher = (function () {
   var resultsWordvecs;
   var sentResults;
   var sentence;
-  var weight
+  var weight;
+  var bias;
 
   var startTime;
   var index = 0;
@@ -77,6 +78,25 @@ var searcher = (function () {
     };
   }
 
+  function searchBiasWithDim(callback, i, dim) {
+    var db_name = "bias_" + dim
+    var cursor = db.transaction([db_name], "readonly")
+      .objectStore(db_name)
+      .openCursor(i);
+
+    cursor.onsuccess = function (e) {
+      var res = e.target.result;
+      if (res) {
+        //weights[weights.length] = Array(res.value);
+        //console.log(weights[weights.length]);
+        callback(res.value);
+      } else {
+        //weights[weights.length] = Array();
+        callback(Array());
+      }
+    };
+  }
+
   function getithSentence(callback) {
     var cursor = db.transaction(["dataset"], "readonly")
       .objectStore("dataset")
@@ -107,6 +127,11 @@ var searcher = (function () {
     getWeights: function (dim, callback) {
       weights = [];
       searchWeightsWithDim(callback, 0, dim);
+    },
+
+    getBias: function (dim, callback) {
+      bias = [];
+      searchBiasWithDim(callback, 0, dim);
     },
 
     getSentence: function (callback) {

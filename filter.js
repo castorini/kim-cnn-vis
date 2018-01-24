@@ -29,9 +29,13 @@ function build_input(results) {
 }
 
 // change this, need to use a different filter to convolve on each 3*300
-function conv(input, weights) {
-    return weights.map(weight => nj.convolve(input, weight).tolist());
-    // nj.add(nj.dot(w,z),b)
+function conv(input, weights, bias) {
+    var result = [];
+    for (var i = 0; i < weights.length; i++) {
+      result[i] = nj.add(nj.convolve(input, weights[i]), bias[i]).tolist()
+    }
+    return result;
+    // weights.map(weight => nj.add(nj.convolve(input, weight), 0).tolist())
 }
 
 function argmax(input) {
@@ -82,14 +86,14 @@ function get_filters(i) {
 
 }*/
 
-function display_conv(results, query, weights) {
+function display_conv(results, query, weights, bias) {
     if (query.length < 5) {
         clean_up();
         return;
     }
 
     var input = build_input(results);
-    var conv_res = conv(input, weights);
+    var conv_res = conv(input, weights, bias);
 
     var args, polling_res;
     [args, polling_res] = max_polling(conv_res);

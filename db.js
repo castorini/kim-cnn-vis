@@ -8,7 +8,7 @@ function indexedDBOk() {
 function initializeDB() {
   if (!indexedDBOk) return;
 
-  var openRequest = indexedDB.open("index", 5);
+  var openRequest = indexedDB.open("index", 7);
 
   openRequest.onupgradeneeded = function (e) {
     var thisDB = e.target.result;
@@ -33,8 +33,16 @@ function initializeDB() {
       thisDB.createObjectStore("weights_5");
     }
 
-    if (!thisDB.objectStoreNames.contains("bias")) {
-      thisDB.createObjectStore("bias");
+    if (!thisDB.objectStoreNames.contains("bias_3")) {
+      thisDB.createObjectStore("bias_3");
+    }
+
+    if (!thisDB.objectStoreNames.contains("bias_4")) {
+      thisDB.createObjectStore("bias_4");
+    }
+
+    if (!thisDB.objectStoreNames.contains("bias_5")) {
+      thisDB.createObjectStore("bias_5");
     }
 
     if (!thisDB.objectStoreNames.contains("dataset")) {
