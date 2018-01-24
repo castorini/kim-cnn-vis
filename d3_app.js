@@ -181,7 +181,7 @@ function build_prev_dict(input, conv_res, args, polling_res, output) {
     })
 }
 
-function show_network(words, input, conv_res, args, polling_res, output) {
+function show_network(words, input, filters, conv_res, args, polling_res, output) {
     // clean up
     clean_up();
     var svg = d3.select("#network");

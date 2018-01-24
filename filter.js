@@ -96,6 +96,6 @@ function display_conv(results, query, weights) {
     console.log(args);
     var output = fully_connected(polling_res);
     show_gradient_indicator();
-    show_network(query, input, conv_res, args, polling_res, output);
+    show_network(query, input, weights, conv_res, args, polling_res, output);
     return output;
 }
