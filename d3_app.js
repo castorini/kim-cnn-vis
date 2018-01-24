@@ -152,11 +152,12 @@ function clean_up() {
 
 function build_prev_dict(input, conv_res, args, polling_res, output) {
     // conv
+    var dim_inc = 0;
     conv_res.forEach(function(f, idx0) {
         f.forEach(function(v, idx1) {
             v.forEach(function(entry, idx2) {
                 var prev = [];
-                for (var i = idx1; i < idx1+FILTER_X_SIZE; i++) {
+                for (var i = idx1; i < idx1+FILTER_X_SIZE+dim_inc; i++) {
                     for (var j = idx2; j<idx2+FILTER_Y_SIZE; j++) {
                         prev.push([0, 0, i, j]);
                     }
@@ -164,6 +165,7 @@ function build_prev_dict(input, conv_res, args, polling_res, output) {
                 prev_dict[1][idx0][idx1][idx2] = prev;
             });
         });
+        dim_inc++;
     });
 
     // polling
