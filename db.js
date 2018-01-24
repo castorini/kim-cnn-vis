@@ -8,7 +8,7 @@ function indexedDBOk() {
 function initializeDB() {
   if (!indexedDBOk) return;
 
-  var openRequest = indexedDB.open("index", 3);
+  var openRequest = indexedDB.open("index", 5);
 
   openRequest.onupgradeneeded = function (e) {
     var thisDB = e.target.result;
@@ -17,8 +17,24 @@ function initializeDB() {
       thisDB.createObjectStore("wordvecs");
     }
 
-    if (!thisDB.objectStoreNames.contains("weights")) {
-      thisDB.createObjectStore("weights");
+    if (!thisDB.objectStoreNames.contains("wordvecslarge")) {
+      thisDB.createObjectStore("wordvecslarge");
+    }
+
+    if (!thisDB.objectStoreNames.contains("weights_3")) {
+      thisDB.createObjectStore("weights_3");
+    }
+
+    if (!thisDB.objectStoreNames.contains("weights_4")) {
+      thisDB.createObjectStore("weights_4");
+    }
+
+    if (!thisDB.objectStoreNames.contains("weights_5")) {
+      thisDB.createObjectStore("weights_5");
+    }
+
+    if (!thisDB.objectStoreNames.contains("bias")) {
+      thisDB.createObjectStore("bias");
     }
 
     if (!thisDB.objectStoreNames.contains("dataset")) {

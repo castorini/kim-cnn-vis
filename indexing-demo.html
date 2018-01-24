@@ -20,7 +20,10 @@
 <script type="text/javascript" src="db.js"></script>
 <script type="text/javascript" src="index.js"></script>
 <script type="text/javascript" src="word2vec.js"></script></script>
-<script type="text/javascript" src="weights.js"></script></script>
+<script type="text/javascript" src="word2vec_large.js"></script></script>
+<script type="text/javascript" src="weights_3.js"></script></script>
+<script type="text/javascript" src="weights_4.js"></script></script>
+<script type="text/javascript" src="weights_5.js"></script></script>
 <script type="text/javascript" src="dataset.js"></script></script>
 
 <script>
@@ -41,20 +44,71 @@ function statsButton(e) {
   }
 }
 
-function weightStatsButton(e) {
+function statsLargeButton(e) {
+  console.log("Getting stats...");
+
+  try{
+    var request1 = db.transaction(["wordvecslarge"], "readonly")
+                     .objectStore("wordvecslarge").count();
+
+    request1.onsuccess = function(e) {
+      console.log("Total number of word vector: " + e.target.result);
+      document.getElementById('wordVecsLarge').innerHTML = e.target.result;
+    }
+  } catch (e) {
+    console.log("Error opening index!");
+    document.getElementById('wordVecsLarge').innerHTML = 0;
+  }
+}
+
+function weight3StatsButton(e) {
   console.log("Getting weight stats...");
 
   try{
-    var request1 = db.transaction(["weights"], "readonly")
-                     .objectStore("weights").count();
+    var request1 = db.transaction(["weights_3"], "readonly")
+                     .objectStore("weights_3").count();
 
     request1.onsuccess = function(e) {
       console.log("Total number of weights: " + e.target.result);
-      document.getElementById('weights').innerHTML = e.target.result;
+      document.getElementById('weights_3').innerHTML = e.target.result;
     }
   } catch (e) {
     console.log("Error opening weights!");
-    document.getElementById('weights').innerHTML = 0;
+    document.getElementById('weights_3').innerHTML = 0;
+  }
+}
+
+function weight4StatsButton(e) {
+  console.log("Getting weight stats...");
+
+  try{
+    var request1 = db.transaction(["weights_4"], "readonly")
+                     .objectStore("weights_4").count();
+
+    request1.onsuccess = function(e) {
+      console.log("Total number of weights: " + e.target.result);
+      document.getElementById('weights_4').innerHTML = e.target.result;
+    }
+  } catch (e) {
+    console.log("Error opening weights!");
+    document.getElementById('weights_4').innerHTML = 0;
+  }
+}
+
+function weight5StatsButton(e) {
+  console.log("Getting weight stats...");
+
+  try{
+    var request1 = db.transaction(["weights_5"], "readonly")
+                     .objectStore("weights_5").count();
+
+    request1.onsuccess = function(e) {
+      console.log("Total number of weights: " + e.target.result);
+      document.getElementById('weights_5').innerHTML = e.target.result;
+    }
+  } catch (e) {
+    console.log("Error opening weights!");
+    document.getElementById('weights_5').innerHTML = 0;
   }
 }
 
@@ -98,7 +152,30 @@ function deleteIndex() {
   initializeDB.apply();
 }
 
-function deleteWeight() {
+function deleteLargeIndex() {
+  // An important item to be a aware of is the promise that is returned
+  // from the deleteDatabase method will not complete until all the other
+  // connections to the database are closed.
+
+  db.close();
+
+  console.log("Deleting large index...");
+
+  var DBDeleteRequest = indexedDB.deleteDatabase("index");
+    DBDeleteRequest.onerror = function(event) {
+    console.log("Error deleting index.");
+  };
+
+  DBDeleteRequest.onsuccess = function(event) {
+    console.log("Index deleted successfully");
+    document.getElementById('wordVecsLarge').innerHTML = 0;
+  };
+
+  // reinitialize in case user wants to re-index again.
+  initializeDB.apply();
+}
+
+function deleteWeight3() {
   // An important item to be a aware of is the promise that is returned
   // from the deleteDatabase method will not complete until all the other
   // connections to the database are closed.
@@ -114,7 +191,53 @@ function deleteWeight() {
 
   DBDeleteRequest.onsuccess = function(event) {
     console.log("Weights deleted successfully");
-    document.getElementById('weights').innerHTML = 0;
+    document.getElementById('weights_3').innerHTML = 0;
+  };
+
+  // reinitialize in case user wants to re-index again.
+  initializeDB.apply();
+}
+
+function deleteWeight4() {
+  // An important item to be a aware of is the promise that is returned
+  // from the deleteDatabase method will not complete until all the other
+  // connections to the database are closed.
+
+  db.close();
+
+  console.log("Deleting weights...");
+
+  var DBDeleteRequest = indexedDB.deleteDatabase("index");
+    DBDeleteRequest.onerror = function(event) {
+    console.log("Error deleting weights.");
+  };
+
+  DBDeleteRequest.onsuccess = function(event) {
+    console.log("Weights deleted successfully");
+    document.getElementById('weights_4').innerHTML = 0;
+  };
+
+  // reinitialize in case user wants to re-index again.
+  initializeDB.apply();
+}
+
+function deleteWeight5() {
+  // An important item to be a aware of is the promise that is returned
+  // from the deleteDatabase method will not complete until all the other
+  // connections to the database are closed.
+
+  db.close();
+
+  console.log("Deleting weights...");
+
+  var DBDeleteRequest = indexedDB.deleteDatabase("index");
+    DBDeleteRequest.onerror = function(event) {
+    console.log("Error deleting weights.");
+  };
+
+  DBDeleteRequest.onsuccess = function(event) {
+    console.log("Weights deleted successfully");
+    document.getElementById('weights_5').innerHTML = 0;
   };
 
   // reinitialize in case user wants to re-index again.
@@ -171,7 +294,34 @@ function indexButton() {
   indexer.index(word2vec);
 }
 
-function weightButton() {
+function indexLargeButton() {
+  console.log("Starting to index large...");
+  document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>Starting to index large...</div>";
+
+  var updateMessageHandler = {
+    update: function(startTime, currentTime, i) {
+      console.log("Indexed " + i + " documents: Elapsed time = " + (currentTime - startTime) + "ms");
+      document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>Indexed " + i + " documents: Elapsed time = " + (currentTime - startTime) + " ms</div>";
+    },
+
+    finished: function(startTime, currentTime, i) {
+      console.log("Number of docs indexed: " + i);
+      console.log("Indexing time: " + (currentTime - startTime) + "ms");
+      document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Indexing Complete!</strong> " + i + " documents indexed in " + (currentTime - startTime) + " ms.</div>";
+      statsButton();
+    },
+
+    error: function(e) {
+      console.log("Error", e.target.error.name);
+      document.getElementById('message').innerHTML = "<div class='alert alert-danger alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Error!</strong> Does an index already exist? If so, please delete old index first. (Also try refreshing the page.)</div>";
+    }
+  };
+
+  indexer.setWordvecsLargeMessageHandler(updateMessageHandler);
+  indexer.index_large(word2veclarge);
+}
+
+function weight3Button() {
   console.log("Starting to get weights...");
   document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>Starting to get weights...</div>";
 
@@ -194,8 +344,62 @@ function weightButton() {
     }
   };
 
-  indexer.setWeightsMessageHandler(updateMessageHandler);
-  indexer.getWeights(weights);
+  indexer.setWeights3MessageHandler(updateMessageHandler);
+  indexer.getWeights(weights_3, 3);
+}
+
+function weight4Button() {
+  console.log("Starting to get weights...");
+  document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>Starting to get weights...</div>";
+
+  var updateMessageHandler = {
+    update: function(startTime, currentTime, i) {
+      console.log("Indexed " + i + " documents: Elapsed time = " + (currentTime - startTime) + "ms");
+      document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>Indexed " + i + " documents: Elapsed time = " + (currentTime - startTime) + " ms</div>";
+    },
+
+    finished: function(startTime, currentTime, i) {
+      console.log("Number of docs indexed: " + i);
+      console.log("Indexing time: " + (currentTime - startTime) + "ms");
+      document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Indexing Complete!</strong> " + i + " documents indexed in " + (currentTime - startTime) + " ms.</div>";
+      statsButton();
+    },
+
+    error: function(e) {
+      console.log("Error", e.target.error.name);
+      document.getElementById('message').innerHTML = "<div class='alert alert-danger alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Error!</strong> Does an index already exist? If so, please delete old index first. (Also try refreshing the page.)</div>";
+    }
+  };
+
+  indexer.setWeights4MessageHandler(updateMessageHandler);
+  indexer.getWeights(weights_4, 4);
+}
+
+function weight5Button() {
+  console.log("Starting to get weights...");
+  document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>Starting to get weights...</div>";
+
+  var updateMessageHandler = {
+    update: function(startTime, currentTime, i) {
+      console.log("Indexed " + i + " documents: Elapsed time = " + (currentTime - startTime) + "ms");
+      document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>Indexed " + i + " documents: Elapsed time = " + (currentTime - startTime) + " ms</div>";
+    },
+
+    finished: function(startTime, currentTime, i) {
+      console.log("Number of docs indexed: " + i);
+      console.log("Indexing time: " + (currentTime - startTime) + "ms");
+      document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Indexing Complete!</strong> " + i + " documents indexed in " + (currentTime - startTime) + " ms.</div>";
+      statsButton();
+    },
+
+    error: function(e) {
+      console.log("Error", e.target.error.name);
+      document.getElementById('message').innerHTML = "<div class='alert alert-danger alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Error!</strong> Does an index already exist? If so, please delete old index first. (Also try refreshing the page.)</div>";
+    }
+  };
+
+  indexer.setWeights5MessageHandler(updateMessageHandler);
+  indexer.getWeights(weights_5, 5);
 }
 
 function datasetButton() {
@@ -301,9 +505,24 @@ indexing progress in the JavaScript console. After that, click the
 <button id="deleteIndex" onclick="deleteIndex()">Delete index</button>
 </p>
 <p>
-<button id="weightButton" onclick="weightButton()">Load Weights</button>
-<button id="weightStatsButton" onclick="weightStatsButton()">Get Weights Stats</button>
-<button id="deleteWeight" onclick="deleteWeight()">Delete Weights</button>
+<button id="indexLargeButton" onclick="indexLargeButton()">Build Large Index</button>
+<button id="statsLargeButton" onclick="statsLargeButton()">Get Large Index Stats</button>
+<button id="deleteLargeIndex" onclick="deleteLargeIndex()">Delete Large Index</button>
+</p>
+<p>
+<button id="weight3Button" onclick="weight3Button()">Load Weights(3)</button>
+<button id="weight3StatsButton" onclick="weight3StatsButton()">Get Weights(3) Stats</button>
+<button id="deleteWeight3" onclick="deleteWeight3()">Delete Weights</button>
+</p>
+<p>
+<button id="weight4Button" onclick="weight4Button()">Load Weights(4)</button>
+<button id="weight4StatsButton" onclick="weight4StatsButton()">Get Weights(4) Stats</button>
+<button id="deleteWeight4" onclick="deleteWeight4()">Delete Weights</button>
+</p>
+<p>
+<button id="weight5Button" onclick="weight5Button()">Load Weights(5)</button>
+<button id="weight5StatsButton" onclick="weight5StatsButton()">Get Weights(5) Stats</button>
+<button id="deleteWeight5" onclick="deleteWeight5()">Delete Weights</button>
 </p>
 <p>
 <button id="datasetButton" onclick="datasetButton()">Load Dataset</button>
@@ -317,7 +536,10 @@ indexing progress in the JavaScript console. After that, click the
 
 <table class="table">
 <tr><td>Number of Word Vectors</td><td><div id="wordVecs"></div></td></tr>
-<tr><td>Number of Weights</td><td><div id="weights"></div></td></tr>
+<tr><td>Number of Word Vectors(300)</td><td><div id="wordVecsLarge"></div></td></tr>
+<tr><td>Number of Weights(3)</td><td><div id="weights_3"></div></td></tr>
+<tr><td>Number of Weights(4)</td><td><div id="weights_4"></div></td></tr>
+<tr><td>Number of Weights(5)</td><td><div id="weights_5"></div></td></tr>
 <tr><td>Number of Sentences</td><td><div id="dataset"></div></td></tr>
 </table>
 

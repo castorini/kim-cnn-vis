@@ -2,7 +2,7 @@
 // used for node.js
 // var nj = require('numjs');
 
-const VECTOR_LENGTH = 50;
+const VECTOR_LENGTH = 300;
 
 var filters = [[[0.01, 0.02],[0.03, 0.04],[0.05, 0.06]],
                 [[-0.15,0.16],[0.2, -0.21],[-0.25,0.26],[0.3, -0.31]],
@@ -29,8 +29,8 @@ function build_input(results) {
 }
 
 // change this, need to use a different filter to convolve on each 3*300
-function conv(input) {
-    return filters.map(filter => nj.convolve(input, filter).tolist());
+function conv(input, weights) {
+    return weights.map(weight => nj.convolve(input, weight).tolist());
     // nj.add(nj.dot(w,z),b)
 }
 
@@ -82,15 +82,14 @@ function get_filters(i) {
 
 }*/
 
-function display_conv(results, query) {
+function display_conv(results, query, weights) {
     if (query.length < 5) {
         clean_up();
         return;
     }
-    // get_filters(0);
 
     var input = build_input(results);
-    var conv_res = conv(input);
+    var conv_res = conv(input, weights);
 
     var args, polling_res;
     [args, polling_res] = max_polling(conv_res);

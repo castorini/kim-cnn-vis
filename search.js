@@ -5,9 +5,10 @@ var searcher = (function () {
   var resultsWordvecs;
   var sentResults;
   var sentence;
+  var weight
 
   var startTime;
-  var i = 0;
+  var index = 0;
 
   function wordvecSearchInit(callback, i) {
     if (i == queryTerms.length) {
@@ -33,34 +34,14 @@ var searcher = (function () {
 
   }
 
-  function getithSentence(callback) {
-    var cursor = db.transaction(["dataset"], "readonly")
-      .objectStore("dataset")
-      .openCursor(i);
-
-    cursor.onsuccess = function (e) {
-      var res = e.target.result;
-      if (res) {
-        sentence = res.value.comment;
-        console.log(sentence);
-        callback(sentence);
-        i++;
-      } else {
-        console.log("No more sentences");
-        i = 0;
-        getithSentence(callback);
-      }
-    };
-  }
-
-  function sentenceSearchInit(callback, i) {
+  function wordvecLargeSearchInit(callback, i) {
     if (i == phrases.length) {
       callback(sentResults);
       return;
     }
 
-    var cursor = db.transaction(["wordvecs"], "readonly")
-      .objectStore("wordvecs")
+    var cursor = db.transaction(["wordvecslarge"], "readonly")
+      .objectStore("wordvecslarge")
       .openCursor(phrases[i]);
 
     cursor.onsuccess = function (e) {
@@ -69,9 +50,50 @@ var searcher = (function () {
         sentResults[sentResults.length] = Array(phrases[i], res.value);
         res.continue;
       } else {
+        console.log("Word2Vec not found for word: " + phrases[i]);
         sentResults[sentResults.length] = Array(phrases[i], Array());
       }
-      sentenceSearchInit(callback, i + 1);
+      wordvecLargeSearchInit(callback, i + 1);
+    };
+
+  }
+
+  function searchWeightsWithDim(callback, i, dim) {
+    var db_name = "weights_" + dim
+    var cursor = db.transaction([db_name], "readonly")
+      .objectStore(db_name)
+      .openCursor(i);
+
+    cursor.onsuccess = function (e) {
+      var res = e.target.result;
+      if (res) {
+        //weights[weights.length] = Array(res.value);
+        //console.log(weights[weights.length]);
+        callback(res.value);
+      } else {
+        //weights[weights.length] = Array();
+        callback(Array());
+      }
+    };
+  }
+
+  function getithSentence(callback) {
+    var cursor = db.transaction(["dataset"], "readonly")
+      .objectStore("dataset")
+      .openCursor(index);
+
+    cursor.onsuccess = function (e) {
+      var res = e.target.result;
+      if (res) {
+        sentence = res.value.comment;
+        console.log(sentence);
+        callback(sentence);
+        index++;
+      } else {
+        console.log("No more sentences");
+        index = 0;
+        getithSentence(callback);
+      }
     };
   }
 
@@ -82,6 +104,11 @@ var searcher = (function () {
       wordvecSearchInit(callbackWordvecs, 0);
     },
 
+    getWeights: function (dim, callback) {
+      weights = [];
+      searchWeightsWithDim(callback, 0, dim);
+    },
+
     getSentence: function (callback) {
       sentence = "";
       getithSentence(callback);
@@ -90,7 +117,7 @@ var searcher = (function () {
     showVecs: function (q, callback) {
       phrases = q;
       sentResults = Array();
-      sentenceSearchInit(callback, 0);
+      wordvecLargeSearchInit(callback, 0);
     },
 
     setNumDocs: function (n) {
