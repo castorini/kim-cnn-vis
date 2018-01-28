@@ -223,3 +223,68 @@ function show_network(words, input, filters, conv_res, args, polling_res, output
     svg.append("g").attr("id", "lines");
     build_prev_dict(input, conv_res, args, polling_res, output);
 }
+
+
+function display_ww(input) {
+    // clean up
+    clean_up();
+    render(d3.select(".sentences"), input);
+}
+
+function toColor3(v) {
+  // v is -1 to 1 initially
+  if(v > 0) {
+    var h = 200;
+    var s = "60%";
+    v = 1 - v;
+    v = v * 100;
+    var l = 100;
+    if (v > 90) {
+      l = 90;
+    } else if (v < 10) {
+      l = 40;
+    } else if (v >= 10 && v < 30) {
+      l = 50;
+    } else if (v >= 30 && v < 50) {
+      l = 60;
+    } else if (v >= 50 && v < 70) {
+      l = 70;
+    } else {
+      l = 80;
+    }
+    l += '%';
+  } else {
+    var h = 0;
+    var s = "60%";
+    v = -v;
+    v = 1 - v; // invert too
+    var l = (v * 100) + '%';
+  }
+  var s = sprintf('hsl(%d,%s,%s)', h,s,l);
+  return s;
+}
+
+function render(div, data) {
+  for (var i = 0; i < data.length; i++) {
+    var word = data[i][0];
+    var intensity = data[i][1];
+
+    var cole = toColor3(intensity);
+
+    var css = 'background-color:' + cole;
+
+    if(word == ' ') {
+      css += ';color:' + cole;
+    }
+    if(word == '\n') {
+      css += ';display:block;'
+      //div.append('br')
+    }
+    word += "&nbsp;&nbsp;";
+
+    var dnew = div.append('div');
+    dnew.attr('class', 'd')
+      .attr('style', css)
+      .html(word);
+  }
+}

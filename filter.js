@@ -17,7 +17,8 @@ function build_input(results) {
             // narraw random values down into range (-.25, .25]
             rmatrix = [];
             for (i = 0; i < VECTOR_LENGTH; i++) {
-                rmatrix.push((Math.random()-0.5)/2);
+                //rmatrix.push((Math.random()-0.5)/2);
+                rmatrix.push(0);
             }
             return rmatrix;
         }
@@ -30,12 +31,37 @@ function build_input(results) {
 
 // change this, need to use a different filter to convolve on each 3*300
 function conv(input, weights, bias) {
+    var padding = [];
+    for(var i = 0, value = 0, size = 300, array = new Array(300); i < size; i++) {
+      padding[i] = value;
+    }
     var result = [];
     var k = 0;
+    var paddedInput = [];
+
+    for (var i = 0; i < input.length; i++) {
+      paddedInput[i] = input[i];
+    }
     for (var i = 0; i < weights.length; i++) {  // 3
       result[i] = [];
+      if (i == 0) {
+        paddedInput.unshift(padding);
+        paddedInput.unshift(padding);
+        paddedInput.push(padding);
+        paddedInput.push(padding);
+      } else if (i == 1) {
+        paddedInput.unshift(padding);
+        paddedInput.push(padding);
+      } else if (i == 2) {
+        paddedInput.unshift(padding);
+        paddedInput.push(padding);
+      }
+
       for (var j = 0; j < weights[i].length; j++) { // 100
-        result[i][j] = nj.add(nj.convolve(input, weights[i][j]), bias[i][j]).tolist()
+        result[i][j] = nj.add(nj.convolve(paddedInput, weights[i][j]), bias[i][j]).tolist()
+        if (result[i][j] < 0) {
+          result[i][j] = 0;
+        }
       }
     }
     return result;
@@ -93,28 +119,99 @@ function fc1(input, weights, bias) {
 
 // y = w z + b;
 function soft_max(z) {
-  console.log("before softmax: " + z)
     return nj.softmax(z).tolist();
 }
-/*
-function get_filters(i) {
-  var cursor = db.transaction(["weights"], "readonly")
-    .objectStore("weights")
-    .openCursor(i);
 
-  cursor.onsuccess = function (e) {
-    var res = e.target.result;
-    if (res) {
-      filters[filters.length] = res.value;
-      res.continue;
-    } else {
-      console.log("Finished iterating");
-      return;
+
+// where the max comes from [i, j]
+function get_max(input) {
+    // console.log(input);
+    if (input.length <= 0 || input[0].length <= 0) {
+        return -1;
     }
-    get_filters(i + 1);
-  };
+    var max = input[0][0];
+    var ans = [max, 0];
+    for (var i = 0; i<input.length; i++) {
+        if (input[i][0] > max) {
+            max = input[i][0];
+            ans = [max, i];
+        }
+    }
+    return ans;
+}
 
-}*/
+function filter_max_index(max_poll) {
+  var res = [];
+  for (var dim = 0; dim < max_poll.length; dim++) { // 3
+    res[dim] = [];
+    for (var c = 0; c < max_poll[dim][0].length; c++) { // 100
+      res[dim][c] = max_poll[dim][0][c][0];
+    }
+  }
+  return res;
+}
+
+function filter_max_weight(max_poll) {
+  var res = [];
+  for (var dim = 0; dim < max_poll.length; dim++) { // 3
+    res[dim] = [];
+    for (var c = 0; c < max_poll[dim][0].length; c++) { // 100
+      res[dim][c] = max_poll[dim][1][c][0];
+    }
+  }
+  return res;
+}
+
+function contribution(max_poll, index) {
+  var res = [];
+  for (var dim = 0; dim < 3; dim++) {
+    res[dim] = [];
+    for (var c = 0; c < 100; c++) {
+      var max = max_poll[dim][1][c][0];
+      var i = 1;
+      res[dim][c] = max*i;
+    }
+  }
+
+  return res;
+}
+
+function analyze(query, max_poll, fc1_res, output) {
+  // init
+  var res = Array(query.length);
+  for (var i = 0; i < query.length; i++) {
+    res[i] = 0;
+  }
+  // get weights
+  var [max, index] = get_max(output);
+  var cont = contribution(max_poll, index) // [ [100],[100],[100] ]
+  var matchedIndex = filter_max_index(max_poll);
+  var matchedWeight = filter_max_weight(max_poll);
+  for (var i = 0; i < matchedIndex.length; i++) { // 3
+    for (var j = 0; j < matchedIndex[i].length; j++) {  // 100
+      var idx = matchedIndex[i][j];
+      if (i == 0) {
+        idx -= 2;
+      } else if (i == 1) {
+        idx -= 3;
+      } else {
+        idx -= 4;
+      }
+      var w = matchedWeight[i][j];
+      var dim = i+3;
+      for (var k = 0; k < dim; k++) {
+        if (idx+k < 0 || idx+k >= query.length) {
+          continue;
+        }
+        res[idx+k] += w;
+      }
+    }
+  }
+  console.log(query);
+  console.log(res)
+  console.log(soft_max(res));
+  return soft_max(res);
+}
 
 function display_conv(results, query, weights, bias, weights_fc1, bias_fc1) {
     if (query.length < 5) {
@@ -130,16 +227,21 @@ function display_conv(results, query, weights, bias, weights_fc1, bias_fc1) {
     // console.log(max_poll_res[0][1]) -> max polling res of 3 dim filter, 100 max values
     // console.log(args);
     var max_poll_res_real = [max_poll_res[0][1], max_poll_res[1][1], max_poll_res[2][1]];
+
     var fc1_res = fc1(max_poll_res_real, weights_fc1, bias_fc1);
     var output = soft_max(fc1_res);
     console.log(output)
     show_gradient_indicator();
 
-    var temp_weights = [weights[0][0], weights[1][0], weights[2][0]];
-    var temp_conv_res = [conv_res[0][0], conv_res[1][0], conv_res[2][0]];
-    var temp_args = [max_poll_res[0][0][0], max_poll_res[1][0][0], max_poll_res[2][0][0]];
-    var temp_polling_res = [max_poll_res_real[0][0], max_poll_res_real[1][0], max_poll_res_real[2][0]];
+    var ww = analyze(query, max_poll_res, fc1_res, output);
+    var highlight = [];
+    for (var i = 0; i < query.length; i++) {
+      highlight[highlight.length] = [query[i], ww[i]];
+      //highlight[highlight.length] = [' ', 0];
+    }
+    highlight[highlight.length] = ['\n', 0];
+    console.log(highlight)
+    display_ww(highlight);
 
-    show_network(query, input, temp_weights, temp_conv_res, temp_args, temp_polling_res, output);
     return output;
 }
