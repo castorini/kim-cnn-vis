@@ -33,6 +33,10 @@ function initializeDB() {
       thisDB.createObjectStore("weights_5");
     }
 
+    if (!thisDB.objectStoreNames.contains("weights_fc1")) {
+      thisDB.createObjectStore("weights_fc1");
+    }
+
     if (!thisDB.objectStoreNames.contains("bias_3")) {
       thisDB.createObjectStore("bias_3");
     }
@@ -43,6 +47,10 @@ function initializeDB() {
 
     if (!thisDB.objectStoreNames.contains("bias_5")) {
       thisDB.createObjectStore("bias_5");
+    }
+
+    if (!thisDB.objectStoreNames.contains("bias_fc1")) {
+      thisDB.createObjectStore("bias_fc1");
     }
 
     if (!thisDB.objectStoreNames.contains("dataset")) {

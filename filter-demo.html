@@ -60,35 +60,42 @@ function searchButton() {
 }
 
 function nextButton() {
-  searcher.getBias(3, function(bias_3) {
-    searcher.getBias(4, function(bias_4) {
-      searcher.getBias(5, function(bias_5) {
 
-        searcher.getWeights(3, function(weights_3) {
-          searcher.getWeights(4, function(weights_4) {
-            searcher.getWeights(5, function(weights_5) {
+  searcher.getSentence(function(sentence) {
+    var q = sentence.split(" ");
 
-              searcher.getSentence(function(sentence) {
-                var q = sentence.split(" ");
+    q = q.map(function(x) { return x.toLowerCase()})
+             .filter(function(x) { return x.length > 0 ? true : false; });
 
-                q = q.map(function(x) { return x.toLowerCase()})
-                         .filter(function(x) { return x.length > 0 ? true : false; });
+    searcher.getBias("bias_3", function(bias_3) {
+       searcher.getBias("bias_4", function(bias_4) {
+         searcher.getBias("bias_5", function(bias_5) {
 
-                var weights = Array(weights_3, weights_4, weights_5);
-                var bias = Array(bias_3, bias_4, bias_5);
+           searcher.getWeights("weights_3", function(weights_3) {
+             searcher.getWeights("weights_4", function(weights_4) {
+               searcher.getWeights("weights_5", function(weights_5) {
 
-                searcher.showVecs(q, function(results) {
-                  display_conv(results, q, weights, bias);
+                  searcher.getBias("bias_fc1", function(bias_fc1) {
+                    searcher.getWeights("weights_fc1", function(weights_fc1) {
+                      var weights = Array(weights_3, weights_4, weights_5);
+                      var bias = Array(bias_3, bias_4, bias_5);
+
+                      searcher.showVecs(q, function(results) {
+                        display_conv(results, q, weights, bias, weights_fc1, bias_fc1);
+                      })
+                    })
+                  })
+
                 })
               })
-
             })
-          })
-        })
 
-      })
-    })
+         })
+       })
+     })
+
   })
+
 }
 
 </script>

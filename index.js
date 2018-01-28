@@ -4,9 +4,11 @@ var indexer = (function () {
   var weights3MessageHandler = {};
   var weights4MessageHandler = {};
   var weights5MessageHandler = {};
+  var weightsfc1MessageHandler = {};
   var bias3MessageHandler = {};
   var bias4MessageHandler = {};
   var bias5MessageHandler = {};
+  var biasfc1MessageHandler = {};
   var datasetMessageHandler = {};
   var numTokens = 0;
   var startTime;
@@ -24,8 +26,10 @@ var indexer = (function () {
         weights3MessageHandler.update(startTime, new Date().getTime(), i);
       } else if (cur_dim == 4) {
         weights4MessageHandler.update(startTime, new Date().getTime(), i);
-      } else {
+      } else if (cur_dim == 5){
         weights5MessageHandler.update(startTime, new Date().getTime(), i);
+      } else {
+        weightsfc1MessageHandler.update(startTime, new Date().getTime(), i);
       }
     }
 
@@ -45,8 +49,10 @@ var indexer = (function () {
         weights3MessageHandler.error(e);
       } else if (cur_dim == 4) {
         weights4MessageHandler.error(e);
-      } else {
+      } else if (cur_dim == 5) {
         weights5MessageHandler.error(e);
+      } else {
+        weightsfc1MessageHandler.error(e);
       }
     }
 
@@ -61,8 +67,10 @@ var indexer = (function () {
         bias3MessageHandler.update(startTime, new Date().getTime(), i);
       } else if (cur_dim == 4) {
         bias4MessageHandler.update(startTime, new Date().getTime(), i);
-      } else {
+      } else if (cur_dim == 5) {
         bias5MessageHandler.update(startTime, new Date().getTime(), i);
+      } else {
+        biasfc1MessageHandler.update(startTime, new Date().getTime(), i);
       }
     }
 
@@ -82,8 +90,10 @@ var indexer = (function () {
         bias3MessageHandler.error(e);
       } else if (cur_dim == 4) {
         bias4MessageHandler.error(e);
-      } else {
+      } else if (cur_dim == 5) {
         bias5MessageHandler.error(e);
+      } else {
+        biasfc1MessageHandler.error(e);
       }
     }
 
@@ -185,6 +195,10 @@ var indexer = (function () {
       weights5MessageHandler = h;
     },
 
+    setWeightsfc1MessageHandler: function(h) {
+      weightsfc1MessageHandler = h;
+    },
+
     setBias3MessageHandler: function(h) {
       bias3MessageHandler = h;
     },
@@ -195,6 +209,10 @@ var indexer = (function () {
 
     setBias5MessageHandler: function(h) {
       bias5MessageHandler = h;
+    },
+
+    setBiasfc1MessageHandler: function(h) {
+      biasfc1MessageHandler = h;
     },
 
     setDatasetMessageHandler: function(h) {

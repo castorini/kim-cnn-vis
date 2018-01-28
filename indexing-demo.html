@@ -27,6 +27,8 @@
 <script type="text/javascript" src="parameters/bias_3.js"></script></script>
 <script type="text/javascript" src="parameters/bias_4.js"></script></script>
 <script type="text/javascript" src="parameters/bias_5.js"></script></script>
+<script type="text/javascript" src="parameters/fc1_weights.js"></script></script>
+<script type="text/javascript" src="parameters/fc1_bias.js"></script></script>
 <script type="text/javascript" src="parameters/dataset.js"></script></script>
 
 <script>
@@ -115,6 +117,23 @@ function weight5StatsButton(e) {
   }
 }
 
+function weightfc1StatsButton(e) {
+  console.log("Getting weight stats...");
+
+  try{
+    var request1 = db.transaction(["weights_fc1"], "readonly")
+                     .objectStore("weights_fc1").count();
+
+    request1.onsuccess = function(e) {
+      console.log("Total number of weights: " + e.target.result);
+      document.getElementById('weights_fc1').innerHTML = e.target.result;
+    }
+  } catch (e) {
+    console.log("Error opening weights!");
+    document.getElementById('weights_fc1').innerHTML = 0;
+  }
+}
+
 function bias3StatsButton(e) {
   console.log("Getting bias stats...");
 
@@ -163,6 +182,23 @@ function bias5StatsButton(e) {
   } catch (e) {
     console.log("Error opening bias!");
     document.getElementById('bias_5').innerHTML = 0;
+  }
+}
+
+function biasfc1StatsButton(e) {
+  console.log("Getting bias stats...");
+
+  try{
+    var request1 = db.transaction(["bias_fc1"], "readonly")
+                     .objectStore("bias_fc1").count();
+
+    request1.onsuccess = function(e) {
+      console.log("Total number of bias: " + e.target.result);
+      document.getElementById('bias_fc1').innerHTML = e.target.result;
+    }
+  } catch (e) {
+    console.log("Error opening bias!");
+    document.getElementById('bias_fc1').innerHTML = 0;
   }
 }
 
@@ -298,6 +334,29 @@ function deleteWeight5() {
   initializeDB.apply();
 }
 
+function deleteWeightfc1() {
+  // An important item to be a aware of is the promise that is returned
+  // from the deleteDatabase method will not complete until all the other
+  // connections to the database are closed.
+
+  db.close();
+
+  console.log("Deleting weights...");
+
+  var DBDeleteRequest = indexedDB.deleteDatabase("index");
+    DBDeleteRequest.onerror = function(event) {
+    console.log("Error deleting weights.");
+  };
+
+  DBDeleteRequest.onsuccess = function(event) {
+    console.log("Weights deleted successfully");
+    document.getElementById('weights_fc1').innerHTML = 0;
+  };
+
+  // reinitialize in case user wants to re-index again.
+  initializeDB.apply();
+}
+
 // bias
 function deleteBias3() {
   // An important item to be a aware of is the promise that is returned
@@ -362,6 +421,29 @@ function deleteBias5() {
   DBDeleteRequest.onsuccess = function(event) {
     console.log("Weights deleted successfully");
     document.getElementById('bias_5').innerHTML = 0;
+  };
+
+  // reinitialize in case user wants to re-index again.
+  initializeDB.apply();
+}
+
+function deleteBiasfc1() {
+  // An important item to be a aware of is the promise that is returned
+  // from the deleteDatabase method will not complete until all the other
+  // connections to the database are closed.
+
+  db.close();
+
+  console.log("Deleting bias...");
+
+  var DBDeleteRequest = indexedDB.deleteDatabase("index");
+    DBDeleteRequest.onerror = function(event) {
+    console.log("Error deleting weights.");
+  };
+
+  DBDeleteRequest.onsuccess = function(event) {
+    console.log("Weights deleted successfully");
+    document.getElementById('bias_fc1').innerHTML = 0;
   };
 
   // reinitialize in case user wants to re-index again.
@@ -526,6 +608,33 @@ function weight5Button() {
   indexer.getWeights(weights_5, 5);
 }
 
+function weightfc1Button() {
+  console.log("Starting to get weights...");
+  document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>Starting to get weights...</div>";
+
+  var updateMessageHandler = {
+    update: function(startTime, currentTime, i) {
+      console.log("Indexed " + i + " documents: Elapsed time = " + (currentTime - startTime) + "ms");
+      document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>Indexed " + i + " documents: Elapsed time = " + (currentTime - startTime) + " ms</div>";
+    },
+
+    finished: function(startTime, currentTime, i) {
+      console.log("Number of docs indexed: " + i);
+      console.log("Indexing time: " + (currentTime - startTime) + "ms");
+      document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Indexing Complete!</strong> " + i + " documents indexed in " + (currentTime - startTime) + " ms.</div>";
+      statsButton();
+    },
+
+    error: function(e) {
+      console.log("Error", e.target.error.name);
+      document.getElementById('message').innerHTML = "<div class='alert alert-danger alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Error!</strong> Does an index already exist? If so, please delete old index first. (Also try refreshing the page.)</div>";
+    }
+  };
+
+  indexer.setWeightsfc1MessageHandler(updateMessageHandler);
+  indexer.getWeights(fc1_weights, "fc1");
+}
+
 // bias
 function bias3Button() {
   console.log("Starting to get bias...");
@@ -606,6 +715,33 @@ function bias5Button() {
 
   indexer.setBias5MessageHandler(updateMessageHandler);
   indexer.getBias(bias_5, 5);
+}
+
+function biasfc1Button() {
+  console.log("Starting to get weights...");
+  document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>Starting to get weights...</div>";
+
+  var updateMessageHandler = {
+    update: function(startTime, currentTime, i) {
+      console.log("Indexed " + i + " documents: Elapsed time = " + (currentTime - startTime) + "ms");
+      document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>Indexed " + i + " documents: Elapsed time = " + (currentTime - startTime) + " ms</div>";
+    },
+
+    finished: function(startTime, currentTime, i) {
+      console.log("Number of docs indexed: " + i);
+      console.log("Indexing time: " + (currentTime - startTime) + "ms");
+      document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Indexing Complete!</strong> " + i + " documents indexed in " + (currentTime - startTime) + " ms.</div>";
+      statsButton();
+    },
+
+    error: function(e) {
+      console.log("Error", e.target.error.name);
+      document.getElementById('message').innerHTML = "<div class='alert alert-danger alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Error!</strong> Does an index already exist? If so, please delete old index first. (Also try refreshing the page.)</div>";
+    }
+  };
+
+  indexer.setBiasfc1MessageHandler(updateMessageHandler);
+  indexer.getBias(fc1_bias, "fc1");
 }
 
 function datasetButton() {
@@ -731,6 +867,11 @@ indexing progress in the JavaScript console. After that, click the
 <button id="deleteWeight5" onclick="deleteWeight5()">Delete Weights</button>
 </p>
 <p>
+<button id="weightfc1Button" onclick="weightfc1Button()">Load Weights(fc1)</button>
+<button id="weightfc1StatsButton" onclick="weightfc1StatsButton()">Get Weights(fc1) Stats</button>
+<button id="deleteWeightfc1" onclick="deleteWeightfc1()">Delete Weights</button>
+</p>
+<p>
 <button id="bias3Button" onclick="bias3Button()">Load Bias(3)</button>
 <button id="bias3StatsButton" onclick="bias3StatsButton()">Get Bias(3) Stats</button>
 <button id="deleteBias3" onclick="deleteBias3()">Delete Bias</button>
@@ -744,6 +885,11 @@ indexing progress in the JavaScript console. After that, click the
 <button id="bias5Button" onclick="bias5Button()">Load Bias(5)</button>
 <button id="bias5StatsButton" onclick="bias5StatsButton()">Get Bias(5) Stats</button>
 <button id="deleteBias5" onclick="deleteBias5()">Delete Bias</button>
+</p>
+<p>
+<button id="biasfc1Button" onclick="biasfc1Button()">Load Bias(fc1)</button>
+<button id="biasfc1StatsButton" onclick="biasfc1StatsButton()">Get Bias(fc1) Stats</button>
+<button id="deleteBiasfc1" onclick="deleteBiasfc1()">Delete Bias</button>
 </p>
 <p>
 <button id="datasetButton" onclick="datasetButton()">Load Dataset</button>
@@ -761,9 +907,11 @@ indexing progress in the JavaScript console. After that, click the
 <tr><td>Number of Weights(3)</td><td><div id="weights_3"></div></td></tr>
 <tr><td>Number of Weights(4)</td><td><div id="weights_4"></div></td></tr>
 <tr><td>Number of Weights(5)</td><td><div id="weights_5"></div></td></tr>
+<tr><td>Number of Weights(fc1)</td><td><div id="weights_fc1"></div></td></tr>
 <tr><td>Number of Bias(3)</td><td><div id="bias_3"></div></td></tr>
 <tr><td>Number of Bias(4)</td><td><div id="bias_4"></div></td></tr>
 <tr><td>Number of Bias(5)</td><td><div id="bias_5"></div></td></tr>
+<tr><td>Number of Bias(fc1)</td><td><div id="bias_fc1"></div></td></tr>
 <tr><td>Number of Sentences</td><td><div id="dataset"></div></td></tr>
 </table>
 

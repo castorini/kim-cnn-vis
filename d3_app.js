@@ -217,7 +217,7 @@ function show_network(words, input, filters, conv_res, args, polling_res, output
     height = show_rect(polling_res, svg, x_offset, height + PADDING, "polling", 2, 0);
 
     // show output
-    x_offset = (width-(RECT_SIZE * 3))/ 2;  // b.size = 3
+    x_offset = (width-(RECT_SIZE * 6))/ 2;  // b.size = 3
     show_rect(output, svg, x_offset, height + PADDING, "output", 3, 0);
 
     svg.append("g").attr("id", "lines");
