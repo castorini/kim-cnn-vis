@@ -17,7 +17,7 @@ function build_input(results) {
             // narraw random values down into range (-.25, .25]
             rmatrix = [];
             for (i = 0; i < VECTOR_LENGTH; i++) {
-                rmatrix.push((Math.random()-0.5)/2);
+                rmatrix.push(0);
             }
             return rmatrix;
         }
@@ -30,12 +30,34 @@ function build_input(results) {
 
 // change this, need to use a different filter to convolve on each 3*300
 function conv(input, weights, bias) {
+    var padding = [];
+    for(var i = 0, value = 0, size = 300, array = new Array(300); i < size; i++) {
+      padding[i] = value;
+    }
     var result = [];
     var k = 0;
+    var paddedInput = [];
+
+    for (var i = 0; i < input.length; i++) {
+      paddedInput[i] = input[i];
+    }
     for (var i = 0; i < weights.length; i++) {  // 3
       result[i] = [];
+      if (i == 0) {
+        paddedInput.unshift(padding);
+        paddedInput.unshift(padding);
+        paddedInput.push(padding);
+        paddedInput.push(padding);
+      } else if (i == 1) {
+        paddedInput.unshift(padding);
+        paddedInput.push(padding);
+      } else if (i == 2) {
+        paddedInput.unshift(padding);
+        paddedInput.push(padding);
+      }
+
       for (var j = 0; j < weights[i].length; j++) { // 100
-        result[i][j] = nj.add(nj.convolve(input, weights[i][j]), bias[i][j]).tolist()
+        result[i][j] = nj.add(nj.convolve(paddedInput, weights[i][j]), bias[i][j]).tolist()
         if (result[i][j] < 0) {
           result[i][j] = 0;
         }
@@ -119,7 +141,7 @@ function get_filters(i) {
 
 }*/
 
-function display_conv(results, query, weights, bias, weights_fc1, bias_fc1) {
+function display_conv(label, results, query, weights, bias, weights_fc1, bias_fc1) {
     if (query.length < 5) {
         clean_up();
         return;

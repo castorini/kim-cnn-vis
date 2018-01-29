@@ -75,7 +75,7 @@ function searchButton() {
 
 function nextButton() {
 
-  searcher.getSentence(function(sentence) {
+  searcher.getSentence(function(sentence, label) {
     var q = sentence.split(" ");
 
     q = q.map(function(x) { return x.toLowerCase()})
@@ -95,7 +95,7 @@ function nextButton() {
                       var bias = Array(bias_3, bias_4, bias_5);
 
                       searcher.showVecs(q, function(results) {
-                        display_conv(results, q, weights, bias, weights_fc1, bias_fc1);
+                        display_conv(label, results, q, weights, bias, weights_fc1, bias_fc1);
                         nextButton();
                       })
                     })
@@ -164,9 +164,7 @@ p.wordvec {
 <p>The following demo searches word2vecs.
 Be sure to <a href="indexing-demo.html">build the index</a> first!</p>
 
-<input type="text" id="query" placeholder="query">
-<button id="searchButton" onclick="searchButton()">Search</button> (try "the" or "they")</p>
-<button id="nextButton" onclick="nextButton()">Next</button> </p>
+<button id="nextButton" onclick="nextButton()">Start</button> </p>
 
 <div id="results" style="padding-bottom: 50px">
   <div class="sentences"></div>

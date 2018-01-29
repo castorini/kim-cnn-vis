@@ -65,7 +65,7 @@ var searcher = (function () {
         sentResults[sentResults.length] = Array(phrases[i], res.value);
         res.continue;
       } else {
-        console.log("Word2Vec not found for word: " + phrases[i]);
+        // console.log("Word2Vec not found for word: " + phrases[i]);
         sentResults[sentResults.length] = Array(phrases[i], Array());
       }
       wordvecLargeSearchInit(callback, i + 1);
@@ -127,8 +127,8 @@ var searcher = (function () {
       var res = e.target.result;
       if (res) {
         sentence = res.value.comment;
-        console.log(sentence);
-        callback(sentence);
+        label = res.value.label;
+        callback(sentence, label);
         index++;
       } else {
         console.log("No more sentences");

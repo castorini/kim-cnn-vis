@@ -207,18 +207,30 @@ function analyze(query, max_poll, fc1_res, output) {
       }
     }
   }
-  console.log(query);
-  console.log(res)
-  console.log(soft_max(res));
+  //console.log(query);
+  //console.log(res)
+  //console.log(soft_max(res));
   return soft_max(res);
 }
 
-function display_conv(results, query, weights, bias, weights_fc1, bias_fc1) {
+function get_highest_prob(input) {
+  var max = input[0][0];
+  var idx = 0;
+  for (var i = 0; i < input.length; i++) {
+    if (input[i] > max) {
+      max = input[i][0];
+      idx = i;
+    }
+  }
+  return idx;
+}
+
+function display_conv(label, results, query, weights, bias, weights_fc1, bias_fc1) {
     if (query.length < 5) {
         clean_up();
         return;
     }
-
+    var L = [-1, 2, 3, 1, 4, 0];
     var input = build_input(results);
     var conv_res = conv(input, weights, bias);
 
@@ -230,18 +242,18 @@ function display_conv(results, query, weights, bias, weights_fc1, bias_fc1) {
 
     var fc1_res = fc1(max_poll_res_real, weights_fc1, bias_fc1);
     var output = soft_max(fc1_res);
-    console.log(output)
-    show_gradient_indicator();
+    var res_index = get_highest_prob(output);
+    var predictedLabel = L[res_index];
+    // console.log(output)
+    // show_gradient_indicator();
 
     var ww = analyze(query, max_poll_res, fc1_res, output);
     var highlight = [];
     for (var i = 0; i < query.length; i++) {
       highlight[highlight.length] = [query[i], ww[i]];
-      //highlight[highlight.length] = [' ', 0];
     }
     highlight[highlight.length] = ['\n', 0];
-    console.log(highlight)
-    display_ww(highlight);
+    display_ww(highlight, label, predictedLabel);
 
     return output;
 }

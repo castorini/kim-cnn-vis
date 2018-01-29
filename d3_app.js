@@ -225,10 +225,14 @@ function show_network(words, input, filters, conv_res, args, polling_res, output
 }
 
 
-function display_ww(input) {
+function display_ww(input, label, plabel) {
     // clean up
     clean_up();
-    render(d3.select(".sentences"), input);
+
+    var div = d3.select(".sentences");
+    var lnew = div.append('div');
+    lnew.attr('class', 'd').html(label + "&nbsp;&nbsp;/&nbsp;&nbsp;" + plabel + "&nbsp;&nbsp;");
+    render(div, input);
 }
 
 function toColor3(v) {
@@ -280,6 +284,7 @@ function render(div, data) {
       css += ';display:block;'
       //div.append('br')
     }
+
     word += "&nbsp;&nbsp;";
 
     var dnew = div.append('div');
