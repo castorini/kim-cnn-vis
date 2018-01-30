@@ -29,6 +29,23 @@ function build_input(results) {
     return ret;
 }
 
+function cconv(input, weight, bias, dim) {
+  var sum = [];
+  p = 0;
+  dim += 3;
+  for (var r = 0; r < input.length-dim+1; r++) {
+    sum[p] = 0;
+    for (var i = 0; i < 300; i++) {
+      sum[p] += input[r+0][i] * weight[0][i];
+      sum[p] += input[r+1][i] * weight[1][i];
+      sum[p] += input[r+2][i] * weight[2][i];
+    }
+    sum[p] += bias;
+    p++;
+  }
+  return sum;
+}
+
 // change this, need to use a different filter to convolve on each 3*300
 function conv(input, weights, bias) {
     var padding = [];
@@ -58,7 +75,8 @@ function conv(input, weights, bias) {
       }
 
       for (var j = 0; j < weights[i].length; j++) { // 100
-        result[i][j] = nj.add(nj.convolve(paddedInput, weights[i][j]), bias[i][j]).tolist()
+        // nj.add(nj.convolve(paddedInput, weights[i][j]), bias[i][j]).tolist()
+        result[i][j] = cconv(paddedInput, weights[i][j], bias[i][j], i);
         if (result[i][j] < 0) {
           result[i][j] = 0;
         }
@@ -225,6 +243,11 @@ function get_highest_prob(input) {
   return idx;
 }
 
+function round_and_fix(num, decimals) {
+  var t = Math.pow(10, decimals);
+  return (Math.round((num * t) + (decimals>0?1:0)*(Math.sign(num) * (10 / Math.pow(100, decimals)))) / t).toFixed(decimals);
+}
+
 function display_conv(label, results, query, weights, bias, weights_fc1, bias_fc1) {
     if (query.length < 5) {
         clean_up();
@@ -233,6 +256,7 @@ function display_conv(label, results, query, weights, bias, weights_fc1, bias_fc
     var L = [-1, 2, 3, 1, 4, 0];
     var input = build_input(results);
     var conv_res = conv(input, weights, bias);
+    console.log(conv_res[0][1])
 
     var args, polling_res;
     var max_poll_res = max_polling(conv_res); // [args, polling_res]

@@ -20,6 +20,13 @@ var indexer = (function () {
   var dataset;
   var cur_dim;
 
+  function round_and_fix(num) {
+    var decimals = 4;
+    var t = Math.pow(10, decimals);
+    var res = (Math.round((num * t) + (decimals>0?1:0)*(Math.sign(num) * (10 / Math.pow(100, decimals)))) / t).toFixed(decimals);
+    return parseFloat(res);
+  }
+
   function get_weights(i) {
     if (i != 0 && i % 100 == 0) {
       if (cur_dim == 3) {
@@ -41,6 +48,13 @@ var indexer = (function () {
     var db_name = "weights_" + cur_dim;
     var transaction = db.transaction([db_name], "readwrite");
     var store = transaction.objectStore(db_name);
+    /*var weights_fixed = [];
+    for (var k = 0; k < weights[i].length; k++) {
+      weights_fixed[k] = [];
+      for (var j = 0; j < weights[i][k].length; j++) {
+        weights_fixed[k][j] = round_and_fix(weights[i][k][j]);
+      }
+    }*/
     var request = store.add(weights[i], i);
 
     request.onerror = function (e) {
