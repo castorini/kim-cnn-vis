@@ -235,14 +235,16 @@ function display_ww(input, label, plabel) {
     render(div, input);
 }
 
-function toColor3(v) {
+function toColor3(v, len, i) {
   // v is -1 to 1 initially
   if(v > 0) {
     var h = 200;
     var s = "60%";
     v = 1 - v;
     v = v * 100;
-    var l = 100;
+    var l = 40;
+    l += (40/len)*i;
+    /*var l = 100;
     if (v > 90) {
       l = 90;
     } else if (v < 10) {
@@ -255,7 +257,7 @@ function toColor3(v) {
       l = 70;
     } else {
       l = 80;
-    }
+    }*/
     l += '%';
   } else {
     var h = 0;
@@ -268,12 +270,33 @@ function toColor3(v) {
   return s;
 }
 
+function sortWithIndeces(toSort) {
+  for (var i = 0; i < toSort.length; i++) {
+    toSort[i] = [toSort[i], i];
+  }
+  toSort.sort(function(left, right) {
+    return left[0] < right[0] ? -1 : 1;
+  });
+  toSort.sortIndices = [];
+  for (var j = 0; j < toSort.length; j++) {
+    toSort.sortIndices.push(toSort[j][1]);
+    toSort[j] = toSort[j][0];
+  }
+  return toSort;
+}
+
 function render(div, data) {
-  for (var i = 0; i < data.length; i++) {
+  var len = data.length;
+  var new_intensity_arr = [];
+  for (var i = 0; i < len; i++) {
+    new_intensity_arr[i] = data[i][1];
+  }
+  var rank = sortWithIndeces(new_intensity_arr).sortIndices;
+  for (var i = 0; i < len; i++) {
     var word = data[i][0];
     var intensity = data[i][1];
 
-    var cole = toColor3(intensity);
+    var cole = toColor3(intensity, len, rank[i]);
 
     var css = 'background-color:' + cole;
 

@@ -31,17 +31,16 @@ function build_input(results) {
 
 function cconv(input, weight, bias, dim) {
   var sum = [];
-  p = 0;
   dim += 3;
   for (var r = 0; r < input.length-dim+1; r++) {
-    sum[p] = 0;
+    sum[r] = [];
+    sum[r][0] = 0;
     for (var i = 0; i < 300; i++) {
-      sum[p] += input[r+0][i] * weight[0][i];
-      sum[p] += input[r+1][i] * weight[1][i];
-      sum[p] += input[r+2][i] * weight[2][i];
+      sum[r][0] += input[r+0][i] * weight[0][i];
+      sum[r][0] += input[r+1][i] * weight[1][i];
+      sum[r][0] += input[r+2][i] * weight[2][i];
     }
-    sum[p] += bias;
-    p++;
+    sum[r][0] += bias;
   }
   return sum;
 }
@@ -75,7 +74,6 @@ function conv(input, weights, bias) {
       }
 
       for (var j = 0; j < weights[i].length; j++) { // 100
-        // nj.add(nj.convolve(paddedInput, weights[i][j]), bias[i][j]).tolist()
         result[i][j] = cconv(paddedInput, weights[i][j], bias[i][j], i);
         if (result[i][j] < 0) {
           result[i][j] = 0;
@@ -87,7 +85,6 @@ function conv(input, weights, bias) {
 
 // where the max comes from [i, j]
 function argmax(input) {
-    // console.log(input);
     if (input.length <= 0 || input[0].length <= 0) {
         return -1;
     }
@@ -122,12 +119,14 @@ function fc1(input, weights, bias) {
   // max polling result
   // input: [Array(100), Array(100), Array(100)]
   var combined = []; // size = 200
-  for (var i = 0; i < input.length; i++) {
-    for (var j = 0; j < input[i].length; j++) {
+  for (var i = 0; i < input.length; i++) {  // 3
+    for (var j = 0; j < input[i].length; j++) { // 100
       combined[combined.length] = input[i][j];
     }
   }
+
   var mm = nj.dot(weights, combined).tolist();
+
   var res = [];
   for (var i = 0; i < mm.length; i++) {
     res[res.length] = [mm[i][0] + bias[i]];
@@ -180,31 +179,36 @@ function filter_max_weight(max_poll) {
   return res;
 }
 
-function contribution(max_poll, index) {
+function contribution(max_poll, weight_vec) {
+  var weight_exp_sum = 0;
+  for (var i = 0; i < weight_vec.length; i++) {
+    weight_exp_sum += Math.exp(weight_vec[i]);
+  }
+
   var res = [];
-  for (var dim = 0; dim < 3; dim++) {
-    res[dim] = [];
-    for (var c = 0; c < 100; c++) {
-      var max = max_poll[dim][1][c][0];
-      var i = 1;
-      res[dim][c] = max*i;
+  var ptr = 0;
+  for (var i = 0; i < max_poll.length; i++) { // 3
+    res[i] = []
+    for (var j = 0; j < max_poll[i].length; j++) { // 100
+      res[i][j] = Math.exp(weight_vec[ptr])/weight_exp_sum;
+      ptr++;
     }
   }
 
   return res;
 }
 
-function analyze(query, max_poll, fc1_res, output) {
+function analyze(query, max_poll_all, max_poll, fc1_res, output, interested_weight_vec) {
   // init
   var res = Array(query.length);
   for (var i = 0; i < query.length; i++) {
     res[i] = 0;
   }
   // get weights
-  var [max, index] = get_max(output);
-  var cont = contribution(max_poll, index) // [ [100],[100],[100] ]
-  var matchedIndex = filter_max_index(max_poll);
-  var matchedWeight = filter_max_weight(max_poll);
+  var cont = contribution(max_poll, interested_weight_vec) // [ [100],[100],[100] ]
+  var matchedIndex = filter_max_index(max_poll_all);
+  var matchedWeight = filter_max_weight(max_poll_all);
+
   for (var i = 0; i < matchedIndex.length; i++) { // 3
     for (var j = 0; j < matchedIndex[i].length; j++) {  // 100
       var idx = matchedIndex[i][j];
@@ -221,7 +225,7 @@ function analyze(query, max_poll, fc1_res, output) {
         if (idx+k < 0 || idx+k >= query.length) {
           continue;
         }
-        res[idx+k] += w;
+        res[idx+k] += w*cont[i][j];
       }
     }
   }
@@ -256,7 +260,6 @@ function display_conv(label, results, query, weights, bias, weights_fc1, bias_fc
     var L = [-1, 2, 3, 1, 4, 0];
     var input = build_input(results);
     var conv_res = conv(input, weights, bias);
-    console.log(conv_res[0][1])
 
     var args, polling_res;
     var max_poll_res = max_polling(conv_res); // [args, polling_res]
@@ -265,18 +268,24 @@ function display_conv(label, results, query, weights, bias, weights_fc1, bias_fc
     var max_poll_res_real = [max_poll_res[0][1], max_poll_res[1][1], max_poll_res[2][1]];
 
     var fc1_res = fc1(max_poll_res_real, weights_fc1, bias_fc1);
+
     var output = soft_max(fc1_res);
+
     var res_index = get_highest_prob(output);
+    var interested_weight_vec = weights_fc1[res_index];
+
     var predictedLabel = L[res_index];
     // console.log(output)
     // show_gradient_indicator();
 
-    var ww = analyze(query, max_poll_res, fc1_res, output);
+    var ww = analyze(query, max_poll_res, max_poll_res_real, fc1_res, output, interested_weight_vec);
+    //console.log(ww)
     var highlight = [];
     for (var i = 0; i < query.length; i++) {
       highlight[highlight.length] = [query[i], ww[i]];
     }
     highlight[highlight.length] = ['\n', 0];
+
     display_ww(highlight, label, predictedLabel);
 
     return output;
