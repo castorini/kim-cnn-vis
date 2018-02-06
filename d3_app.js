@@ -232,13 +232,18 @@ function display_ww(input, label, plabel) {
     var div = d3.select(".sentences");
     var lnew = div.append('div');
     lnew.attr('class', 'd').html(label + "&nbsp;&nbsp;/&nbsp;&nbsp;" + plabel + "&nbsp;&nbsp;");
-    render(div, input);
+    render(div, input, plabel);
 }
 
-function toColor3(v, len, i) {
+function toColor3(v, len, i, label) {
   // v is -1 to 1 initially
   if(v > 0) {
-    var h = 200;
+    var h = 200;  // negative
+    if (label == 2) {
+      h = 50; // neutral
+    } else if (label == 3 || label == 4) {
+      h = 0; // positive
+    }
     var s = "60%";
     v = 1 - v;
     v = v * 100;
@@ -285,7 +290,7 @@ function sortWithIndeces(toSort) {
   return toSort;
 }
 
-function render(div, data) {
+function render(div, data, plabel) {
   var len = data.length;
   var new_intensity_arr = [];
   for (var i = 0; i < len; i++) {
@@ -296,7 +301,7 @@ function render(div, data) {
     var word = data[i][0];
     var intensity = data[i][1];
 
-    var cole = toColor3(intensity, len, rank[i]);
+    var cole = toColor3(intensity, len, rank[i], plabel);
 
     var css = 'background-color:' + cole;
 

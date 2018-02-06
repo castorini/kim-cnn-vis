@@ -74,6 +74,8 @@ function searchButton() {
 }
 
 function nextButton() {
+  var e = document.getElementById("filter");
+  var selected = e.options[e.selectedIndex].value;
 
   searcher.getSentence(function(sentence, label) {
     var q = sentence.split(" ");
@@ -164,7 +166,12 @@ p.wordvec {
 <p>The following demo searches word2vecs.
 Be sure to <a href="indexing-demo.html">build the index</a> first!</p>
 
-<button id="nextButton" onclick="nextButton()">Start</button> </p>
+<button id="nextButton" onclick="nextButton()">Start</button>
+<select id="filter">
+  <option value="showAll">Show All</option>
+  <option value="byFilter">By Filter</option>
+</select>
+</p>
 
 <div id="results" style="padding-bottom: 50px">
   <div class="sentences"></div>

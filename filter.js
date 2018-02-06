@@ -179,18 +179,26 @@ function filter_max_weight(max_poll) {
   return res;
 }
 
-function contribution(max_poll, weight_vec) {
+function contribution(max_poll, weight_vec, bias) {
   var weight_exp_sum = 0;
+  var x = 0;
+  var y = 0;
   for (var i = 0; i < weight_vec.length; i++) {
-    weight_exp_sum += Math.exp(weight_vec[i]);
+    weight_exp_sum += Math.exp(weight_vec[i]*max_poll[x][y]);
+    y++;
+    if (y == 100) {
+      x++;
+      y = 0;
+    }
   }
+  weight_exp_sum += Math.exp(bias);
 
   var res = [];
   var ptr = 0;
   for (var i = 0; i < max_poll.length; i++) { // 3
     res[i] = []
     for (var j = 0; j < max_poll[i].length; j++) { // 100
-      res[i][j] = Math.exp(weight_vec[ptr])/weight_exp_sum;
+      res[i][j] = Math.exp(weight_vec[ptr]*max_poll[i][j])/weight_exp_sum;
       ptr++;
     }
   }
@@ -198,14 +206,14 @@ function contribution(max_poll, weight_vec) {
   return res;
 }
 
-function analyze(query, max_poll_all, max_poll, fc1_res, output, interested_weight_vec) {
+function analyze(query, max_poll_all, max_poll, fc1_res, output, interested_weight_vec, fc1_bias) {
   // init
   var res = Array(query.length);
   for (var i = 0; i < query.length; i++) {
     res[i] = 0;
   }
   // get weights
-  var cont = contribution(max_poll, interested_weight_vec) // [ [100],[100],[100] ]
+  var cont = contribution(max_poll, interested_weight_vec, fc1_bias) // [ [100],[100],[100] ]
   var matchedIndex = filter_max_index(max_poll_all);
   var matchedWeight = filter_max_weight(max_poll_all);
 
@@ -225,7 +233,7 @@ function analyze(query, max_poll_all, max_poll, fc1_res, output, interested_weig
         if (idx+k < 0 || idx+k >= query.length) {
           continue;
         }
-        res[idx+k] += w*cont[i][j];
+        res[idx+k] += cont[i][j];
       }
     }
   }
@@ -278,7 +286,8 @@ function display_conv(label, results, query, weights, bias, weights_fc1, bias_fc
     // console.log(output)
     // show_gradient_indicator();
 
-    var ww = analyze(query, max_poll_res, max_poll_res_real, fc1_res, output, interested_weight_vec);
+    var ww = analyze(query, max_poll_res, max_poll_res_real, fc1_res, output,
+                    interested_weight_vec, bias_fc1[res_index]);
     //console.log(ww)
     var highlight = [];
     for (var i = 0; i < query.length; i++) {
