@@ -231,7 +231,8 @@ function display_ww(input, label, plabel, start) {
 
     var div = d3.select(".sentences");
     if (start[0] != -1 && start[1] != -1) {
-      div.append('div').attr('class', 'd').html("Filter " + start[0] + "-" + start[1]);
+      var css = "font-size:160%;"
+      div.append('div').attr('class', 'd').attr('style', css).html("Filter " + start[0] + "-" + start[1]);
       div.append('br');
     }
 

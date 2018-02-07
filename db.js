@@ -8,7 +8,7 @@ function indexedDBOk() {
 function initializeDB() {
   if (!indexedDBOk) return;
 
-  var openRequest = indexedDB.open("index", 7);
+  var openRequest = indexedDB.open("index", 8);
 
   openRequest.onupgradeneeded = function (e) {
     var thisDB = e.target.result;
@@ -55,6 +55,10 @@ function initializeDB() {
 
     if (!thisDB.objectStoreNames.contains("dataset")) {
       thisDB.createObjectStore("dataset");
+    }
+
+    if (!thisDB.objectStoreNames.contains("nn_res")) {
+      thisDB.createObjectStore("nn_res");
     }
   }
 
