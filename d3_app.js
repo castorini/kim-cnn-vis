@@ -225,13 +225,19 @@ function show_network(words, input, filters, conv_res, args, polling_res, output
 }
 
 
-function display_ww(input, label, plabel) {
+function display_ww(input, label, plabel, start) {
     // clean up
     clean_up();
 
     var div = d3.select(".sentences");
+    if (start[0] != -1 && start[1] != -1) {
+      div.append('div').attr('class', 'd').html("Filter " + start[0] + "-" + start[1]);
+      div.append('br');
+    }
+
     var lnew = div.append('div');
     lnew.attr('class', 'd').html(label + "&nbsp;&nbsp;/&nbsp;&nbsp;" + plabel + "&nbsp;&nbsp;");
+
     render(div, input, plabel);
 }
 

@@ -5,6 +5,8 @@ var searcher = (function () {
   var resultsWordvecs;
   var sentResults;
   var sentence;
+  var sentences;
+  var labels;
   var weight;
   var bias;
 
@@ -138,6 +140,25 @@ var searcher = (function () {
     };
   }
 
+  function getAllSentences(callback, i) {
+    var cursor = db.transaction(["dataset"], "readonly")
+      .objectStore("dataset")
+      .openCursor(i);
+
+    cursor.onsuccess = function (e) {
+      var res = e.target.result;
+      if (res) {
+        sentence = res.value.comment;
+        label = res.value.label;
+        sentences[sentences.length] = sentence;
+        labels[labels.length] = label;
+        getAllSentences(callback, i+1);
+      } else {
+        callback(sentences, labels);
+      }
+    };
+  }
+
   return {
     search: function (qt, callbackWordvecs) {
       queryTerms = qt;
@@ -162,6 +183,12 @@ var searcher = (function () {
     getSentence: function (callback) {
       sentence = "";
       getithSentence(callback);
+    },
+
+    getSentenceAll: function (callback) {
+      sentences = [];
+      labels = [];
+      getAllSentences(callback, 0);
     },
 
     showVecs: function (q, callback) {

@@ -73,9 +73,16 @@ function searchButton() {
   });
 }
 
-function nextButton() {
-  var e = document.getElementById("filter");
-  var selected = e.options[e.selectedIndex].value;
+var nn_res = [];
+function setup(i) {
+  // var e = document.getElementById("filter");
+  // var selected = e.options[e.selectedIndex].value;
+  if (i == 30) {
+    console.log("setup finished");
+    return;
+  } else if (i % 10 == 0) {
+    console.log("currently executing: " + i);
+  }
 
   searcher.getSentence(function(sentence, label) {
     var q = sentence.split(" ");
@@ -97,8 +104,9 @@ function nextButton() {
                       var bias = Array(bias_3, bias_4, bias_5);
 
                       searcher.showVecs(q, function(results) {
-                        display_conv(label, results, q, weights, bias, weights_fc1, bias_fc1);
-                        nextButton();
+                        var ret = display_conv(label, results, q, weights, bias, weights_fc1, bias_fc1);
+                        nn_res[i] = ret;
+                        setup(i+1);
                       })
                     })
                   })
@@ -113,6 +121,71 @@ function nextButton() {
 
   })
 
+}
+
+function showAll() {
+  for (var i = 0; i < nn_res.length; i++) {
+    var draw = nn_res[i][0];
+    display_sentence_coloring(draw[0], draw[1], draw[2], [-1, -1]);
+  }
+}
+
+function byFilter() {
+  document.getElementById("sent").innerHTML = "";
+  // var e = document.getElementById("filter");
+  // var selected = e.options[e.selectedIndex].value;
+  var groupByFilter = []; // 3*100
+  for (var d = 0; d < 3; d++) {
+    groupByFilter[d] = [];
+    for (var f = 0; f < 100; f++) {
+      groupByFilter[d][f] = []; // 3*100*#sentenses*2
+    }
+  }
+  for (var i = 0; i < nn_res.length; i++) {  // number of sentences analyzed
+    var toDraw = nn_res[i][0];
+    var conv_res = nn_res[i][1];
+    var max_poll_res = nn_res[i][2];
+    for (var d = 0; d < 3; d++) {
+      for (var f = 0; f < 100; f++) {
+        groupByFilter[d][f][i] = [max_poll_res[d][1][f][0], i]; // dth/3 dim, fth/100 filter
+      }
+    }
+  }
+
+  for (var d = 0; d < 3; d++) {
+    for (var f = 0; f < 100; f++) {
+      (groupByFilter[d][f]).sort(function(a, b){return b[0]-a[0]});
+    }
+  }
+  var prev_d = -1;
+  var prev_f = -1;
+  for (var d = 0; d < 3; d++) {
+    for (var f = 0; f < 100; f++) {
+      for (var k = 0; k < 10; k++) {
+        var index = groupByFilter[d][f][k][1];
+        var draw = nn_res[index][0];
+        if (d != prev_d || f != prev_f) {
+          display_sentence_coloring(draw[0], draw[1], draw[2], [d, f]);
+          prev_d = d;
+          prev_f = f;
+        } else {
+          display_sentence_coloring(draw[0], draw[1], draw[2], [-1,-1]);
+        }
+      }
+    }
+  }
+
+  //display_sentence_coloring(toDraw[0], toDraw[1], toDraw[2]);
+
+}
+
+window.test = function(e) {
+  if (e.value === 'showAll') {
+    document.getElementById("results").innerHTML = "";
+    // nextButton()
+  } else if (e.value === 'byFilter') {
+    console.log(e.value);
+  }
 }
 
 </script>
@@ -166,15 +239,17 @@ p.wordvec {
 <p>The following demo searches word2vecs.
 Be sure to <a href="indexing-demo.html">build the index</a> first!</p>
 
-<button id="nextButton" onclick="nextButton()">Start</button>
-<select id="filter">
+<button id="setupButton" onclick="setup(0)">Setup</button>
+<button id="showAll" onclick="showAll()">Show All</button>
+<button id="byFilter" onclick="byFilter()">By Filter</button>
+<select id="filter" onchange="test(this);">
   <option value="showAll">Show All</option>
   <option value="byFilter">By Filter</option>
 </select>
 </p>
 
 <div id="results" style="padding-bottom: 50px">
-  <div class="sentences"></div>
+  <div class="sentences" id="sent"></div>
 </div>
 
 </div>

@@ -45,7 +45,6 @@ function cconv(input, weight, bias, dim) {
   return sum;
 }
 
-// change this, need to use a different filter to convolve on each 3*300
 function conv(input, weights, bias) {
     var padding = [];
     for(var i = 0, value = 0, size = 300, array = new Array(300); i < size; i++) {
@@ -181,15 +180,8 @@ function filter_max_weight(max_poll) {
 
 function contribution(max_poll, weight_vec, bias) {
   var weight_exp_sum = 0;
-  var x = 0;
-  var y = 0;
   for (var i = 0; i < weight_vec.length; i++) {
-    weight_exp_sum += Math.exp(weight_vec[i]*max_poll[x][y]);
-    y++;
-    if (y == 100) {
-      x++;
-      y = 0;
-    }
+    weight_exp_sum += Math.exp(weight_vec[i]);
   }
   weight_exp_sum += Math.exp(bias);
 
@@ -198,7 +190,7 @@ function contribution(max_poll, weight_vec, bias) {
   for (var i = 0; i < max_poll.length; i++) { // 3
     res[i] = []
     for (var j = 0; j < max_poll[i].length; j++) { // 100
-      res[i][j] = Math.exp(weight_vec[ptr]*max_poll[i][j])/weight_exp_sum;
+      res[i][j] = Math.exp(weight_vec[ptr])/weight_exp_sum;
       ptr++;
     }
   }
@@ -217,7 +209,10 @@ function analyze(query, max_poll_all, max_poll, fc1_res, output, interested_weig
   var matchedIndex = filter_max_index(max_poll_all);
   var matchedWeight = filter_max_weight(max_poll_all);
 
+  var resByFilter = []; // 3*100
+
   for (var i = 0; i < matchedIndex.length; i++) { // 3
+    resByFilter[i] = [];
     for (var j = 0; j < matchedIndex[i].length; j++) {  // 100
       var idx = matchedIndex[i][j];
       if (i == 0) {
@@ -233,7 +228,7 @@ function analyze(query, max_poll_all, max_poll, fc1_res, output, interested_weig
         if (idx+k < 0 || idx+k >= query.length) {
           continue;
         }
-        res[idx+k] += cont[i][j];
+        res[idx+k] += w*cont[i][j];
       }
     }
   }
@@ -260,14 +255,19 @@ function round_and_fix(num, decimals) {
   return (Math.round((num * t) + (decimals>0?1:0)*(Math.sign(num) * (10 / Math.pow(100, decimals)))) / t).toFixed(decimals);
 }
 
+function get_conv_res(results, weights, bias) {
+  var input = build_input(results);
+  var conv_res = conv(input, weights, bias);
+  return conv_res;
+}
+
 function display_conv(label, results, query, weights, bias, weights_fc1, bias_fc1) {
     if (query.length < 5) {
         clean_up();
         return;
     }
     var L = [-1, 2, 3, 1, 4, 0];
-    var input = build_input(results);
-    var conv_res = conv(input, weights, bias);
+    var conv_res = get_conv_res(results, weights, bias);
 
     var args, polling_res;
     var max_poll_res = max_polling(conv_res); // [args, polling_res]
@@ -289,13 +289,21 @@ function display_conv(label, results, query, weights, bias, weights_fc1, bias_fc
     var ww = analyze(query, max_poll_res, max_poll_res_real, fc1_res, output,
                     interested_weight_vec, bias_fc1[res_index]);
     //console.log(ww)
+    var ret = [];
     var highlight = [];
     for (var i = 0; i < query.length; i++) {
       highlight[highlight.length] = [query[i], ww[i]];
     }
     highlight[highlight.length] = ['\n', 0];
+    ret[0] = [highlight, label, predictedLabel];
+    ret[1] = conv_res;
+    ret[2] = max_poll_res;
 
-    display_ww(highlight, label, predictedLabel);
+    //display_ww(highlight, label, predictedLabel);
 
-    return output;
+    return ret;
+}
+
+function display_sentence_coloring(highlight, label, predictedLabel, start) {
+  display_ww(highlight, label, predictedLabel, start);
 }
