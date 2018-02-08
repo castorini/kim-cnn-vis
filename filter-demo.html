@@ -84,7 +84,7 @@ var nn_res = [];
 function setup(i) {
   // var e = document.getElementById("filter");
   // var selected = e.options[e.selectedIndex].value;
-  if (i == 100) {
+  if (i == 200) {
     console.log("setup finished");
     return;
   } else if (i % 10 == 0) {
@@ -201,7 +201,7 @@ function byFilter() {
 
         var dim = d+3;
         for (var p = 0; p < dim; p++) {
-          if (idx+p < 0 || idx+p >= len) {
+          if (idx+p < 0 || idx+p >= len-1) {
             continue;
           }
           highlight[idx+p][1] = 1;
