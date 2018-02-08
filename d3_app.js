@@ -225,7 +225,7 @@ function show_network(words, input, filters, conv_res, args, polling_res, output
 }
 
 
-function display_ww(input, label, plabel, start) {
+function display_ww(input, label, plabel, start, same) {
     // clean up
     clean_up();
 
@@ -239,10 +239,10 @@ function display_ww(input, label, plabel, start) {
     var lnew = div.append('div');
     lnew.attr('class', 'd').html(label + "&nbsp;&nbsp;/&nbsp;&nbsp;" + plabel + "&nbsp;&nbsp;");
 
-    render(div, input, plabel);
+    render(div, input, plabel, same);
 }
 
-function toColor3(v, len, i, label) {
+function toColor3(v, len, i, label, same) {
   // v is -1 to 1 initially
   if(v > 0) {
     var h = 200;  // negative
@@ -271,6 +271,14 @@ function toColor3(v, len, i, label) {
       l = 80;
     }*/
     l += '%';
+    if (same) {
+      if (v == 0) {
+        l = 60;
+      } else {
+        l = 40;
+      }
+      l += '%';
+    }
   } else {
     var h = 0;
     var s = "60%";
@@ -297,18 +305,20 @@ function sortWithIndeces(toSort) {
   return toSort;
 }
 
-function render(div, data, plabel) {
+
+function render(div, data, plabel, same) {
   var len = data.length;
   var new_intensity_arr = [];
   for (var i = 0; i < len; i++) {
     new_intensity_arr[i] = data[i][1];
   }
-  var rank = sortWithIndeces(new_intensity_arr).sortIndices;
+  var sorted = sortWithIndeces(new_intensity_arr);
+  var rank = sorted.sortIndices;
   for (var i = 0; i < len; i++) {
     var word = data[i][0];
     var intensity = data[i][1];
 
-    var cole = toColor3(intensity, len, rank[i], plabel);
+    var cole = toColor3(intensity, len, rank[i], plabel, same);
 
     var css = 'background-color:' + cole;
 

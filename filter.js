@@ -304,6 +304,6 @@ function display_conv(label, results, query, weights, bias, weights_fc1, bias_fc
     return ret;
 }
 
-function display_sentence_coloring(highlight, label, predictedLabel, start) {
-  display_ww(highlight, label, predictedLabel, start);
+function display_sentence_coloring(highlight, label, predictedLabel, start, areSame) {
+  display_ww(highlight, label, predictedLabel, start, areSame);
 }

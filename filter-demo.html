@@ -136,13 +136,11 @@ function setup(i) {
 }
 
 function showAll() {
+  document.getElementById("sent").innerHTML = "";
   //var nn_res = getAll();
   for (var i = 0; i < nn_res.length; i++) {
-    if (ret != undefined) {
-      continue;
-    }
     var draw = nn_res[i][0];
-    display_sentence_coloring(draw[0], draw[1], draw[2], [-1, -1]);
+    display_sentence_coloring(draw[0], draw[1], draw[2], [-1, -1], false);
   }
 }
 
@@ -175,6 +173,7 @@ function byFilter() {
       (groupByFilter[d][f]).sort(function(a, b){return b[0]-a[0]});
     }
   }
+
   var prev_d = -1;
   var prev_f = -1;
   for (var d = 0; d < 3; d++) {
@@ -182,18 +181,42 @@ function byFilter() {
       for (var k = 0; k < 10; k++) {
         var index = groupByFilter[d][f][k][1];
         var draw = nn_res[index][0];
+        var conv_res = nn_res[index][1];
+        var max_poll_res = nn_res[index][2];
+
+        var matchedIndex = filter_max_index(max_poll_res);
+        var idx = matchedIndex[d][f];
+        if (d == 0) {
+          idx -= 2;
+        } else if (d == 1) {
+          idx -= 3;
+        } else {
+          idx -= 4;
+        }
+        var len = draw[0].length;
+        var highlight = [];
+        for (var i = 0; i < len; i++) {
+          highlight[highlight.length] = [draw[0][i][0], 0];
+        }
+
+        var dim = d+3;
+        for (var p = 0; p < dim; p++) {
+          if (idx+p < 0 || idx+p >= len) {
+            continue;
+          }
+          highlight[idx+p][1] = 1;
+        }
+
         if (d != prev_d || f != prev_f) {
-          display_sentence_coloring(draw[0], draw[1], draw[2], [d, f]);
+          display_sentence_coloring(highlight, draw[1], draw[2], [d, f], true);
           prev_d = d;
           prev_f = f;
         } else {
-          display_sentence_coloring(draw[0], draw[1], draw[2], [-1,-1]);
+          display_sentence_coloring(highlight, draw[1], draw[2], [-1,-1], true);
         }
       }
     }
   }
-
-  //display_sentence_coloring(toDraw[0], toDraw[1], toDraw[2]);
 
 }
 
