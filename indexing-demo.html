@@ -29,7 +29,7 @@
 <script type="text/javascript" src="parameters/bias_5.js"></script></script>
 <script type="text/javascript" src="parameters/fc1_weights.js"></script></script>
 <script type="text/javascript" src="parameters/fc1_bias.js"></script></script>
-<script type="text/javascript" src="parameters/dataset.js"></script></script>
+<script type="text/javascript" src="parameters/dev_dataset.js"></script></script>
 
 <script>
 function statsButton(e) {
@@ -768,7 +768,7 @@ function datasetButton() {
   };
 
   indexer.setDatasetMessageHandler(updateMessageHandler);
-  indexer.getDataset(dataset);
+  indexer.getDataset(dev_dataset);
 }
 
 </script>

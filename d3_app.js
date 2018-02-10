@@ -295,12 +295,12 @@ function sortWithIndeces(toSort) {
     toSort[i] = [toSort[i], i];
   }
   toSort.sort(function(left, right) {
-    return left[0] < right[0] ? -1 : 1;
+    return left[0] < right[0] ? 1 : -1;
   });
   toSort.sortIndices = [];
+
   for (var j = 0; j < toSort.length; j++) {
-    toSort.sortIndices.push(toSort[j][1]);
-    toSort[j] = toSort[j][0];
+    toSort.sortIndices[toSort[j][1]] = j-1;
   }
   return toSort;
 }
@@ -314,11 +314,13 @@ function render(div, data, plabel, same) {
   }
   var sorted = sortWithIndeces(new_intensity_arr);
   var rank = sorted.sortIndices;
+
   for (var i = 0; i < len; i++) {
     var word = data[i][0];
     var intensity = data[i][1];
 
     var cole = toColor3(intensity, len, rank[i], plabel, same);
+    console.log(i + "," + word + "," + cole)
 
     var css = 'background-color:' + cole;
 

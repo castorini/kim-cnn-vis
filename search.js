@@ -1,9 +1,11 @@
 var searcher = (function () {
   var queryTerms;
   var phrases;
+  var phrasesAll;
   var numDocs = 0;
   var resultsWordvecs;
   var sentResults;
+  var sentResultsAll;
   var sentence;
   var sentences;
   var labels;
@@ -11,7 +13,6 @@ var searcher = (function () {
   var bias;
 
   var startTime;
-  var index = 0;
 
   function wordvecSearchInit(callback, i) {
     if (i == queryTerms.length) {
@@ -120,7 +121,7 @@ var searcher = (function () {
     };
   }
 
-  function getithSentence(callback) {
+  function getithSentence(index, callback) {
     var cursor = db.transaction(["dataset"], "readonly")
       .objectStore("dataset")
       .openCursor(index);
@@ -131,11 +132,8 @@ var searcher = (function () {
         sentence = res.value.comment;
         label = res.value.label;
         callback(sentence, label);
-        index++;
       } else {
         console.log("No more sentences");
-        index = 0;
-        getithSentence(callback);
       }
     };
   }
@@ -180,9 +178,9 @@ var searcher = (function () {
       })
     },
 
-    getSentence: function (callback) {
+    getSentence: function (i, callback) {
       sentence = "";
-      getithSentence(callback);
+      getithSentence(i, callback);
     },
 
     getSentenceAll: function (callback) {
@@ -194,6 +192,12 @@ var searcher = (function () {
     showVecs: function (q, callback) {
       phrases = q;
       sentResults = Array();
+      wordvecLargeSearchInit(callback, 0);
+    },
+
+    showVecsAll: function (qs, callback) {
+      phrasesAll = qs;
+      sentResultsAll = Array();
       wordvecLargeSearchInit(callback, 0);
     },
 

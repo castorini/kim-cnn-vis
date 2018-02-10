@@ -45,8 +45,8 @@ searcher.setNumDocs(1128929);
 // Querying
 
 function searchButton() {
-  //var q = document.querySelector("#query").value.split(" ");
-  var q = "no movement , no yuks , not much of anything .".split(" ");
+  var q = document.querySelector("#query").value.split(" ");
+  // var q = "no movement , no yuks , not much of anything .".split(" ");
 
   q = q.map(function(x) { return x.toLowerCase()})
            .filter(function(x) { return x.length > 0 ? true : false; });

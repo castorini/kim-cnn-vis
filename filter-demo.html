@@ -81,56 +81,45 @@ function storeToDB(i, item) {
 }
 
 var nn_res = [];
-function setup(i) {
+var weights;
+var bias;
+var fc_weights;
+var fc_bias;
+var dev_sentences;
+function setup() {
   // var e = document.getElementById("filter");
   // var selected = e.options[e.selectedIndex].value;
-  if (i == 200) {
-    console.log("setup finished");
-    return;
-  } else if (i % 10 == 0) {
-    console.log("currently executing: " + i);
-  }
+  var i = 0;
+  searcher.getBias("bias_3", function(bias_3) {
+     searcher.getBias("bias_4", function(bias_4) {
+       searcher.getBias("bias_5", function(bias_5) {
 
-  searcher.getSentence(function(sentence, label) {
-    var q = sentence.split(" ");
+         searcher.getWeights("weights_3", function(weights_3) {
+           searcher.getWeights("weights_4", function(weights_4) {
+             searcher.getWeights("weights_5", function(weights_5) {
 
-    q = q.map(function(x) { return x.toLowerCase()})
-             .filter(function(x) { return x.length > 0 ? true : false; });
+                searcher.getBias("bias_fc1", function(bias_fc1) {
+                  searcher.getWeights("weights_fc1", function(weights_fc1) {
 
-    searcher.getBias("bias_3", function(bias_3) {
-       searcher.getBias("bias_4", function(bias_4) {
-         searcher.getBias("bias_5", function(bias_5) {
+                    weights = Array(weights_3, weights_4, weights_5);
+                    bias = Array(bias_3, bias_4, bias_5);
+                    fc_weights = weights_fc1;
+                    fc_bias = bias_fc1;
 
-           searcher.getWeights("weights_3", function(weights_3) {
-             searcher.getWeights("weights_4", function(weights_4) {
-               searcher.getWeights("weights_5", function(weights_5) {
-
-                  searcher.getBias("bias_fc1", function(bias_fc1) {
-                    searcher.getWeights("weights_fc1", function(weights_fc1) {
-                      var weights = Array(weights_3, weights_4, weights_5);
-                      var bias = Array(bias_3, bias_4, bias_5);
-
-                      searcher.showVecs(q, function(results) {
-                        var ret = display_conv(label, results, q, weights, bias, weights_fc1, bias_fc1);
-                        //storeToDB(i, ret);
-                        if (ret != undefined) {
-                          nn_res[i] = ret;
-                          setup(i+1);
-                        } else {
-                          setup(i);
-                        }
-                      })
+                    searcher.getSentenceAll(function(sentences, labels) {
+                      dev_sentences = sentences;
+                      document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>" + "Finished loading parameters." + "</div>";
                     })
-                  })
 
+                  })
                 })
+
               })
             })
+          })
 
-         })
        })
      })
-
   })
 
 }
@@ -138,10 +127,47 @@ function setup(i) {
 function showAll() {
   document.getElementById("sent").innerHTML = "";
   //var nn_res = getAll();
+  var segments = [];
+  for (var i = 0; i < dev_sentences.length; i++) {
+    var sentence = dev_sentences[i];
+    var q = sentence.split(" ");
+
+    q = q.map(function(x) { return x.toLowerCase()})
+             .filter(function(x) { return x.length > 0 ? true : false; });
+    segments[i] = q;
+  }
+
+  let requests = segments.map((q) => {
+    return new Promise((resolve) => {
+      searcher.showVecs(q, resolve);
+    });
+  })
+
+  Promise.all(requests).then(() => function(results) {
+    var ret = display_conv(label, results, q, weights, bias, weights_fc1, bias_fc1);
+    //storeToDB(i, ret);
+    if (ret != undefined) {
+      nn_res[nn_res.length] = ret;
+    }
+  });
+console.log(nn_res);
   for (var i = 0; i < nn_res.length; i++) {
     var draw = nn_res[i][0];
     display_sentence_coloring(draw[0], draw[1], draw[2], [-1, -1], false);
   }
+}
+
+function searchButton() {
+  var q = document.querySelector("#query").value.split(" ");
+  q = q.map(function(x) { return x.toLowerCase()})
+           .filter(function(x) { return x.length > 0 ? true : false; });
+
+  // Perform wordvec retrieval and twitter search
+  searcher.showVecs(q, function(results) {
+    console.log("Results for: " + q);
+    //logResults(results);
+    var ret = display_single_conv(results, q, weights, bias, fc_weights, fc_bias);
+  });
 }
 
 function byFilter() {
@@ -280,14 +306,17 @@ p.wordvec {
 <p>The following demo searches word2vecs.
 Be sure to <a href="indexing-demo.html">build the index</a> first!</p>
 
-<button id="setupButton" onclick="setup(0)">Setup</button>
+<button id="setupButton" onclick="setup()">Setup</button>
 <button id="showAll" onclick="showAll()">Show All</button>
 <button id="byFilter" onclick="byFilter()">By Filter</button>
 <select id="filter" onchange="test(this);">
   <option value="showAll">Show All</option>
   <option value="byFilter">By Filter</option>
 </select>
+<div id="message"></div>
 </p>
+<input type="text" id="query" placeholder="query">
+<button id="searchButton" onclick="searchButton()">Search</button> (try "the" or "they")</p>
 
 <div id="results" style="padding-bottom: 50px">
   <div class="sentences" id="sent"></div>

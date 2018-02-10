@@ -304,6 +304,45 @@ function display_conv(label, results, query, weights, bias, weights_fc1, bias_fc
     return ret;
 }
 
+function display_single_conv(results, query, weights, bias, weights_fc1, bias_fc1) {
+    if (query.length < 5) {
+        clean_up();
+        return;
+    }
+    var L = [-1, 2, 3, 1, 4, 0];
+    var conv_res = get_conv_res(results, weights, bias);
+
+    var args, polling_res;
+    var max_poll_res = max_polling(conv_res); // [args, polling_res]
+    // console.log(max_poll_res[0][1]) -> max polling res of 3 dim filter, 100 max values
+    // console.log(args);
+    var max_poll_res_real = [max_poll_res[0][1], max_poll_res[1][1], max_poll_res[2][1]];
+
+    var fc1_res = fc1(max_poll_res_real, weights_fc1, bias_fc1);
+
+    var output = soft_max(fc1_res);
+
+    var res_index = get_highest_prob(output);
+    var interested_weight_vec = weights_fc1[res_index];
+
+    var predictedLabel = L[res_index];
+    // console.log(output)
+    // show_gradient_indicator();
+
+    var ww = analyze(query, max_poll_res, max_poll_res_real, fc1_res, output,
+                    interested_weight_vec, bias_fc1[res_index]);
+    //console.log(ww)
+
+    var highlight = [];
+    for (var i = 0; i < query.length; i++) {
+      highlight[highlight.length] = [query[i], ww[i]];
+    }
+    highlight[highlight.length] = ['\n', 0];
+    console.log(highlight);
+
+    display_ww(highlight, -1, predictedLabel, [-1, -1], false);
+}
+
 function display_sentence_coloring(highlight, label, predictedLabel, start, areSame) {
   display_ww(highlight, label, predictedLabel, start, areSame);
 }
