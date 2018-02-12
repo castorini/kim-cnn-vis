@@ -145,48 +145,34 @@ function showAll() {
     q = q.map(function(x) { return x.toLowerCase()})
              .filter(function(x) { return x.length > 0 ? true : false; });
     segments[i] = [q, label];
-    if (i < 10) {
+    if (i < 100) {
       one[i] = [q, label];
     }
   }
-/*
-  var cb_function = searcher.showVecs(q, function(results) {
-    var ret = display_conv(label, results, q, weights, bias, fc_weights, fc_bias);
-    if (ret != undefined) {
-      nn_res[nn_res.length] = ret;
-      //var draw = ret[0];
-      //display_sentence_coloring(draw[0], draw[1], draw[2], [-1, -1], false);
-      //updateMsg("Finished processing sentences.");
-    } else {
-      console.error("Failed: ", q);
-    }
-  });*/
 
-  console.log("start")
   let requests = one.map(function(q) {
     return new Promise(function(resolve, reject) {
       searcher.showVecs(q[0], Array(), function(results) {
-        console.log(results)
         var ret = display_conv(q[1], results, q[0], weights, bias, fc_weights, fc_bias);
         if (ret != undefined) {
           resolve(ret)
         } else {
-          reject(q[0])
+          resolve("failed")
         }
       });
     });
   })
 
   Promise.all(requests).then(function(response) {
-    console.log(response)
     for (var i = 0; i < response.length; i++) {
+      if (response[i] == "failed") {
+        continue;
+      }
       nn_res[nn_res.length] = response[i];
       var draw = response[i][0];
       display_sentence_coloring(draw[0], draw[1], draw[2], [-1, -1], false);
-      updateMsg("Finished processing sentences.");
     }
-  }, function(error) {
-    //console.error("Failed: ", q);
+    updateMsg("Finished processing sentences.");
   });
 
 
