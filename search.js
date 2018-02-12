@@ -52,26 +52,26 @@ var searcher = (function () {
     }
   }
 
-  function wordvecLargeSearchInit(callback, i) {
-    if (i == phrases.length) {
-      callback(sentResults);
+  function wordvecLargeSearchInit(callback, q, results, i) {
+    if (i == q.length) {
+      callback(results);
       return;
     }
 
     var cursor = db.transaction(["wordvecslarge"], "readonly")
       .objectStore("wordvecslarge")
-      .openCursor(phrases[i]);
+      .openCursor(q[i]);
 
     cursor.onsuccess = function (e) {
       var res = e.target.result;
       if (res) {
-        sentResults[sentResults.length] = Array(phrases[i], res.value);
+        results[results.length] = Array(q[i], res.value);
         res.continue;
       } else {
         // console.log("Word2Vec not found for word: " + phrases[i]);
-        sentResults[sentResults.length] = Array(phrases[i], Array());
+        results[results.length] = Array(q[i], Array());
       }
-      wordvecLargeSearchInit(callback, i + 1);
+      wordvecLargeSearchInit(callback, q, results, i + 1);
     };
 
   }
@@ -189,10 +189,10 @@ var searcher = (function () {
       getAllSentences(callback, 0);
     },
 
-    showVecs: function (q, callback) {
+    showVecs: function (q, res, callback) {
       phrases = q;
       sentResults = Array();
-      wordvecLargeSearchInit(callback, 0);
+      wordvecLargeSearchInit(callback, q, res, 0);
     },
 
     showVecsAll: function (qs, callback) {

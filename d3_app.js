@@ -319,8 +319,8 @@ function render(div, data, plabel, same) {
     var word = data[i][0];
     var intensity = data[i][1];
 
+    //console.log(intensity + "," + len + "," + rank[i] + "," + plabel)
     var cole = toColor3(intensity, len, rank[i], plabel, same);
-    console.log(i + "," + word + "," + cole)
 
     var css = 'background-color:' + cole;
 

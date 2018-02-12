@@ -338,7 +338,6 @@ function display_single_conv(results, query, weights, bias, weights_fc1, bias_fc
       highlight[highlight.length] = [query[i], ww[i]];
     }
     highlight[highlight.length] = ['\n', 0];
-    console.log(highlight);
 
     display_ww(highlight, -1, predictedLabel, [-1, -1], false);
 }
