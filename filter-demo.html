@@ -344,6 +344,7 @@ p.wordvec {
 
 <p>The following demo searches word2vecs.
 Be sure to <a href="indexing-demo.html">build the index</a> first!</p>
+<p>Instructions: Click 'Setup' to load parameters, then click 'Show All' to process all the sentences.</p>
 
 <button id="setupButton" onclick="setup()">Setup</button>
 <button id="showAll" onclick="showAll()">Show All</button>
@@ -352,7 +353,7 @@ Be sure to <a href="indexing-demo.html">build the index</a> first!</p>
   <option value="showAll">Show All</option>
   <option value="byFilter">By Filter</option>
 </select>-->
-<input type="checkbox" id="checkbox" onclick="show_negative_weights()">
+Show negative weights: <input type="checkbox" id="checkbox" onclick="show_negative_weights()">
 <div id="message"></div>
 </p>
 <input type="text" id="query" placeholder="query">
