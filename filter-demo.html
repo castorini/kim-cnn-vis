@@ -170,32 +170,27 @@ function showAll() {
       }
       nn_res[nn_res.length] = response[i];
       var draw = response[i][0];
-      display_sentence_coloring(draw[0], draw[1], draw[2], [-1, -1], false);
+      display_sentence_coloring(draw[0], draw[1], draw[2], [-1, -1], false, -1);
     }
     updateMsg("Finished processing sentences.");
   });
-
-
-  /*for (var i = 0; i < nn_res.length; i++) {
-    var draw = nn_res[i][0];
-    display_sentence_coloring(draw[0], draw[1], draw[2], [-1, -1], false);
-  }*/
 }
 
 function searchButton() {
+  document.getElementById("sent").innerHTML = "";
   var q = document.querySelector("#query").value.split(" ");
   q = q.map(function(x) { return x.toLowerCase()})
            .filter(function(x) { return x.length > 0 ? true : false; });
 
   // Perform wordvec retrieval and twitter search
-  searcher.showVecs(q, function(results) {
+  searcher.showVecs(q, Array(), function(results) {
     console.log("Results for: " + q);
     //logResults(results);
     var ret = display_single_conv(results, q, weights, bias, fc_weights, fc_bias);
   });
 }
 
-function byFilter() {
+function byFilter(show_positive) {
   document.getElementById("sent").innerHTML = "";
   // var e = document.getElementById("filter");
   // var selected = e.options[e.selectedIndex].value;
@@ -221,7 +216,11 @@ function byFilter() {
 
   for (var d = 0; d < 3; d++) {
     for (var f = 0; f < 100; f++) {
-      (groupByFilter[d][f]).sort(function(a, b){return b[0]-a[0]});
+      if (show_positive == undefined || show_positive == true) {
+        (groupByFilter[d][f]).sort(function(a, b){return b[0]-a[0]});
+      } else {
+        (groupByFilter[d][f]).sort(function(a, b){return a[0]-b[0]});
+      }
     }
   }
 
@@ -259,11 +258,11 @@ function byFilter() {
         }
 
         if (d != prev_d || f != prev_f) {
-          display_sentence_coloring(highlight, draw[1], draw[2], [d, f], true);
+          display_sentence_coloring(highlight, draw[1], draw[2], [d, f], true, bias[d][f].toFixed(2));
           prev_d = d;
           prev_f = f;
         } else {
-          display_sentence_coloring(highlight, draw[1], draw[2], [-1,-1], true);
+          display_sentence_coloring(highlight, draw[1], draw[2], [-1,-1], true, -1);
         }
       }
     }
@@ -271,6 +270,21 @@ function byFilter() {
 
 }
 
+function show_negative_weights() {
+  var checkBox = document.getElementById("checkbox");
+  // Get the output text
+
+  // If the checkbox is checked, display the output text
+  if (checkBox.checked == true){
+    console.log("check box is checked")
+    byFilter(false);
+  } else {
+    console.log("check box is not checked")
+    byFilter(true);
+  }
+}
+
+/*
 window.test = function(e) {
   if (e.value === 'showAll') {
     document.getElementById("results").innerHTML = "";
@@ -278,7 +292,7 @@ window.test = function(e) {
   } else if (e.value === 'byFilter') {
     console.log(e.value);
   }
-}
+}*/
 
 </script>
 
@@ -334,10 +348,11 @@ Be sure to <a href="indexing-demo.html">build the index</a> first!</p>
 <button id="setupButton" onclick="setup()">Setup</button>
 <button id="showAll" onclick="showAll()">Show All</button>
 <button id="byFilter" onclick="byFilter()">By Filter</button>
-<select id="filter" onchange="test(this);">
+<!--<select id="filter" onchange="test(this);">
   <option value="showAll">Show All</option>
   <option value="byFilter">By Filter</option>
-</select>
+</select>-->
+<input type="checkbox" id="checkbox" onclick="show_negative_weights()">
 <div id="message"></div>
 </p>
 <input type="text" id="query" placeholder="query">

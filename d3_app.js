@@ -225,14 +225,24 @@ function show_network(words, input, filters, conv_res, args, polling_res, output
 }
 
 
-function display_ww(input, label, plabel, start, same) {
+function display_ww(input, label, plabel, start, same, bias) {
     // clean up
     clean_up();
 
     var div = d3.select(".sentences");
     if (start[0] != -1 && start[1] != -1) {
       var css = "font-size:160%;"
-      div.append('div').attr('class', 'd').attr('style', css).html("Filter " + start[0] + "-" + start[1]);
+      if (bias == -1) {
+        div.append('div')
+          .attr('class', 'd')
+          .attr('style', css)
+          .html("Filter " + start[0] + "-" + start[1]);
+      } else if (bias != -1 && same == true){
+        div.append('div')
+          .attr('class', 'd')
+          .attr('style', css)
+          .html("Filter " + start[0] + "-" + start[1] + " (bias = " + bias + ")");
+      }
       div.append('br');
     }
 

@@ -339,9 +339,9 @@ function display_single_conv(results, query, weights, bias, weights_fc1, bias_fc
     }
     highlight[highlight.length] = ['\n', 0];
 
-    display_ww(highlight, -1, predictedLabel, [-1, -1], false);
+    display_ww(highlight, -1, predictedLabel, [-1, -1], false, -1);
 }
 
-function display_sentence_coloring(highlight, label, predictedLabel, start, areSame) {
-  display_ww(highlight, label, predictedLabel, start, areSame);
+function display_sentence_coloring(highlight, label, predictedLabel, start, areSame, bias) {
+  display_ww(highlight, label, predictedLabel, start, areSame, bias);
 }
