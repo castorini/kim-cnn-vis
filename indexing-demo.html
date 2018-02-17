@@ -541,7 +541,8 @@ function weight3Button() {
       console.log("Number of docs indexed: " + i);
       console.log("Indexing time: " + (currentTime - startTime) + "ms");
       document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Indexing Complete!</strong> " + i + " documents indexed in " + (currentTime - startTime) + " ms.</div>";
-      statsButton();
+      weight3StatsButton();
+      weight4Button();
     },
 
     error: function(e) {
@@ -568,7 +569,8 @@ function weight4Button() {
       console.log("Number of docs indexed: " + i);
       console.log("Indexing time: " + (currentTime - startTime) + "ms");
       document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Indexing Complete!</strong> " + i + " documents indexed in " + (currentTime - startTime) + " ms.</div>";
-      statsButton();
+      weight4StatsButton();
+      weight5Button();
     },
 
     error: function(e) {
@@ -595,7 +597,7 @@ function weight5Button() {
       console.log("Number of docs indexed: " + i);
       console.log("Indexing time: " + (currentTime - startTime) + "ms");
       document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Indexing Complete!</strong> " + i + " documents indexed in " + (currentTime - startTime) + " ms.</div>";
-      statsButton();
+      weight5StatsButton();
     },
 
     error: function(e) {
@@ -650,7 +652,8 @@ function bias3Button() {
       console.log("Number of docs indexed: " + i);
       console.log("Indexing time: " + (currentTime - startTime) + "ms");
       document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Indexing Complete!</strong> " + i + " documents indexed in " + (currentTime - startTime) + " ms.</div>";
-      statsButton();
+      bias3StatsButton();
+      bias4Button();
     },
 
     error: function(e) {
@@ -677,7 +680,8 @@ function bias4Button() {
       console.log("Number of docs indexed: " + i);
       console.log("Indexing time: " + (currentTime - startTime) + "ms");
       document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Indexing Complete!</strong> " + i + " documents indexed in " + (currentTime - startTime) + " ms.</div>";
-      statsButton();
+      bias4StatsButton();
+      bias5Button();
     },
 
     error: function(e) {
@@ -704,7 +708,7 @@ function bias5Button() {
       console.log("Number of docs indexed: " + i);
       console.log("Indexing time: " + (currentTime - startTime) + "ms");
       document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Indexing Complete!</strong> " + i + " documents indexed in " + (currentTime - startTime) + " ms.</div>";
-      statsButton();
+      bias5StatsButton();
     },
 
     error: function(e) {
@@ -845,57 +849,32 @@ indexing progress in the JavaScript console. After that, click the
 <p>
 <button id="indexButton" onclick="indexButton()">Build Index</button>
 <button id="statsButton" onclick="statsButton()">Get Index Stats</button>
-<button id="deleteIndex" onclick="deleteIndex()">Delete index</button>
+<button id="deleteIndex" onclick="deleteIndex()">Delete All</button>
 </p>
 <p>
 <button id="indexLargeButton" onclick="indexLargeButton()">Build Large Index</button>
 <button id="statsLargeButton" onclick="statsLargeButton()">Get Large Index Stats</button>
-<button id="deleteLargeIndex" onclick="deleteLargeIndex()">Delete Large Index</button>
 </p>
 <p>
-<button id="weight3Button" onclick="weight3Button()">Load Weights(3)</button>
-<button id="weight3StatsButton" onclick="weight3StatsButton()">Get Weights(3) Stats</button>
-<button id="deleteWeight3" onclick="deleteWeight3()">Delete Weights</button>
+<button id="weight3Button" onclick="weight3Button()">Load Weights</button>
+<button id="weight3StatsButton" onclick="weight3StatsButton()">Get Weights Stats</button>
 </p>
-<p>
-<button id="weight4Button" onclick="weight4Button()">Load Weights(4)</button>
-<button id="weight4StatsButton" onclick="weight4StatsButton()">Get Weights(4) Stats</button>
-<button id="deleteWeight4" onclick="deleteWeight4()">Delete Weights</button>
-</p>
-<p>
-<button id="weight5Button" onclick="weight5Button()">Load Weights(5)</button>
-<button id="weight5StatsButton" onclick="weight5StatsButton()">Get Weights(5) Stats</button>
-<button id="deleteWeight5" onclick="deleteWeight5()">Delete Weights</button>
 </p>
 <p>
 <button id="weightfc1Button" onclick="weightfc1Button()">Load Weights(fc1)</button>
 <button id="weightfc1StatsButton" onclick="weightfc1StatsButton()">Get Weights(fc1) Stats</button>
-<button id="deleteWeightfc1" onclick="deleteWeightfc1()">Delete Weights</button>
 </p>
 <p>
-<button id="bias3Button" onclick="bias3Button()">Load Bias(3)</button>
-<button id="bias3StatsButton" onclick="bias3StatsButton()">Get Bias(3) Stats</button>
-<button id="deleteBias3" onclick="deleteBias3()">Delete Bias</button>
-</p>
-<p>
-<button id="bias4Button" onclick="bias4Button()">Load Bias(4)</button>
-<button id="bias4StatsButton" onclick="bias4StatsButton()">Get Bias(4) Stats</button>
-<button id="deleteBias4" onclick="deleteBias4()">Delete Bias</button>
-</p>
-<p>
-<button id="bias5Button" onclick="bias5Button()">Load Bias(5)</button>
-<button id="bias5StatsButton" onclick="bias5StatsButton()">Get Bias(5) Stats</button>
-<button id="deleteBias5" onclick="deleteBias5()">Delete Bias</button>
+<button id="bias3Button" onclick="bias3Button()">Load Bias</button>
+<button id="bias3StatsButton" onclick="bias3StatsButton()">Get Bias Stats</button>
 </p>
 <p>
 <button id="biasfc1Button" onclick="biasfc1Button()">Load Bias(fc1)</button>
 <button id="biasfc1StatsButton" onclick="biasfc1StatsButton()">Get Bias(fc1) Stats</button>
-<button id="deleteBiasfc1" onclick="deleteBiasfc1()">Delete Bias</button>
 </p>
 <p>
 <button id="datasetButton" onclick="datasetButton()">Load Dataset</button>
 <button id="datasetStatsButton" onclick="datasetStatsButton()">Get Dataset Stats</button>
-<button id="deleteDataset" onclick="deleteDataset()">Delete Dataset</button>
 </p>
 
 <div id="message"></div>

@@ -190,6 +190,7 @@ function searchButton() {
   });
 }
 
+var filter_res = [];
 function byFilter(show_positive) {
   document.getElementById("sent").innerHTML = "";
   // var e = document.getElementById("filter");
@@ -227,7 +228,9 @@ function byFilter(show_positive) {
   var prev_d = -1;
   var prev_f = -1;
   for (var d = 0; d < 3; d++) {
+    filter_res[d] = [];
     for (var f = 0; f < 100; f++) {
+      filter_res[d][f] = [];
       for (var k = 0; k < 10; k++) {
         var index = groupByFilter[d][f][k][1];
         var draw = nn_res[index][0];
@@ -258,10 +261,12 @@ function byFilter(show_positive) {
         }
 
         if (d != prev_d || f != prev_f) {
-          display_sentence_coloring(highlight, draw[1], draw[2], [d, f], true, bias[d][f].toFixed(2));
+          filter_res[d][f][k] = [highlight, draw, [d+3, f], true, bias[d][f].toFixed(2)];
+          display_sentence_coloring(highlight, draw[1], draw[2], [d+3, f], true, bias[d][f].toFixed(2));
           prev_d = d;
           prev_f = f;
         } else {
+          filter_res[d][f][k] = [highlight, draw, [-1, -1], true, -1];
           display_sentence_coloring(highlight, draw[1], draw[2], [-1,-1], true, -1);
         }
       }
@@ -271,17 +276,43 @@ function byFilter(show_positive) {
 }
 
 function show_negative_weights() {
-  var checkBox = document.getElementById("checkbox");
-  // Get the output text
+  var checkBox = document.getElementById("show_nw_checkbox");
 
-  // If the checkbox is checked, display the output text
   if (checkBox.checked == true){
-    console.log("check box is checked")
     byFilter(false);
   } else {
-    console.log("check box is not checked")
     byFilter(true);
   }
+}
+
+function sort_by_filters() {
+  var checkBox = document.getElementById("sort_filters_checkbox");
+  document.getElementById("sent").innerHTML = "";
+  
+  if (checkBox.checked == true){
+    var filters_sorted = get_top_filters();
+    for (var i = 0; i < filters_sorted.length; i++) {
+      var d = filters_sorted[i][0];
+      var f = filters_sorted[i][1];
+      for (var k = 0; k < 10; k++) {
+        var fr = filter_res[d][f][k];
+        display_sentence_coloring(fr[0], fr[1][1], fr[1][2], fr[2], fr[3], fr[4]);
+      }
+    }
+  } else {
+    for (var d = 0; d < 3; d++) {
+      for (var f = 0; f < 100; f++) {
+        for (var k = 0; k < 10; k++) {
+          var fr = filter_res[d][f][k];
+          display_sentence_coloring(fr[0], fr[1][1], fr[1][2], fr[2], fr[3], fr[4]);
+        }
+      }
+    }
+  }
+}
+
+function get_top_filters() {
+
 }
 
 /*
@@ -353,7 +384,8 @@ Be sure to <a href="indexing-demo.html">build the index</a> first!</p>
   <option value="showAll">Show All</option>
   <option value="byFilter">By Filter</option>
 </select>-->
-Show negative weights: <input type="checkbox" id="checkbox" onclick="show_negative_weights()">
+Show negative weights: <input type="checkbox" id="show_nw_checkbox" onclick="show_negative_weights()">
+Sort filters: <input type="checkbox" id="sort_filters_checkbox" onclick="sort_by_filters()">
 <div id="message"></div>
 </p>
 <input type="text" id="query" placeholder="query">

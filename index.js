@@ -42,6 +42,15 @@ var indexer = (function () {
 
     if (i == weights.length) {
       console.log("Finished loading weights.");
+      if (cur_dim == 3) {
+        weights3MessageHandler.finished(startTime, new Date().getTime(), i);
+      } else if (cur_dim == 4) {
+        weights4MessageHandler.finished(startTime, new Date().getTime(), i);
+      } else if (cur_dim == 5){
+        weights5MessageHandler.finished(startTime, new Date().getTime(), i);
+      } else {
+        weightsfc1MessageHandler.finished(startTime, new Date().getTime(), i);
+      }
       return;
     }
 
@@ -90,6 +99,15 @@ var indexer = (function () {
 
     if (i == bias.length) {
       console.log("Finished loading bias.");
+      if (cur_dim == 3) {
+        bias3MessageHandler.finished(startTime, new Date().getTime(), i);
+      } else if (cur_dim == 4) {
+        bias4MessageHandler.finished(startTime, new Date().getTime(), i);
+      } else if (cur_dim == 5) {
+        bias5MessageHandler.finished(startTime, new Date().getTime(), i);
+      } else {
+        biasfc1MessageHandler.finished(startTime, new Date().getTime(), i);
+      }
       return;
     }
 
