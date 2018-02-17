@@ -24,6 +24,7 @@
 <script type="text/javascript" src="db.js"></script>
 <script type="text/javascript" src="search.js"></script>
 <script type="text/javascript" src="bootstrap/numjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/deeplearn@latest"></script>
 <script type="text/javascript" src="filter.js"></script>
 
 <script
@@ -132,7 +133,7 @@ function setup() {
 
 }
 
-function showAll() {
+function showAll(ignore) {
   document.getElementById("sent").innerHTML = "";
   var startTime = window.performance.now();
   updateMsg("Started processing sentences.");
@@ -147,7 +148,7 @@ function showAll() {
     q = q.map(function(x) { return x.toLowerCase()})
              .filter(function(x) { return x.length > 0 ? true : false; });
     segments[i] = [q, label];
-    if (i < 100) {
+    if (i < 10) {
       one[i] = [q, label];
     }
   }
@@ -155,7 +156,7 @@ function showAll() {
   let requests = one.map(function(q) {
     return new Promise(function(resolve, reject) {
       searcher.showVecs(q[0], Array(), function(results) {
-        var ret = display_conv(q[1], results, q[0], weights, bias, fc_weights, fc_bias);
+        var ret = display_conv(q[1], results, q[0], weights, bias, fc_weights, fc_bias, ignore);
         if (ret != undefined) {
           resolve(ret)
         } else {
@@ -193,7 +194,7 @@ function searchButton() {
 }
 
 var filter_res = [];
-function byFilter(show_positive) {
+function byFilter(show_positive, ignore) {
   document.getElementById("sent").innerHTML = "";
   var startTime = window.performance.now();
   updateMsg("Started processing filters.");
@@ -213,14 +214,14 @@ function byFilter(show_positive) {
     var conv_res = nn_res[i][1];
     var max_poll_res = nn_res[i][2];
     for (var d = 0; d < 3; d++) {
-      for (var f = 0; f < 100; f++) {
+      for (var f = 0; f < max_poll_res[d][1].length; f++) {
         groupByFilter[d][f][i] = [max_poll_res[d][1][f][0], i]; // dth/3 dim, fth/100 filter
       }
     }
   }
 
   for (var d = 0; d < 3; d++) {
-    for (var f = 0; f < 100; f++) {
+    for (var f = 0; f < groupByFilter[d].length; f++) {
       if (show_positive == undefined || show_positive == true) {
         (groupByFilter[d][f]).sort(function(a, b){return b[0]-a[0]});
       } else {
@@ -233,8 +234,12 @@ function byFilter(show_positive) {
   var prev_f = -1;
   for (var d = 0; d < 3; d++) {
     filter_res[d] = [];
-    for (var f = 0; f < 100; f++) {
+    for (var f = 0; f < groupByFilter[d].length; f++) {
       filter_res[d][f] = [];
+      if (groupByFilter[d][f][0][0] < 0.2) {
+        // console.log("d:" + d + "f:" + f)
+        // continue;
+      }
       for (var k = 0; k < 10; k++) {
         var index = groupByFilter[d][f][k][1];
         var draw = nn_res[index][0];
@@ -289,6 +294,7 @@ function show_negative_weights() {
   }
 }
 
+// TODO
 function sort_by_filters() {
   var checkBox = document.getElementById("sort_filters_checkbox");
   document.getElementById("sent").innerHTML = "";
@@ -317,6 +323,30 @@ function sort_by_filters() {
 
 function get_top_filters() {
 
+}
+
+function ignore_filters() {
+  var nwCB = document.getElementById("show_nw_checkbox");
+  var igCB = document.getElementById("ignore_filters_checkbox");
+
+  /*if (nwCB.checked == true){
+    if (igCB.checked == true) {
+      byFilter(true, true);
+    } else {
+      byFilter(true, false);
+    }
+  } else {
+    if (igCB.checked == true) {
+      byFilter(false, true);
+    } else {
+      byFilter(false, false);
+    }
+  }*/
+  if (igCB.checked == true) {
+    showAll(true);
+  } else {
+    showAll(false);
+  }
 }
 
 /*
@@ -389,7 +419,8 @@ Be sure to <a href="indexing-demo.html">build the index</a> first!</p>
   <option value="byFilter">By Filter</option>
 </select>-->
 Show negative weights: <input type="checkbox" id="show_nw_checkbox" onclick="show_negative_weights()">
-Sort filters: <input type="checkbox" id="sort_filters_checkbox" onclick="sort_by_filters()">
+<!--Sort filters: <input type="checkbox" id="sort_filters_checkbox" onclick="sort_by_filters()">-->
+Ignore insignificant filters: <input type="checkbox" id="ignore_filters_checkbox" onclick="ignore_filters()">
 <div id="message"></div>
 </p>
 <input type="text" id="query" placeholder="query">

@@ -28,7 +28,7 @@ function build_input(results) {
 
     return ret;
 }
-
+/*
 function cconv(input, weight, bias, dim) {
   var sum = [];
   dim += 3;
@@ -74,12 +74,46 @@ function conv(input, weights, bias) {
 
       for (var j = 0; j < weights[i].length; j++) { // 100
         result[i][j] = cconv(paddedInput, weights[i][j], bias[i][j], i);
+        if (i == 0 && j == 0) {
+          console.log(result[i][j]);
+        }
         if (result[i][j] < 0) {
           result[i][j] = 0;
         }
       }
     }
     return result;
+}*/
+
+
+function conv(input, weights, bias) {
+  var startTime = window.performance.now();
+  var result = [];
+  var in_tensor = dl.tensor(input).as3D(input.length, input[0].length, 1);
+  var in_tensor_with_pad = in_tensor;
+  var pads = [dl.zeros([2, 300, 1]), dl.zeros([3, 300, 1]), dl.zeros([4, 300, 1])];
+  for (var i = 0; i < weights.length; i++) {  // 3
+    result[i] = [];
+
+    for (var j = 0; j < weights[i].length; j++) { // 100
+      var in_filter = dl.tensor(weights[i][j]).as4D(i+3, 300, 1, 1);
+      var stride = 1;
+      var pad = 'valid';
+      in_tensor_with_pad = dl.concat([pads[i], in_tensor, pads[i]]);
+      var bt = dl.scalar(bias[i][j]);
+      result[i][j] = dl.add(dl.squeeze(dl.conv2d(in_tensor_with_pad, in_filter, stride, pad)), bt);
+    }
+  }
+  console.log("convolutions done in " + (window.performance.now() - startTime)/1000 + "s");
+  return result;
+}
+
+function max_polling(input, ignore) {
+  var res = [];
+  for (var i = 0; i < input.length; i++) {
+    res[i] = max_polling_helper(input[i]);
+  }
+  return res;
 }
 
 // where the max comes from [i, j]
@@ -99,19 +133,16 @@ function argmax(input) {
     }
     return ans;
 }
-
-function max_polling(input) {
-  var res = [];
-  for (var i = 0; i < input.length; i++) {
-    res[i] = max_polling_helper(input[i]);
-  }
-  return res;
-}
-
+/*
 // input is an array of nj.array; return a nj.array of max polling after tanh
 function max_polling_helper(input) {
     return [input.map(a => argmax(nj.tanh(a).tolist())),
             input.map(a => [nj.tanh(a).max()])];
+}*/
+
+
+function max_polling_helper(input) {
+    return [input.map(a => a.argMax()), input.map(a => [a.max()])];
 }
 
 function fc1(input, weights, bias) {
@@ -123,6 +154,8 @@ function fc1(input, weights, bias) {
       combined[combined.length] = input[i][j];
     }
   }
+
+  //dl.concat([input[0], input[1], input[2]]).print();
 
   var mm = nj.dot(weights, combined).tolist();
 
@@ -198,7 +231,7 @@ function contribution(max_poll, weight_vec, bias) {
   return res;
 }
 
-function analyze(query, max_poll_all, max_poll, fc1_res, output, interested_weight_vec, fc1_bias) {
+function analyze(query, max_poll_all, max_poll, fc1_res, output, interested_weight_vec, fc1_bias, ignore) {
   // init
   var res = Array(query.length);
   for (var i = 0; i < query.length; i++) {
@@ -223,6 +256,11 @@ function analyze(query, max_poll_all, max_poll, fc1_res, output, interested_weig
         idx -= 4;
       }
       var w = matchedWeight[i][j];
+      if (ignore) {
+        if (w <= 0.05 && w >= -0.05) {
+          continue;
+        }
+      }
       var dim = i+3;
       for (var k = 0; k < dim; k++) {
         if (idx+k < 0 || idx+k >= query.length) {
@@ -232,9 +270,7 @@ function analyze(query, max_poll_all, max_poll, fc1_res, output, interested_weig
       }
     }
   }
-  //console.log(query);
-  //console.log(res)
-  //console.log(soft_max(res));
+
   return soft_max(res);
 }
 
@@ -261,7 +297,7 @@ function get_conv_res(results, weights, bias) {
   return conv_res;
 }
 
-function display_conv(label, results, query, weights, bias, weights_fc1, bias_fc1) {
+function display_conv(label, results, query, weights, bias, weights_fc1, bias_fc1, ignore) {
     if (query.length < 5) {
         clean_up();
         return;
@@ -270,7 +306,7 @@ function display_conv(label, results, query, weights, bias, weights_fc1, bias_fc
     var conv_res = get_conv_res(results, weights, bias);
 
     var args, polling_res;
-    var max_poll_res = max_polling(conv_res); // [args, polling_res]
+    var max_poll_res = max_polling(conv_res, ignore); // [args, polling_res]
     // console.log(max_poll_res[0][1]) -> max polling res of 3 dim filter, 100 max values
     // console.log(args);
     var max_poll_res_real = [max_poll_res[0][1], max_poll_res[1][1], max_poll_res[2][1]];
@@ -287,7 +323,7 @@ function display_conv(label, results, query, weights, bias, weights_fc1, bias_fc
     // show_gradient_indicator();
 
     var ww = analyze(query, max_poll_res, max_poll_res_real, fc1_res, output,
-                    interested_weight_vec, bias_fc1[res_index]);
+                    interested_weight_vec, bias_fc1[res_index], ignore);
     //console.log(ww)
     var ret = [];
     var highlight = [];
