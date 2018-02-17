@@ -92,6 +92,7 @@ var fc_bias;
 var dev_sentences;
 var dev_labels;
 function setup() {
+  var startTime = window.performance.now();
   // var e = document.getElementById("filter");
   // var selected = e.options[e.selectedIndex].value;
   var i = 0;
@@ -115,7 +116,7 @@ function setup() {
                     searcher.getSentenceAll(function(sentences, labels) {
                       dev_sentences = sentences;
                       dev_labels = labels;
-                      updateMsg("Finished loading parameters.");
+                      updateMsg("Finished loading parameters in " + (window.performance.now() - startTime)/1000 + "s.");
                     })
 
                   })
@@ -133,6 +134,7 @@ function setup() {
 
 function showAll() {
   document.getElementById("sent").innerHTML = "";
+  var startTime = window.performance.now();
   updateMsg("Started processing sentences.");
   //var nn_res = getAll();
   var segments = [];
@@ -172,7 +174,7 @@ function showAll() {
       var draw = response[i][0];
       display_sentence_coloring(draw[0], draw[1], draw[2], [-1, -1], false, -1);
     }
-    updateMsg("Finished processing sentences.");
+    updateMsg("Finished processing " + response.length + " sentences in " + (window.performance.now() - startTime)/1000 + "s.");
   });
 }
 
@@ -193,6 +195,8 @@ function searchButton() {
 var filter_res = [];
 function byFilter(show_positive) {
   document.getElementById("sent").innerHTML = "";
+  var startTime = window.performance.now();
+  updateMsg("Started processing filters.");
   // var e = document.getElementById("filter");
   // var selected = e.options[e.selectedIndex].value;
   //var nn_res = getAll();
@@ -272,7 +276,7 @@ function byFilter(show_positive) {
       }
     }
   }
-
+  updateMsg("Finished processing 300 filters in " + (window.performance.now() - startTime)/1000 + "s.");
 }
 
 function show_negative_weights() {
@@ -288,7 +292,7 @@ function show_negative_weights() {
 function sort_by_filters() {
   var checkBox = document.getElementById("sort_filters_checkbox");
   document.getElementById("sent").innerHTML = "";
-  
+
   if (checkBox.checked == true){
     var filters_sorted = get_top_filters();
     for (var i = 0; i < filters_sorted.length; i++) {
