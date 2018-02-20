@@ -24,7 +24,7 @@
 <script type="text/javascript" src="db.js"></script>
 <script type="text/javascript" src="search.js"></script>
 <script type="text/javascript" src="bootstrap/numjs.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/deeplearn@latest"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/deeplearn@latest"></script>
 <script type="text/javascript" src="filter.js"></script>
 
 <script
@@ -135,8 +135,10 @@ function setup() {
 
 function showAll(ignore) {
   document.getElementById("sent").innerHTML = "";
+
   var startTime = window.performance.now();
   updateMsg("Started processing sentences.");
+
   //var nn_res = getAll();
   var segments = [];
   var one = [];
@@ -148,12 +150,12 @@ function showAll(ignore) {
     q = q.map(function(x) { return x.toLowerCase()})
              .filter(function(x) { return x.length > 0 ? true : false; });
     segments[i] = [q, label];
-    if (i < 10) {
+    if (i < 500) {
       one[i] = [q, label];
     }
   }
 
-  let requests = one.map(function(q) {
+  let requests = segments.map(function(q) {
     return new Promise(function(resolve, reject) {
       searcher.showVecs(q[0], Array(), function(results) {
         var ret = display_conv(q[1], results, q[0], weights, bias, fc_weights, fc_bias, ignore);
@@ -167,6 +169,7 @@ function showAll(ignore) {
   })
 
   Promise.all(requests).then(function(response) {
+    console.log((window.performance.now() - startTime)/1000 + "s.");
     for (var i = 0; i < response.length; i++) {
       if (response[i] == "failed") {
         continue;
@@ -187,9 +190,11 @@ function searchButton() {
 
   // Perform wordvec retrieval and twitter search
   searcher.showVecs(q, Array(), function(results) {
-    console.log("Results for: " + q);
+    var startTime = window.performance.now();
+    updateMsg("Started processing sentence: " + q);
     //logResults(results);
-    var ret = display_single_conv(results, q, weights, bias, fc_weights, fc_bias);
+    display_single_conv(results, q, weights, bias, fc_weights, fc_bias);
+    updateMsg("Finished processing sentence in: " + (window.performance.now() - startTime) + "ms.");
   });
 }
 
