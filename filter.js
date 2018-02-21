@@ -87,7 +87,7 @@ function conv(input, weights, bias) {
 
 function conv(input, weights, bias) {
   //dl.squeeze(dl.conv1d(dl.tensor(input[0]).as2D(300, 1), dl.tensor(weights[0][0][2]).as3D(300,1,1), 1, 'valid')).print();
-  //var startTime = window.performance.now();
+  var startTime = window.performance.now();
 
   var result = [];
   var in_tensor = dl.tensor(input).as3D(input.length, 300, 1);
@@ -109,7 +109,7 @@ function conv(input, weights, bias) {
     result[i].add(bt);
     result[i].relu();
   }
-  //console.log((window.performance.now() - startTime)/1000);
+  console.log((window.performance.now() - startTime)/1000);
 
   return result;
 }
