@@ -196,12 +196,14 @@ function showAll(ignore) {
     }
 
     var ret = display_conv_batch(100, max_len, labels, vecs, qs, weights, bias, fc_weights, fc_bias, ignore);
+
+    updateMsg("Finished processing " + response.length + " sentences in " + ret + "ms.");
+
     for (var i = 0; i < ret.length; i++) {
       nn_res[nn_res.length] = ret[i];
       var draw = ret[i][0];
       display_sentence_coloring(draw[0], draw[1], draw[2], [-1, -1], false, -1);
     }
-    updateMsg("Finished processing " + response.length + " sentences in " + (window.performance.now() - startTime)/1000 + "s.");
   });
 }
 

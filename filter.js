@@ -31,7 +31,6 @@ function build_input(results) {
 
 function conv(input, weights, bias, len) {
   //dl.squeeze(dl.conv1d(dl.tensor(input[0]).as2D(300, 1), dl.tensor(weights[0][0][2]).as3D(300,1,1), 1, 'valid')).print();
-  var startTime = window.performance.now();
   var result = [];
   var in_tensor = dl.tensor(input).as4D(100, len, 300, 1);
 
@@ -52,7 +51,6 @@ function conv(input, weights, bias, len) {
     //result[i][j].add(bt);
     result[i].relu();
   }
-  console.log((window.performance.now() - startTime)/1000);
 
   return result;
 }
@@ -296,6 +294,7 @@ function display_conv_batch(batch, max_len, label, results, query, weights, bias
     console.log(results)  [[[wv1],[wv2]...],[],...]
     console.log(query)  [["a", "b", "c", ...]]
     */
+    var startTime = window.performance.now();
     var L = [-1, 2, 3, 1, 4, 0];
     var conv_res = conv(results, weights, bias, max_len);
 
@@ -309,6 +308,7 @@ function display_conv_batch(batch, max_len, label, results, query, weights, bias
     var output = soft_max(fc1_res);
     // size 100
     var res_index = dl.argMax(output, 1).dataSync(); //TODO: change to data(), return promise
+    var lapsed = (window.performance.now() - startTime);
 
     var ret = [];
     for (var i = 0; i < 100; i++) {
@@ -333,7 +333,7 @@ function display_conv_batch(batch, max_len, label, results, query, weights, bias
       ret[i][2] = max_poll_res; // [[2],[2],[2]]
     }
 
-    return ret;
+    return lapsed;
 }
 
 function display_single_conv(results, query, weights, bias, weights_fc1, bias_fc1) {
