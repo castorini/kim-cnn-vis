@@ -41,13 +41,12 @@ function cconv(input, weight, bias, dim) {
       sum[r][0] += input[r+1][i] * weight[1][i];
       sum[r][0] += input[r+2][i] * weight[2][i];
     }
-    sum[r][0] += bias;
+    //sum[r][0] += bias;
   }
   return sum;
 }
 
 function conv(input, weights, bias) {
-  var startTime = window.performance.now();
     var padding = [];
     for(var i = 0, value = 0, size = 300, array = new Array(300); i < size; i++) {
       padding[i] = value;
@@ -81,15 +80,17 @@ function conv(input, weights, bias) {
         }
       }
     }
-    console.log("convolutions done in " + (window.performance.now() - startTime)/1000 + "s");
-
+    console.log(result);
     return result;
-}
-*/
+}*/
+
 
 function conv(input, weights, bias) {
+  //dl.squeeze(dl.conv1d(dl.tensor(input[0]).as2D(300, 1), dl.tensor(weights[0][0][2]).as3D(300,1,1), 1, 'valid')).print();
+  //var startTime = window.performance.now();
+
   var result = [];
-  var in_tensor = dl.tensor(input).as3D(input.length, input[0].length, 1);
+  var in_tensor = dl.tensor(input).as3D(input.length, 300, 1);
 
   var in_tensor_with_pad = in_tensor;
   var pads = [dl.zeros([2, 300, 1]), dl.zeros([3, 300, 1]), dl.zeros([4, 300, 1])];
@@ -97,14 +98,18 @@ function conv(input, weights, bias) {
   for (var i = 0; i < weights.length; i++) {  // 3
     result[i] = [];
     var in_filter = dl.tensor(weights[i]).as4D(i+3, 300, 1, 100);
+
     var stride = 1;
     var pad = 'valid';
     in_tensor_with_pad = dl.concat([pads[i], in_tensor, pads[i]]);
-    var bt = dl.tensor(bias[i]);
-    // TODO: add bias
+
+    var bt = dl.tensor(bias[i]).as1D();
+
     result[i] = dl.squeeze(dl.conv2d(in_tensor_with_pad, in_filter, stride, pad));
+    result[i].add(bt);
     result[i].relu();
   }
+  //console.log((window.performance.now() - startTime)/1000);
 
   return result;
 }
@@ -209,6 +214,18 @@ function filter_max_index(max_poll) {
   for (var dim = 0; dim < 3; dim++) { // 3
     res[dim] = [];
     var cur = max_poll[dim][0].dataSync();
+    for (var c = 0; c < 100; c++) { // 100
+      res[dim][c] = cur[c];
+    }
+  }
+  return res;
+}
+
+function filter_max_index_non_tensor(max_poll) {
+  var res = [];
+  for (var dim = 0; dim < 3; dim++) { // 3
+    res[dim] = [];
+    var cur = max_poll[dim][0];
     for (var c = 0; c < 100; c++) { // 100
       res[dim][c] = cur[c];
     }
@@ -321,6 +338,7 @@ function display_conv(label, results, query, weights, bias, weights_fc1, bias_fc
     }
 
     var L = [-1, 2, 3, 1, 4, 0];
+
     var conv_res = get_conv_res(results, weights, bias);
 
     var args, polling_res;
@@ -349,9 +367,20 @@ function display_conv(label, results, query, weights, bias, weights_fc1, bias_fc
       highlight[highlight.length] = [query[i], ww[i]];
     }
     highlight[highlight.length] = ['\n', 0];
+/*
+    var conv_res_data = []
+    for (var i = 0; i < 3; i++) {
+      conv_res_data[i] = conv_res[i].dataSync();
+    }
+    var max_poll_res_data = []
+    for (var i = 0; i < 3; i++) {
+      max_poll_res_data[i] = [];
+      max_poll_res_data[i][0] = max_poll_res[i][0].dataSync();
+      max_poll_res_data[i][1] = max_poll_res[i][1].dataSync();
+    }*/
     ret[0] = [highlight, label, predictedLabel];
-    ret[1] = conv_res;
-    ret[2] = max_poll_res;
+    ret[1] = conv_res; // [700, 800, 900]
+    ret[2] = max_poll_res; // [[2],[2],[2]]
 
     //display_ww(highlight, label, predictedLabel);
 

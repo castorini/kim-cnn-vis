@@ -142,7 +142,7 @@ function showAll(ignore) {
   //var nn_res = getAll();
   var segments = [];
   var one = [];
-  for (var i = 0; i < dev_sentences.length; i++) {
+  for (var i = 0; i < 100; i++) {  // dev_sentences.length
     var sentence = dev_sentences[i];
     var label = dev_labels[i];
     var q = sentence.split(" ");
@@ -150,9 +150,6 @@ function showAll(ignore) {
     q = q.map(function(x) { return x.toLowerCase()})
              .filter(function(x) { return x.length > 0 ? true : false; });
     segments[i] = [q, label];
-    if (i < 500) {
-      one[i] = [q, label];
-    }
   }
 
   let requests = segments.map(function(q) {
@@ -169,7 +166,6 @@ function showAll(ignore) {
   })
 
   Promise.all(requests).then(function(response) {
-    console.log((window.performance.now() - startTime)/1000 + "s.");
     for (var i = 0; i < response.length; i++) {
       if (response[i] == "failed") {
         continue;
@@ -216,11 +212,12 @@ function byFilter(show_positive, ignore) {
 
   for (var i = 0; i < nn_res.length; i++) {  // number of sentences analyzed
     var toDraw = nn_res[i][0];
-    var conv_res = nn_res[i][1];
-    var max_poll_res = nn_res[i][2];
+    var conv_res = nn_res[i][1];  // [700, 800, 900]
+    var max_poll_res = nn_res[i][2];  // [[2],[2],[2]]
+
     for (var d = 0; d < 3; d++) {
-      for (var f = 0; f < max_poll_res[d][1].length; f++) {
-        groupByFilter[d][f][i] = [max_poll_res[d][1][f][0], i]; // dth/3 dim, fth/100 filter
+      for (var f = 0; f < 100; f++) {
+        groupByFilter[d][f][i] = [max_poll_res[d][1][f], i]; // dth/3 dim, fth/100 filter
       }
     }
   }
@@ -251,7 +248,7 @@ function byFilter(show_positive, ignore) {
         var conv_res = nn_res[index][1];
         var max_poll_res = nn_res[index][2];
 
-        var matchedIndex = filter_max_index(max_poll_res);
+        var matchedIndex = filter_max_index_non_tensor(max_poll_res);
         var idx = matchedIndex[d][f];
         if (d == 0) {
           idx -= 2;
