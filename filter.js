@@ -28,69 +28,12 @@ function build_input(results) {
 
     return ret;
 }
-/*
-function cconv(input, weight, bias, dim) {
-  //console.log(myFunc());
-  var sum = [];
-  dim += 3;
-  for (var r = 0; r < input.length-dim+1; r++) {
-    sum[r] = [];
-    sum[r][0] = 0;
-    for (var i = 0; i < 300; i++) {
-      sum[r][0] += input[r+0][i] * weight[0][i];
-      sum[r][0] += input[r+1][i] * weight[1][i];
-      sum[r][0] += input[r+2][i] * weight[2][i];
-    }
-    //sum[r][0] += bias;
-  }
-  return sum;
-}
 
-function conv(input, weights, bias) {
-    var padding = [];
-    for(var i = 0, value = 0, size = 300, array = new Array(300); i < size; i++) {
-      padding[i] = value;
-    }
-    var result = [];
-    var k = 0;
-    var paddedInput = [];
-
-    for (var i = 0; i < input.length; i++) {
-      paddedInput[i] = input[i];
-    }
-    for (var i = 0; i < weights.length; i++) {  // 3
-      result[i] = [];
-      if (i == 0) {
-        paddedInput.unshift(padding);
-        paddedInput.unshift(padding);
-        paddedInput.push(padding);
-        paddedInput.push(padding);
-      } else if (i == 1) {
-        paddedInput.unshift(padding);
-        paddedInput.push(padding);
-      } else if (i == 2) {
-        paddedInput.unshift(padding);
-        paddedInput.push(padding);
-      }
-
-      for (var j = 0; j < weights[i].length; j++) { // 100
-        result[i][j] = cconv(paddedInput, weights[i][j], bias[i][j], i);
-        if (result[i][j] < 0) {
-          result[i][j] = 0;
-        }
-      }
-    }
-    console.log(result);
-    return result;
-}*/
-
-
-function conv(input, weights, bias) {
+function conv(input, weights, bias, len) {
   //dl.squeeze(dl.conv1d(dl.tensor(input[0]).as2D(300, 1), dl.tensor(weights[0][0][2]).as3D(300,1,1), 1, 'valid')).print();
   var startTime = window.performance.now();
-
   var result = [];
-  var in_tensor = dl.tensor(input).as3D(input.length, 300, 1);
+  var in_tensor = dl.tensor(input).as4D(100, len, 300, 1);
 
   var in_tensor_with_pad = in_tensor;
   var pads = [dl.zeros([2, 300, 1]), dl.zeros([3, 300, 1]), dl.zeros([4, 300, 1])];
@@ -101,12 +44,12 @@ function conv(input, weights, bias) {
 
     var stride = 1;
     var pad = 'valid';
-    in_tensor_with_pad = dl.concat([pads[i], in_tensor, pads[i]]);
+    //in_tensor_with_pad = dl.concat([pads[i], in_tensor, pads[i]]);
 
     var bt = dl.tensor(bias[i]).as1D();
 
-    result[i] = dl.squeeze(dl.conv2d(in_tensor_with_pad, in_filter, stride, pad));
-    result[i].add(bt);
+    result[i] = dl.squeeze(dl.conv2d(in_tensor, in_filter, stride, pad));
+    //result[i][j].add(bt);
     result[i].relu();
   }
   console.log((window.performance.now() - startTime)/1000);
@@ -122,73 +65,29 @@ function max_polling(input, ignore) {
   // res shape = 3*2*100
   return res;
 }
-/*
-// where the max comes from [i, j]
-function argmax(input) {
-    if (input.length <= 0 || input[0].length <= 0) {
-        return -1;
-    }
-    var ans = [0, 0];
-    var max = input[0][0];
-    for (var i = 0; i < input.length; i++) {
-        for (var j = 0; j < input[0].length; j++) {
-            if (input[i][j] > max) {
-                max = input[i][j];
-                ans = [i, j];
-            }
-        }
-    }
-    return ans;
-}
-
-// input is an array of nj.array; return a nj.array of max polling after tanh
-function max_polling_helper(input) {
-    return [input.map(a => argmax(nj.tanh(a).tolist())),
-            input.map(a => [nj.tanh(a).max()])];
-}*/
 
 function max_polling_helper(input) {
-  var axis = 0;
-  return [input.argMax(axis), input.max(axis)];
+  var axis = 1;
+  return [input.argMax(axis), input.max(axis)]; // 100*100
 }
-/*
-function fc1(input, weights, bias) {
-  // max polling result
-  // input: [Array(100), Array(100), Array(100)]
-  var combined = []; // size = 200
-  for (var i = 0; i < input.length; i++) {  // 3
-    for (var j = 0; j < input[i].length; j++) { // 100
-      combined[combined.length] = input[i][j];
-    }
-  }
-
-  //dl.concat([input[0], input[1], input[2]]).print();
-
-  var mm = nj.dot(weights, combined).tolist();
-
-  var res = [];
-  for (var i = 0; i < mm.length; i++) {
-    res[res.length] = [mm[i][0] + bias[i]];
-  }
-  return res;
-}*/
 
 function fc1(input, weights, bias) {
   // max polling result
   // input: [t(100), t(100), t(100)]
   // correct
-  var combined = dl.concat(input, 0).as2D(300, 1);
+  // [t(100x100), t(100x100), t(100x100)]
+  var combined = dl.concat(input, 0).as2D(100, 300).transpose();  // 300x100
   var w_tensor = dl.tensor(weights).as2D(6, 300);
 
-  var mm = dl.matMul(w_tensor, combined).as1D();
+  var mm = dl.matMul(w_tensor, combined).as2D(6, 100);
   var b_tensor = dl.tensor1d(bias)
-  var res = dl.add(mm, b_tensor);
-  return res;
+  //var res = dl.add(mm, b_tensor);
+  return mm;
 }
 
 // y = w z + b;
 function soft_max(z) {
-  return dl.softmax(z);
+  return dl.softmax(z.transpose()); //[100x6]
 }
 
 
@@ -325,9 +224,9 @@ function round_and_fix(num, decimals) {
   return (Math.round((num * t) + (decimals>0?1:0)*(Math.sign(num) * (10 / Math.pow(100, decimals)))) / t).toFixed(decimals);
 }
 
-function get_conv_res(results, weights, bias) {
+function get_conv_res(results, weights, bias, max_len) {
   var input = build_input(results);
-  var conv_res = conv(input, weights, bias);
+  var conv_res = conv(input, weights, bias, max_len);
   return conv_res;
 }
 
@@ -383,6 +282,56 @@ function display_conv(label, results, query, weights, bias, weights_fc1, bias_fc
     ret[2] = max_poll_res; // [[2],[2],[2]]
 
     //display_ww(highlight, label, predictedLabel);
+
+    return ret;
+}
+
+function display_conv_batch(batch, max_len, label, results, query, weights, bias, weights_fc1, bias_fc1, ignore) {
+    if (query.length < 5) {
+        clean_up();
+        return;
+    }
+    /*
+    console.log(label)  [#, #, #, ...]
+    console.log(results)  [[[wv1],[wv2]...],[],...]
+    console.log(query)  [["a", "b", "c", ...]]
+    */
+    var L = [-1, 2, 3, 1, 4, 0];
+    var conv_res = conv(results, weights, bias, max_len);
+
+    var args, polling_res;
+    var max_poll_res = max_polling(conv_res, ignore); // [args, polling_res]
+
+    var max_poll_res_real = [max_poll_res[0][1], max_poll_res[1][1], max_poll_res[2][1]];
+
+    var fc1_res = fc1(max_poll_res_real, weights_fc1, bias_fc1);  // longest time
+
+    var output = soft_max(fc1_res);
+    // size 100
+    var res_index = dl.argMax(output, 1).dataSync(); //TODO: change to data(), return promise
+
+    var ret = [];
+    for (var i = 0; i < 100; i++) {
+      var interested_weight_vec = weights_fc1[res_index[i]];
+
+      var predictedLabel = L[res_index[i]];
+      // console.log(output);
+      // show_gradient_indicator();
+
+      var ww = analyze(query[i], max_poll_res, max_poll_res_real, fc1_res, output,
+                      interested_weight_vec, bias_fc1[res_index], ignore);
+      //console.log(ww)
+
+      var highlight = [];
+      for (var j = 0; j < query[i].length; j++) {
+        highlight[highlight.length] = [query[i][j], ww[j]];
+      }
+      highlight[highlight.length] = ['\n', 0];
+      ret[i] = [];
+      ret[i][0] = [highlight, label[i], predictedLabel];
+      ret[i][1] = conv_res; // [700, 800, 900]
+      ret[i][2] = max_poll_res; // [[2],[2],[2]]
+    }
 
     return ret;
 }

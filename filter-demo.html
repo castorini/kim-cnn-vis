@@ -155,7 +155,8 @@ function showAll(ignore) {
   let requests = segments.map(function(q) {
     return new Promise(function(resolve, reject) {
       searcher.showVecs(q[0], Array(), function(results) {
-        var ret = display_conv(q[1], results, q[0], weights, bias, fc_weights, fc_bias, ignore);
+        //var ret2 = display_conv(q[1], results, q[0], weights, bias, fc_weights, fc_bias, ignore);
+        var ret = [q, results];
         if (ret != undefined) {
           resolve(ret)
         } else {
@@ -166,12 +167,38 @@ function showAll(ignore) {
   })
 
   Promise.all(requests).then(function(response) {
-    for (var i = 0; i < response.length; i++) {
-      if (response[i] == "failed") {
-        continue;
+    // [[[],#],[list of arrays]]
+    var labels = [];
+    var vecs = [];
+    var qs = [];
+    var max_len = 0;
+    for (var i = 0; i < 100; i++) {
+      labels[i] = response[i][0][1];
+      qs[i] = response[i][0][0];
+      vecs[i] = build_input(response[i][1]);
+      if (response[i][1].length > max_len) {
+        max_len = response[i][1].length;
       }
-      nn_res[nn_res.length] = response[i];
-      var draw = response[i][0];
+    }
+
+    var fill = Array(300);
+    for (var i = 0; i < 300; i++) {
+      fill[i] = 0;
+    }
+
+    for (var i = 0; i < 100; i++) {
+      while (vecs[i].length < max_len) {
+        var cur = vecs[i].length
+        vecs[i][cur] = fill;
+        //var filled = dl.fill([max_len - vecs[i].length, 300], 0);
+        //vecs[i] = dl.concat([dl.tensor(vecs[i]).as2D(vecs[i].length, 300), filled]);  // [41, 300]
+      }
+    }
+
+    var ret = display_conv_batch(100, max_len, labels, vecs, qs, weights, bias, fc_weights, fc_bias, ignore);
+    for (var i = 0; i < ret.length; i++) {
+      nn_res[nn_res.length] = ret[i];
+      var draw = ret[i][0];
       display_sentence_coloring(draw[0], draw[1], draw[2], [-1, -1], false, -1);
     }
     updateMsg("Finished processing " + response.length + " sentences in " + (window.performance.now() - startTime)/1000 + "s.");
