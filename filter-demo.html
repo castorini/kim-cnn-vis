@@ -133,7 +133,9 @@ function setup() {
 
 }
 
-function showAll(ignore) {
+var test_res = [];
+
+function showAll(ignore, b_index) {
   document.getElementById("sent").innerHTML = "";
 
   var startTime = window.performance.now();
@@ -142,7 +144,7 @@ function showAll(ignore) {
   //var nn_res = getAll();
   var segments = [];
   var one = [];
-  for (var i = 0; i < 100; i++) {  // dev_sentences.length
+  for (var i = 0; i < dev_sentences.length; i++) {
     var sentence = dev_sentences[i];
     var label = dev_labels[i];
     var q = sentence.split(" ");
@@ -152,7 +154,12 @@ function showAll(ignore) {
     segments[i] = [q, label];
   }
 
-  let requests = segments.map(function(q) {
+  var cur = [];
+  for (var i = b_index*batch_size; i < b_index*batch_size+batch_size; i++) {
+    cur[cur.length] = segments[i];
+  }
+
+  let requests = cur.map(function(q) {
     return new Promise(function(resolve, reject) {
       searcher.showVecs(q[0], Array(), function(results) {
         //var ret2 = display_conv(q[1], results, q[0], weights, bias, fc_weights, fc_bias, ignore);
@@ -166,13 +173,15 @@ function showAll(ignore) {
     });
   })
 
+  var total = dev_sentences.length/batch_size;
+
   Promise.all(requests).then(function(response) {
     // [[[],#],[list of arrays]]
     var labels = [];
     var vecs = [];
     var qs = [];
     var max_len = 0;
-    for (var i = 0; i < 100; i++) {
+    for (var i = 0; i < batch_size; i++) {
       labels[i] = response[i][0][1];
       qs[i] = response[i][0][0];
       vecs[i] = build_input(response[i][1]);
@@ -186,7 +195,7 @@ function showAll(ignore) {
       fill[i] = 0;
     }
 
-    for (var i = 0; i < 100; i++) {
+    for (var i = 0; i < batch_size; i++) {
       while (vecs[i].length < max_len) {
         var cur = vecs[i].length
         vecs[i][cur] = fill;
@@ -195,16 +204,37 @@ function showAll(ignore) {
       }
     }
 
-    var ret = display_conv_batch(100, max_len, labels, vecs, qs, weights, bias, fc_weights, fc_bias, ignore);
+    var ret = display_conv_batch(batch_size, max_len, labels, vecs, qs, weights, bias, fc_weights, fc_bias, ignore);
 
-    updateMsg("Finished processing " + response.length + " sentences in " + ret + "ms.");
+    if ((b_index+1)*batch_size+batch_size > dev_sentences.length) {
+      updateMsg("Finished processing " + response.length + " sentences in " + ret + "ms.");
+      test_res[test_res.length] = ret;
+      updateMsg("Done");
+      average();
+    } else {
+      updateMsg("Finished processing " + response.length + " sentences in " + ret + "ms. ");
+      test_res[test_res.length] = ret;
+      showAll(undefined, b_index+1)
+    }
 
-    for (var i = 0; i < ret.length; i++) {
+    /*for (var i = 0; i < ret.length; i++) {
       nn_res[nn_res.length] = ret[i];
       var draw = ret[i][0];
       display_sentence_coloring(draw[0], draw[1], draw[2], [-1, -1], false, -1);
-    }
+    }*/
   });
+}
+
+function start() {
+  showAll(undefined, 0);
+}
+
+function average() {
+  var sum = 0;
+  for (var i = 0; i < test_res.length; i++) {
+    sum += test_res[i];
+  }
+  updateMsg("average: " + sum/test_res.length);
 }
 
 function searchButton() {
@@ -221,6 +251,12 @@ function searchButton() {
     display_single_conv(results, q, weights, bias, fc_weights, fc_bias);
     updateMsg("Finished processing sentence in: " + (window.performance.now() - startTime) + "ms.");
   });
+}
+
+function batchButton() {
+  test_res = [];
+  batch_size = parseInt(document.querySelector("#batch").value);
+  updateMsg("Batch size set to " + batch_size);
 }
 
 var filter_res = [];
@@ -443,6 +479,7 @@ Be sure to <a href="indexing-demo.html">build the index</a> first!</p>
 <p>Instructions: Click 'Setup' to load parameters, then click 'Show All' to process all the sentences.</p>
 
 <button id="setupButton" onclick="setup()">Setup</button>
+<button id="start" onclick="start()">Start Test</button>
 <button id="showAll" onclick="showAll()">Show All</button>
 <button id="byFilter" onclick="byFilter()">By Filter</button>
 <!--<select id="filter" onchange="test(this);">
@@ -456,6 +493,8 @@ Ignore insignificant filters: <input type="checkbox" id="ignore_filters_checkbox
 </p>
 <input type="text" id="query" placeholder="query">
 <button id="searchButton" onclick="searchButton()">Search</button> (try "the" or "they")</p>
+<input type="text" id="batch" placeholder="batch size">
+<button id="batchButton" onclick="batchButton()">Batch Size</button>
 
 <div id="results" style="padding-bottom: 50px">
   <div class="sentences" id="sent"></div>

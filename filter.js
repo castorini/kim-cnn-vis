@@ -7,6 +7,7 @@ const VECTOR_LENGTH = 300;
 var filtersExample = [[[0.01, 0.02],[0.03, 0.04],[0.05, 0.06]],
                 [[-0.15,0.16],[0.2, -0.21],[-0.25,0.26],[0.3, -0.31]],
                 [[0.23,0.24],[0.25, -0.2],[0.33,0.34],[0.15, -0.1],[0.43,0.44]]];
+var batch_size = 32;
 
 // build an input matrix for CNN
 function build_input(results) {
@@ -32,7 +33,7 @@ function build_input(results) {
 function conv(input, weights, bias, len) {
   //dl.squeeze(dl.conv1d(dl.tensor(input[0]).as2D(300, 1), dl.tensor(weights[0][0][2]).as3D(300,1,1), 1, 'valid')).print();
   var result = [];
-  var in_tensor = dl.tensor(input).as4D(100, len, 300, 1);
+  var in_tensor = dl.tensor(input).as4D(batch_size, len, 300, 1);
 
   var in_tensor_with_pad = in_tensor;
   var pads = [dl.zeros([2, 300, 1]), dl.zeros([3, 300, 1]), dl.zeros([4, 300, 1])];
@@ -74,10 +75,11 @@ function fc1(input, weights, bias) {
   // input: [t(100), t(100), t(100)]
   // correct
   // [t(100x100), t(100x100), t(100x100)]
-  var combined = dl.concat(input, 0).as2D(100, 300).transpose();  // 300x100
-  var w_tensor = dl.tensor(weights).as2D(6, 300);
 
-  var mm = dl.matMul(w_tensor, combined).as2D(6, 100);
+  var combined = dl.concat(input, 0).as2D(batch_size, 300).transpose();  // 300x100
+  var w_tensor = dl.tensor(weights).as2D(6, 300);
+  var mm = dl.matMul(w_tensor, combined).as2D(6, batch_size);
+
   var b_tensor = dl.tensor1d(bias)
   //var res = dl.add(mm, b_tensor);
   return mm;
@@ -289,11 +291,7 @@ function display_conv_batch(batch, max_len, label, results, query, weights, bias
         clean_up();
         return;
     }
-    /*
-    console.log(label)  [#, #, #, ...]
-    console.log(results)  [[[wv1],[wv2]...],[],...]
-    console.log(query)  [["a", "b", "c", ...]]
-    */
+
     var startTime = window.performance.now();
     var L = [-1, 2, 3, 1, 4, 0];
     var conv_res = conv(results, weights, bias, max_len);
@@ -310,28 +308,6 @@ function display_conv_batch(batch, max_len, label, results, query, weights, bias
     var res_index = dl.argMax(output, 1).dataSync(); //TODO: change to data(), return promise
     var lapsed = (window.performance.now() - startTime);
 
-    var ret = [];
-    for (var i = 0; i < 100; i++) {
-      var interested_weight_vec = weights_fc1[res_index[i]];
-
-      var predictedLabel = L[res_index[i]];
-      // console.log(output);
-      // show_gradient_indicator();
-
-      var ww = analyze(query[i], max_poll_res, max_poll_res_real, fc1_res, output,
-                      interested_weight_vec, bias_fc1[res_index], ignore);
-      //console.log(ww)
-
-      var highlight = [];
-      for (var j = 0; j < query[i].length; j++) {
-        highlight[highlight.length] = [query[i][j], ww[j]];
-      }
-      highlight[highlight.length] = ['\n', 0];
-      ret[i] = [];
-      ret[i][0] = [highlight, label[i], predictedLabel];
-      ret[i][1] = conv_res; // [700, 800, 900]
-      ret[i][2] = max_poll_res; // [[2],[2],[2]]
-    }
 
     return lapsed;
 }
