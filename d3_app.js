@@ -4,7 +4,7 @@ const PADDING = RECT_SIZE * 5;
 var select_rect = null;
 var color_scale = d3.scaleLinear()
                     .domain([-0.25, 0, 0.25])
-                    .range(["#f59322", "#e8eaeb", "#0877bd"])
+                    .range(["#0877bd", "#e8eaeb", "#f59322"])
                     .clamp(true);
 var coords = [];
 var prev_dict = [];
@@ -21,7 +21,7 @@ function show_gradient_indicator() {
                     .attr("id", "gradient");
 
     gradient.append("stop")
-            .attr("stop-color", "#f59322")
+            .attr("stop-color", "#0877bd")
             .attr("offset", 0)
             .attr("stop-opacity", 1);
     gradient.append("stop")
@@ -29,7 +29,7 @@ function show_gradient_indicator() {
             .attr("offset", 0.5)
             .attr("stop-opacity", 1);
     gradient.append("stop")
-            .attr("stop-color", "#0877bd")
+            .attr("stop-color", "#f59322")
             .attr("offset", 1)
             .attr("stop-opacity", 1);
 
@@ -62,17 +62,25 @@ function draw_paths() {
     svg = d3.select("#lines");
     var id = select_rect.attr("id").split(",").map(Number);
     var result = prev_dict[id[0]][id[1]][id[2]][id[3]];
+
     result.forEach(function(r, idx) {
         var id_str = '[id="'+r[0]+","+r[1]+","+r[2]+","+r[3]+'"]';
         var source = d3.select(id_str);
-        source.classed("select", true);
+        source.classed("select", false);
         svg.append("line")
-            .style("stroke", "purple")
+            .style("stroke", "#A9A9A9")
             .attr("x1", Number(select_rect.attr("x")) + RECT_SIZE / 2)
             .attr("y1", select_rect.attr("y"))
             .attr("x2", Number(source.attr("x")) + RECT_SIZE / 2)
             .attr("y2", Number(source.attr("y")) + RECT_SIZE);
     })
+
+    for (var i = result[0][2]; i <= result[3][2]; i++) {
+      for (var j = 0; j <= 299; j++) {
+        var id_str = '[id="'+0+","+0+","+i+","+j+'"]';
+        var source = d3.select(id_str).classed("select", true);
+      }
+    }
 }
 
 function show_source(rect) {
@@ -82,8 +90,7 @@ function show_source(rect) {
         svg.selectAll("*").remove();
         return;
     }
-    select_rect = d3.select(rect)
-                    .classed("select", true);
+    select_rect = d3.select(rect).classed("select", true);
     draw_paths();
 }
 
@@ -159,7 +166,9 @@ function build_prev_dict(input, conv_res, args, polling_res, output) {
                 var prev = [];
                 for (var i = idx1; i < idx1+FILTER_X_SIZE+dim_inc; i++) {
                     for (var j = idx2; j<idx2+FILTER_Y_SIZE; j++) {
-                        prev.push([0, 0, i, j]);
+                        if ((i == idx1 && j == idx2) || (i == idx1 && j == idx2+FILTER_Y_SIZE-1) || (i == idx1+FILTER_X_SIZE+dim_inc-1 && j == idx2) || (i == idx1+FILTER_X_SIZE+dim_inc-1 && j == idx2+FILTER_Y_SIZE-1)) {
+                          prev.push([0, 0, i, j]);
+                        }
                     }
                 }
                 prev_dict[1][idx0][idx1][idx2] = prev;
@@ -208,7 +217,7 @@ function show_network(words, input, filters, conv_res, args, polling_res, output
         x_offset = idx * ((RECT_SIZE * CONV_RESULT_WIDTH) + PADDING);
         coords[1].push([]);
         prev_dict[1].push([]);
-        new_height = show_rect(v, svg, x_offset, height + PADDING, "conv_layer", 1, idx);
+        new_height = show_rect(v, svg, x_offset+150, height + PADDING, "conv_layer", 1, idx);
     });
     height = new_height;
 
@@ -217,136 +226,9 @@ function show_network(words, input, filters, conv_res, args, polling_res, output
     height = show_rect(polling_res, svg, x_offset, height + PADDING, "polling", 2, 0);
 
     // show output
-    x_offset = (width-(RECT_SIZE * 6))/ 2;  // b.size = 3
+    x_offset = (width-(RECT_SIZE * 3))/ 2;  // b.size = 3
     show_rect(output, svg, x_offset, height + PADDING, "output", 3, 0);
 
     svg.append("g").attr("id", "lines");
     build_prev_dict(input, conv_res, args, polling_res, output);
-}
-
-
-function display_ww(input, label, plabel, start, same, bias) {
-    // clean up
-    clean_up();
-
-    var div = d3.select(".sentences");
-    if (start[0] != -1 && start[1] != -1) {
-      var css = "font-size:160%;"
-      if (bias == -1) {
-        div.append('div')
-          .attr('class', 'd')
-          .attr('style', css)
-          .html("Filter " + start[0] + "-" + start[1]);
-      } else if (bias != -1 && same == true){
-        div.append('div')
-          .attr('class', 'd')
-          .attr('style', css)
-          .html("Filter " + start[0] + "-" + start[1] + " (bias = " + bias + ")");
-      }
-      div.append('br');
-    }
-
-    var lnew = div.append('div');
-    lnew.attr('class', 'd').html(label + "&nbsp;&nbsp;/&nbsp;&nbsp;" + plabel + "&nbsp;&nbsp;");
-
-    render(div, input, plabel, same);
-}
-
-function toColor3(v, len, i, label, same) {
-  // v is -1 to 1 initially
-  if(v > 0) {
-    var h = 200;  // negative
-    if (label == 2) {
-      h = 50; // neutral
-    } else if (label == 3 || label == 4) {
-      h = 0; // positive
-    }
-    var s = "60%";
-    v = 1 - v;
-    v = v * 100;
-    var l = 40;
-    l += (40/len)*i;
-    /*var l = 100;
-    if (v > 90) {
-      l = 90;
-    } else if (v < 10) {
-      l = 40;
-    } else if (v >= 10 && v < 30) {
-      l = 50;
-    } else if (v >= 30 && v < 50) {
-      l = 60;
-    } else if (v >= 50 && v < 70) {
-      l = 70;
-    } else {
-      l = 80;
-    }*/
-    l += '%';
-    if (same) {
-      if (v == 0) {
-        l = 60;
-      } else {
-        l = 40;
-      }
-      l += '%';
-    }
-  } else {
-    var h = 0;
-    var s = "60%";
-    v = -v;
-    v = 1 - v; // invert too
-    var l = (v * 100) + '%';
-  }
-  var s = sprintf('hsl(%d,%s,%s)', h,s,l);
-  return s;
-}
-
-function sortWithIndeces(toSort) {
-  for (var i = 0; i < toSort.length; i++) {
-    toSort[i] = [toSort[i], i];
-  }
-  toSort.sort(function(left, right) {
-    return left[0] < right[0] ? 1 : -1;
-  });
-  toSort.sortIndices = [];
-
-  for (var j = 0; j < toSort.length; j++) {
-    toSort.sortIndices[toSort[j][1]] = j-1;
-  }
-  return toSort;
-}
-
-
-function render(div, data, plabel, same) {
-  var len = data.length;
-  var new_intensity_arr = [];
-  for (var i = 0; i < len; i++) {
-    new_intensity_arr[i] = data[i][1];
-  }
-  var sorted = sortWithIndeces(new_intensity_arr);
-  var rank = sorted.sortIndices;
-
-  for (var i = 0; i < len; i++) {
-    var word = data[i][0];
-    var intensity = data[i][1];
-
-    //console.log(intensity + "," + len + "," + rank[i] + "," + plabel)
-    var cole = toColor3(intensity, len, rank[i], plabel, same);
-
-    var css = 'background-color:' + cole;
-
-    if(word == ' ') {
-      css += ';color:' + cole;
-    }
-    if(word == '\n') {
-      css += ';display:block;'
-      //div.append('br')
-    }
-
-    word += "&nbsp;&nbsp;";
-
-    var dnew = div.append('div');
-    dnew.attr('class', 'd')
-      .attr('style', css)
-      .html(word);
-  }
 }

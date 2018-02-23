@@ -33,32 +33,12 @@ function initializeDB() {
       thisDB.createObjectStore("weights_5");
     }
 
-    if (!thisDB.objectStoreNames.contains("weights_fc1")) {
-      thisDB.createObjectStore("weights_fc1");
-    }
-
-    if (!thisDB.objectStoreNames.contains("bias_3")) {
-      thisDB.createObjectStore("bias_3");
-    }
-
-    if (!thisDB.objectStoreNames.contains("bias_4")) {
-      thisDB.createObjectStore("bias_4");
-    }
-
-    if (!thisDB.objectStoreNames.contains("bias_5")) {
-      thisDB.createObjectStore("bias_5");
-    }
-
-    if (!thisDB.objectStoreNames.contains("bias_fc1")) {
-      thisDB.createObjectStore("bias_fc1");
+    if (!thisDB.objectStoreNames.contains("bias")) {
+      thisDB.createObjectStore("bias");
     }
 
     if (!thisDB.objectStoreNames.contains("dataset")) {
       thisDB.createObjectStore("dataset");
-    }
-
-    if (!thisDB.objectStoreNames.contains("nn_res")) {
-      thisDB.createObjectStore("nn_res");
     }
   }
 

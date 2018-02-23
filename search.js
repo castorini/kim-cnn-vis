@@ -1,18 +1,14 @@
 var searcher = (function () {
   var queryTerms;
   var phrases;
-  var phrasesAll;
   var numDocs = 0;
   var resultsWordvecs;
   var sentResults;
-  var sentResultsAll;
   var sentence;
-  var sentences;
-  var labels;
-  var weight;
-  var bias;
+  var weight
 
   var startTime;
+  var index = 0;
 
   function wordvecSearchInit(callback, i) {
     if (i == queryTerms.length) {
@@ -38,50 +34,32 @@ var searcher = (function () {
 
   }
 
-  function getDBCount(db_name, callback) {
-    try{
-      var request1 = db.transaction([db_name], "readonly")
-                       .objectStore(db_name).count();
-
-      request1.onsuccess = function(e) {
-        var count = e.target.result;
-        callback(count);
-      }
-    } catch (e) {
-      console.log("Error opening weights!");
-    }
-  }
-
-  function wordvecLargeSearchInit(callback, q, results, i) {
-    if (i == q.length) {
-      callback(results);
+  function wordvecLargeSearchInit(callback, i) {
+    if (i == phrases.length) {
+      callback(sentResults);
       return;
     }
 
     var cursor = db.transaction(["wordvecslarge"], "readonly")
       .objectStore("wordvecslarge")
-      .openCursor(q[i]);
+      .openCursor(phrases[i]);
 
     cursor.onsuccess = function (e) {
       var res = e.target.result;
       if (res) {
-        results[results.length] = Array(q[i], res.value);
+        sentResults[sentResults.length] = Array(phrases[i], res.value);
         res.continue;
       } else {
-        // console.log("Word2Vec not found for word: " + phrases[i]);
-        results[results.length] = Array(q[i], Array());
+        console.log("Word2Vec not found for word: " + phrases[i]);
+        sentResults[sentResults.length] = Array(phrases[i], Array());
       }
-      wordvecLargeSearchInit(callback, q, results, i + 1);
+      wordvecLargeSearchInit(callback, i + 1);
     };
 
   }
 
-  function searchWeightsWithDim(callback, i, db_name, count) {
-    if (i == count) {
-        callback(weights);
-        return;
-    }
-
+  function searchWeightsWithDim(callback, i, dim) {
+    var db_name = "weights_" + dim
     var cursor = db.transaction([db_name], "readonly")
       .objectStore(db_name)
       .openCursor(i);
@@ -89,39 +67,17 @@ var searcher = (function () {
     cursor.onsuccess = function (e) {
       var res = e.target.result;
       if (res) {
-        weights[weights.length] = res.value;
-        // console.log(res.value);
-        res.continue
+        //weights[weights.length] = Array(res.value);
+        //console.log(weights[weights.length]);
+        callback(res.value);
       } else {
-        weights[weights.length] = Array();
+        //weights[weights.length] = Array();
+        callback(Array());
       }
-      searchWeightsWithDim(callback, i+1, db_name, count);
     };
   }
 
-  function searchBiasWithDim(callback, i, db_name, count) {
-    if (i == count) {
-        callback(bias);
-        return;
-    }
-
-    var cursor = db.transaction([db_name], "readonly")
-      .objectStore(db_name)
-      .openCursor(i);
-
-    cursor.onsuccess = function (e) {
-      var res = e.target.result;
-      if (res) {
-        bias[bias.length] = res.value;
-        res.continue;
-      } else {
-        bias[bias.length] = Array();
-      }
-      searchBiasWithDim(callback, i+1, db_name, count);
-    };
-  }
-
-  function getithSentence(index, callback) {
+  function getithSentence(callback) {
     var cursor = db.transaction(["dataset"], "readonly")
       .objectStore("dataset")
       .openCursor(index);
@@ -130,29 +86,13 @@ var searcher = (function () {
       var res = e.target.result;
       if (res) {
         sentence = res.value.comment;
-        label = res.value.label;
-        callback(sentence, label);
+        console.log(sentence);
+        callback(sentence);
+        index++;
       } else {
         console.log("No more sentences");
-      }
-    };
-  }
-
-  function getAllSentences(callback, i) {
-    var cursor = db.transaction(["dataset"], "readonly")
-      .objectStore("dataset")
-      .openCursor(i);
-
-    cursor.onsuccess = function (e) {
-      var res = e.target.result;
-      if (res) {
-        sentence = res.value.comment;
-        label = res.value.label;
-        sentences[sentences.length] = sentence;
-        labels[labels.length] = label;
-        getAllSentences(callback, i+1);
-      } else {
-        callback(sentences, labels);
+        index = 0;
+        getithSentence(callback);
       }
     };
   }
@@ -164,40 +104,25 @@ var searcher = (function () {
       wordvecSearchInit(callbackWordvecs, 0);
     },
 
-    getWeights: function (db_name, callback) {
+    getWeights: function (dim, callback) {
       weights = [];
-      getDBCount(db_name, function(count) {
-        searchWeightsWithDim(callback, 0, db_name, count);
-      })
+      if (dim == 3) {
+        searchWeightsWithDim(callback, 11, dim);
+      } else if (dim == 5) {
+        searchWeightsWithDim(callback, 49, dim);
+      } else {
+        searchWeightsWithDim(callback, 0, dim);
+      }
     },
 
-    getBias: function (db_name, callback) {
-      bias = [];
-      getDBCount(db_name, function(count) {
-        searchBiasWithDim(callback, 0, db_name, count);
-      })
-    },
-
-    getSentence: function (i, callback) {
+    getSentence: function (callback) {
       sentence = "";
-      getithSentence(i, callback);
+      getithSentence(callback);
     },
 
-    getSentenceAll: function (callback) {
-      sentences = [];
-      labels = [];
-      getAllSentences(callback, 0);
-    },
-
-    showVecs: function (q, res, callback) {
+    showVecs: function (q, callback) {
       phrases = q;
       sentResults = Array();
-      wordvecLargeSearchInit(callback, q, res, 0);
-    },
-
-    showVecsAll: function (qs, callback) {
-      phrasesAll = qs;
-      sentResultsAll = Array();
       wordvecLargeSearchInit(callback, 0);
     },
 

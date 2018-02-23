@@ -1,4 +1,4 @@
 rect.select {
-    stroke: purple;
-    stroke-width: 2px; 
+    stroke: rgba(128,128,128,0.5);
+    stroke-width: 2.5px;
 }

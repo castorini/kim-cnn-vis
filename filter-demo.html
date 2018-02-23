@@ -24,22 +24,7 @@
 <script type="text/javascript" src="db.js"></script>
 <script type="text/javascript" src="search.js"></script>
 <script type="text/javascript" src="bootstrap/numjs.min.js"></script>
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/deeplearn@latest"></script>
 <script type="text/javascript" src="filter.js"></script>
-
-<script
-src="https://code.jquery.com/jquery-2.1.3.min.js"
-integrity="sha256-ivk71nXhz9nsyFDoYoGf2sbjrR9ddh+XDkCcfZxjvcM="
-crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.12.2/d3.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sprintf/1.1.1/sprintf.min.js"></script>
-
-<style>
-.d {
-  display: inline-block;
-}
-</style>
 
 <script>
 
@@ -61,7 +46,7 @@ searcher.setNumDocs(1128929);
 
 function searchButton() {
   //var q = document.querySelector("#query").value.split(" ");
-  var q = "no movement , no yuks , not much of anything .".split(" ");
+  var q = "an exquisitely crafted and acted tale .".split(" ");
 
   q = q.map(function(x) { return x.toLowerCase()})
            .filter(function(x) { return x.length > 0 ? true : false; });
@@ -74,357 +59,28 @@ function searchButton() {
   });
 }
 
-function storeToDB(i, item) {
-  var transaction = db.transaction(["nn_res"], "readwrite");
-  var store = transaction.objectStore("nn_res");
-  var itemFinal = {"value": item}
-  var request = store.put(i, itemFinal);
-}
+function nextButton() {
+  searcher.getWeights(3, function(weights_3) {
+    searcher.getWeights(4, function(weights_4) {
+      searcher.getWeights(5, function(weights_5) {
+        searcher.getSentence(function(sentence) {
+          //sentence = "for the most part stevens glides through on some solid performances and witty dialogue .";
+          sentence = "i got a headache watching this meaningless downer .";
+          var q = sentence.split(" ");
 
-function updateMsg(msg) {
-  document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>" + msg + "</div>";
-}
+          q = q.map(function(x) { return x.toLowerCase()})
+                   .filter(function(x) { return x.length > 0 ? true : false; });
 
-var nn_res = [];
-var weights;
-var bias;
-var fc_weights;
-var fc_bias;
-var dev_sentences;
-var dev_labels;
-function setup() {
-  var startTime = window.performance.now();
-  // var e = document.getElementById("filter");
-  // var selected = e.options[e.selectedIndex].value;
-  var i = 0;
-  updateMsg("Started loading parameters.");
-  searcher.getBias("bias_3", function(bias_3) {
-     searcher.getBias("bias_4", function(bias_4) {
-       searcher.getBias("bias_5", function(bias_5) {
+          var weights = Array(weights_3, weights_4, weights_5);
 
-         searcher.getWeights("weights_3", function(weights_3) {
-           searcher.getWeights("weights_4", function(weights_4) {
-             searcher.getWeights("weights_5", function(weights_5) {
-
-                searcher.getBias("bias_fc1", function(bias_fc1) {
-                  searcher.getWeights("weights_fc1", function(weights_fc1) {
-
-                    weights = Array(weights_3, weights_4, weights_5);
-                    bias = Array(bias_3, bias_4, bias_5);
-                    fc_weights = weights_fc1;
-                    fc_bias = bias_fc1;
-
-                    searcher.getSentenceAll(function(sentences, labels) {
-                      dev_sentences = sentences;
-                      dev_labels = labels;
-                      updateMsg("Finished loading parameters in " + (window.performance.now() - startTime)/1000 + "s.");
-                    })
-
-                  })
-                })
-
-              })
-            })
+          searcher.showVecs(q, function(results) {
+            display_conv(results, q, weights);
           })
-
-       })
-     })
-  })
-
-}
-
-var test_res = [];
-
-function showAll(ignore, b_index) {
-  document.getElementById("sent").innerHTML = "";
-
-  var startTime = window.performance.now();
-  updateMsg("Started processing sentences.");
-
-  //var nn_res = getAll();
-  var segments = [];
-  var one = [];
-  for (var i = 0; i < dev_sentences.length; i++) {
-    var sentence = dev_sentences[i];
-    var label = dev_labels[i];
-    var q = sentence.split(" ");
-
-    q = q.map(function(x) { return x.toLowerCase()})
-             .filter(function(x) { return x.length > 0 ? true : false; });
-    segments[i] = [q, label];
-  }
-
-  var cur = [];
-  for (var i = b_index*batch_size; i < b_index*batch_size+batch_size; i++) {
-    cur[cur.length] = segments[i];
-  }
-
-  let requests = cur.map(function(q) {
-    return new Promise(function(resolve, reject) {
-      searcher.showVecs(q[0], Array(), function(results) {
-        //var ret2 = display_conv(q[1], results, q[0], weights, bias, fc_weights, fc_bias, ignore);
-        var ret = [q, results];
-        if (ret != undefined) {
-          resolve(ret)
-        } else {
-          resolve("failed")
-        }
-      });
-    });
-  })
-
-  var total = dev_sentences.length/batch_size;
-
-  Promise.all(requests).then(function(response) {
-    // [[[],#],[list of arrays]]
-    var labels = [];
-    var vecs = [];
-    var qs = [];
-    var max_len = 0;
-    for (var i = 0; i < batch_size; i++) {
-      labels[i] = response[i][0][1];
-      qs[i] = response[i][0][0];
-      vecs[i] = build_input(response[i][1]);
-      if (response[i][1].length > max_len) {
-        max_len = response[i][1].length;
-      }
-    }
-
-    var fill = Array(300);
-    for (var i = 0; i < 300; i++) {
-      fill[i] = 0;
-    }
-
-    for (var i = 0; i < batch_size; i++) {
-      while (vecs[i].length < max_len) {
-        var cur = vecs[i].length
-        vecs[i][cur] = fill;
-        //var filled = dl.fill([max_len - vecs[i].length, 300], 0);
-        //vecs[i] = dl.concat([dl.tensor(vecs[i]).as2D(vecs[i].length, 300), filled]);  // [41, 300]
-      }
-    }
-
-    var ret = display_conv_batch(batch_size, max_len, labels, vecs, qs, weights, bias, fc_weights, fc_bias, ignore);
-
-    if ((b_index+1)*batch_size+batch_size > dev_sentences.length) {
-      updateMsg("Finished processing " + response.length + " sentences in " + ret + "ms.");
-      test_res[test_res.length] = ret;
-      updateMsg("Done");
-      average();
-    } else {
-      updateMsg("Finished processing " + response.length + " sentences in " + ret + "ms. ");
-      test_res[test_res.length] = ret;
-      showAll(undefined, b_index+1)
-    }
-
-    /*for (var i = 0; i < ret.length; i++) {
-      nn_res[nn_res.length] = ret[i];
-      var draw = ret[i][0];
-      display_sentence_coloring(draw[0], draw[1], draw[2], [-1, -1], false, -1);
-    }*/
+        });
+      })
+    })
   });
 }
-
-function start() {
-  showAll(undefined, 0);
-}
-
-function average() {
-  var sum = 0;
-  for (var i = 0; i < test_res.length; i++) {
-    sum += test_res[i];
-  }
-  updateMsg("average: " + sum/test_res.length);
-}
-
-function searchButton() {
-  document.getElementById("sent").innerHTML = "";
-  var q = document.querySelector("#query").value.split(" ");
-  q = q.map(function(x) { return x.toLowerCase()})
-           .filter(function(x) { return x.length > 0 ? true : false; });
-
-  // Perform wordvec retrieval and twitter search
-  searcher.showVecs(q, Array(), function(results) {
-    var startTime = window.performance.now();
-    updateMsg("Started processing sentence: " + q);
-    //logResults(results);
-    display_single_conv(results, q, weights, bias, fc_weights, fc_bias);
-    updateMsg("Finished processing sentence in: " + (window.performance.now() - startTime) + "ms.");
-  });
-}
-
-function batchButton() {
-  test_res = [];
-  batch_size = parseInt(document.querySelector("#batch").value);
-  updateMsg("Batch size set to " + batch_size);
-}
-
-var filter_res = [];
-function byFilter(show_positive, ignore) {
-  document.getElementById("sent").innerHTML = "";
-  var startTime = window.performance.now();
-  updateMsg("Started processing filters.");
-  // var e = document.getElementById("filter");
-  // var selected = e.options[e.selectedIndex].value;
-  //var nn_res = getAll();
-  var groupByFilter = []; // 3*100
-  for (var d = 0; d < 3; d++) {
-    groupByFilter[d] = [];
-    for (var f = 0; f < 100; f++) {
-      groupByFilter[d][f] = []; // 3*100*#sentenses*2
-    }
-  }
-
-  for (var i = 0; i < nn_res.length; i++) {  // number of sentences analyzed
-    var toDraw = nn_res[i][0];
-    var conv_res = nn_res[i][1];  // [700, 800, 900]
-    var max_poll_res = nn_res[i][2];  // [[2],[2],[2]]
-
-    for (var d = 0; d < 3; d++) {
-      for (var f = 0; f < 100; f++) {
-        groupByFilter[d][f][i] = [max_poll_res[d][1][f], i]; // dth/3 dim, fth/100 filter
-      }
-    }
-  }
-
-  for (var d = 0; d < 3; d++) {
-    for (var f = 0; f < groupByFilter[d].length; f++) {
-      if (show_positive == undefined || show_positive == true) {
-        (groupByFilter[d][f]).sort(function(a, b){return b[0]-a[0]});
-      } else {
-        (groupByFilter[d][f]).sort(function(a, b){return a[0]-b[0]});
-      }
-    }
-  }
-
-  var prev_d = -1;
-  var prev_f = -1;
-  for (var d = 0; d < 3; d++) {
-    filter_res[d] = [];
-    for (var f = 0; f < groupByFilter[d].length; f++) {
-      filter_res[d][f] = [];
-      if (groupByFilter[d][f][0][0] < 0.2) {
-        // console.log("d:" + d + "f:" + f)
-        // continue;
-      }
-      for (var k = 0; k < 10; k++) {
-        var index = groupByFilter[d][f][k][1];
-        var draw = nn_res[index][0];
-        var conv_res = nn_res[index][1];
-        var max_poll_res = nn_res[index][2];
-
-        var matchedIndex = filter_max_index_non_tensor(max_poll_res);
-        var idx = matchedIndex[d][f];
-        if (d == 0) {
-          idx -= 2;
-        } else if (d == 1) {
-          idx -= 3;
-        } else {
-          idx -= 4;
-        }
-        var len = draw[0].length;
-        var highlight = [];
-        for (var i = 0; i < len; i++) {
-          highlight[highlight.length] = [draw[0][i][0], 0];
-        }
-
-        var dim = d+3;
-        for (var p = 0; p < dim; p++) {
-          if (idx+p < 0 || idx+p >= len-1) {
-            continue;
-          }
-          highlight[idx+p][1] = 1;
-        }
-
-        if (d != prev_d || f != prev_f) {
-          filter_res[d][f][k] = [highlight, draw, [d+3, f], true, bias[d][f].toFixed(2)];
-          display_sentence_coloring(highlight, draw[1], draw[2], [d+3, f], true, bias[d][f].toFixed(2));
-          prev_d = d;
-          prev_f = f;
-        } else {
-          filter_res[d][f][k] = [highlight, draw, [-1, -1], true, -1];
-          display_sentence_coloring(highlight, draw[1], draw[2], [-1,-1], true, -1);
-        }
-      }
-    }
-  }
-  updateMsg("Finished processing 300 filters in " + (window.performance.now() - startTime)/1000 + "s.");
-}
-
-function show_negative_weights() {
-  var checkBox = document.getElementById("show_nw_checkbox");
-
-  if (checkBox.checked == true){
-    byFilter(false);
-  } else {
-    byFilter(true);
-  }
-}
-
-// TODO
-function sort_by_filters() {
-  var checkBox = document.getElementById("sort_filters_checkbox");
-  document.getElementById("sent").innerHTML = "";
-
-  if (checkBox.checked == true){
-    var filters_sorted = get_top_filters();
-    for (var i = 0; i < filters_sorted.length; i++) {
-      var d = filters_sorted[i][0];
-      var f = filters_sorted[i][1];
-      for (var k = 0; k < 10; k++) {
-        var fr = filter_res[d][f][k];
-        display_sentence_coloring(fr[0], fr[1][1], fr[1][2], fr[2], fr[3], fr[4]);
-      }
-    }
-  } else {
-    for (var d = 0; d < 3; d++) {
-      for (var f = 0; f < 100; f++) {
-        for (var k = 0; k < 10; k++) {
-          var fr = filter_res[d][f][k];
-          display_sentence_coloring(fr[0], fr[1][1], fr[1][2], fr[2], fr[3], fr[4]);
-        }
-      }
-    }
-  }
-}
-
-function get_top_filters() {
-
-}
-
-function ignore_filters() {
-  var nwCB = document.getElementById("show_nw_checkbox");
-  var igCB = document.getElementById("ignore_filters_checkbox");
-
-  /*if (nwCB.checked == true){
-    if (igCB.checked == true) {
-      byFilter(true, true);
-    } else {
-      byFilter(true, false);
-    }
-  } else {
-    if (igCB.checked == true) {
-      byFilter(false, true);
-    } else {
-      byFilter(false, false);
-    }
-  }*/
-  if (igCB.checked == true) {
-    showAll(true);
-  } else {
-    showAll(false);
-  }
-}
-
-/*
-window.test = function(e) {
-  if (e.value === 'showAll') {
-    document.getElementById("results").innerHTML = "";
-    // nextButton()
-  } else if (e.value === 'byFilter') {
-    console.log(e.value);
-  }
-}*/
 
 </script>
 
@@ -460,7 +116,6 @@ p.wordvec {
             <li><a href="./index.html">Home</a></li>
             <li><a href="./indexing-demo.html">Demo: Indexing</a></li>
             <li><a href="./search-demo.html">Demo: Search</a></li>
-            <li><a href="./kimcnn-demo.html">Demo: Kim CNN</a></li>
             <li class="active"><a href="./filter-demo.html">Demo: Filter</a></li>
             <li><a href="https://github.com/lafh/word2vec">Code (GitHub)</a></li>
           </ul>
@@ -476,28 +131,16 @@ p.wordvec {
 
 <p>The following demo searches word2vecs.
 Be sure to <a href="indexing-demo.html">build the index</a> first!</p>
-<p>Instructions: Click 'Setup' to load parameters, then click 'Show All' to process all the sentences.</p>
 
-<button id="setupButton" onclick="setup()">Setup</button>
-<button id="start" onclick="start()">Start Test</button>
-<button id="showAll" onclick="showAll()">Show All</button>
-<button id="byFilter" onclick="byFilter()">By Filter</button>
-<!--<select id="filter" onchange="test(this);">
-  <option value="showAll">Show All</option>
-  <option value="byFilter">By Filter</option>
-</select>-->
-Show negative weights: <input type="checkbox" id="show_nw_checkbox" onclick="show_negative_weights()">
-<!--Sort filters: <input type="checkbox" id="sort_filters_checkbox" onclick="sort_by_filters()">-->
-Ignore insignificant filters: <input type="checkbox" id="ignore_filters_checkbox" onclick="ignore_filters()">
-<div id="message"></div>
-</p>
 <input type="text" id="query" placeholder="query">
 <button id="searchButton" onclick="searchButton()">Search</button> (try "the" or "they")</p>
-<input type="text" id="batch" placeholder="batch size">
-<button id="batchButton" onclick="batchButton()">Batch Size</button>
+<button id="nextButton" onclick="nextButton()">Next</button> </p>
 
 <div id="results" style="padding-bottom: 50px">
-  <div class="sentences" id="sent"></div>
+  <!-- http://playground.tensorflow.org/ -->
+  <!-- Color Map -->
+  <div><svg id="colormap" width="600" height="70"></svg></div>
+  <div align="center"> <svg id="network" height="0"></svg></div>
 </div>
 
 </div>
