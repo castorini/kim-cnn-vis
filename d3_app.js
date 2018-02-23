@@ -4,7 +4,7 @@ const PADDING = RECT_SIZE * 5;
 var select_rect = null;
 var color_scale = d3.scaleLinear()
                     .domain([-0.25, 0, 0.25])
-                    .range(["#0877bd", "#e8eaeb", "#f59322"])
+                    .range(["#FF795C", "#e8eaeb", "#4BC862"])
                     .clamp(true);
 var coords = [];
 var prev_dict = [];
@@ -21,7 +21,7 @@ function show_gradient_indicator() {
                     .attr("id", "gradient");
 
     gradient.append("stop")
-            .attr("stop-color", "#0877bd")
+            .attr("stop-color", "#FF795C") // #FF795C
             .attr("offset", 0)
             .attr("stop-opacity", 1);
     gradient.append("stop")
@@ -29,7 +29,7 @@ function show_gradient_indicator() {
             .attr("offset", 0.5)
             .attr("stop-opacity", 1);
     gradient.append("stop")
-            .attr("stop-color", "#f59322")
+            .attr("stop-color", "#4BC862") // #4BC862
             .attr("offset", 1)
             .attr("stop-opacity", 1);
 
@@ -260,7 +260,7 @@ function show_network(words, input, filters, conv_res) {
     // show convolutional layer
     for (var i = 0; i < 3; i++) {
       //x_offset = idx * ((RECT_SIZE * 3) + PADDING);
-      new_height = show_rect(conv_res[i], svg, x_offset-200+220*i, height + PADDING, "conv_layer", 1, 0);
+      new_height = show_rect(conv_res[i], svg, x_offset-150+220*i, height + PADDING, "conv_layer", 1, 0);
     }
     /*conv_res.forEach(function(v, idx) {
         x_offset = idx * ((RECT_SIZE * 3) + PADDING);

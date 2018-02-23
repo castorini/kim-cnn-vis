@@ -63,20 +63,18 @@ function nextButton() {
   searcher.getWeights(3, function(weights_3) {
     searcher.getWeights(4, function(weights_4) {
       searcher.getWeights(5, function(weights_5) {
-        searcher.getSentence(function(sentence) {
-          //sentence = "for the most part stevens glides through on some solid performances and witty dialogue .";
-          sentence = "i got a headache watching this meaningless downer .";
-          var q = sentence.split(" ");
+        sentence = "for the most part stevens glides through on some solid performances and witty dialogue .";
+        //sentence = "i got a headache watching this meaningless downer .";
+        var q = sentence.split(" ");
 
-          q = q.map(function(x) { return x.toLowerCase()})
-                   .filter(function(x) { return x.length > 0 ? true : false; });
+        q = q.map(function(x) { return x.toLowerCase()})
+                 .filter(function(x) { return x.length > 0 ? true : false; });
 
-          var weights = Array(weights_3, weights_4, weights_5);
+        var weights = Array(weights_3, weights_4, weights_5);
 
-          searcher.showVecs(q, function(results) {
-            display_conv(results, q, weights);
-          })
-        });
+        searcher.showVecs(q, function(results) {
+          display_conv(results, q, weights);
+        })
       })
     })
   });
