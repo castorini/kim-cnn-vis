@@ -95,10 +95,21 @@ function display_conv(results, query, weights) {
       conv_res[i] = [];
       temp[i] = []
       for (var j = 0; j < 100; j++) {
-        conv_res[i][j] = conv(input, weights[i][j][0]);
+        conv_res[i][j] = conv(input, weights[i][j][0]); // 7[Arr(1)...]
         // for this sentence, ijth filter conv res
         if (j == 0) {
           temp[i] = conv_res[i][j];
+        }
+      }
+    }
+
+    var conv_res2 = [];
+    for (var i = 0; i < 3; i++) {
+      conv_res2[i] = [];
+      for (var j = 0; j < 7-i; j++) {
+        conv_res2[i][j] = Array(100);
+        for (var k = 0; k < 100; k++) {
+          conv_res2[i][j][k] = conv_res[i][k][j];
         }
       }
     }
@@ -108,5 +119,5 @@ function display_conv(results, query, weights) {
     //var output = fully_connected(polling_res);
     show_gradient_indicator();
     //show_network(query, input, weights, conv_res, args, polling_res, output);
-    show_network(query, input, weights, temp);
+    show_network(query, input, weights, conv_res2);
 }

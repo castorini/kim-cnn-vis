@@ -248,15 +248,21 @@ function show_network(words, input, filters, conv_res) {
     var x_offset, new_height;
     width = CONV_RESULT_WIDTH * NUMBER_OF_FILTERS * RECT_SIZE + PADDING * (NUMBER_OF_FILTERS-1);
     // set width
-    svg.attr("width", 465);
+    svg.attr("width", 600);
     //console.log(NUMBER_OF_WORDS,NUMBER_OF_FILTERS,FILTER_X_SIZE,FILTER_Y_SIZE,CONV_RESULT_WIDTH,CONV_RESULT_HEIGHT)
 
     // show input
-    x_offset = (465 - (RECT_SIZE * NUMBER_OF_WORDS)) / 2;
+    x_offset = (600 - (RECT_SIZE * NUMBER_OF_WORDS)) / 2;
+    console.log(input)
     height = show_rect(input, svg, x_offset, 0, "input", 0, 0, words);
+    new_height = height;
 
     // show convolutional layer
-    conv_res.forEach(function(v, idx) {
+    for (var i = 0; i < 3; i++) {
+      //x_offset = idx * ((RECT_SIZE * 3) + PADDING);
+      new_height = show_rect(conv_res[i], svg, x_offset-200+220*i, height + PADDING, "conv_layer", 1, 0);
+    }
+    /*conv_res.forEach(function(v, idx) {
         x_offset = idx * ((RECT_SIZE * 3) + PADDING);
         coords[1].push([]);
         prev_dict[1].push([]);
@@ -265,5 +271,5 @@ function show_network(words, input, filters, conv_res) {
     height = new_height;
 
     svg.append("g").attr("id", "lines");
-    build_prev_dict(input, conv_res, 1, 1, 1);
+    build_prev_dict(input, conv_res, 1, 1, 1);*/
 }
