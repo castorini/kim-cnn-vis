@@ -75,12 +75,12 @@ function draw_paths() {
             .attr("y2", Number(source.attr("y")) + RECT_SIZE);
     })
 
-    for (var i = result[0][2]; i <= result[3][2]; i++) {
+    /*for (var i = result[0][2]; i <= result[3][2]; i++) {
       for (var j = 0; j <= 299; j++) {
         var id_str = '[id="'+0+","+0+","+i+","+j+'"]';
         var source = d3.select(id_str).classed("select", true);
       }
-    }
+    }*/
 }
 
 function show_source(rect) {
@@ -176,7 +176,7 @@ function build_prev_dict(input, conv_res, args, polling_res, output) {
         });
         dim_inc++;
     });
-
+/*
     // polling
     polling_res.forEach(function(entry, idx) {
         prev_dict[2][0][idx][0].push([1, idx, args[idx][0], args[idx][1]]);
@@ -189,7 +189,7 @@ function build_prev_dict(input, conv_res, args, polling_res, output) {
     }
     output.forEach(function(entry, idx) {
         prev_dict[3][0][idx][0] = prev;
-    })
+    })*/
 }
 
 function show_network(words, input, filters, conv_res, args, polling_res, output) {
@@ -230,5 +230,40 @@ function show_network(words, input, filters, conv_res, args, polling_res, output
     show_rect(output, svg, x_offset, height + PADDING, "output", 3, 0);
 
     svg.append("g").attr("id", "lines");
-    build_prev_dict(input, conv_res, args, polling_res, output);
+    //build_prev_dict(input, conv_res, args, polling_res, output);
+}
+
+function show_network(words, input, filters, conv_res) {
+    // clean up
+    clean_up();
+
+    var svg = d3.select("#network");
+    var NUMBER_OF_WORDS = words.length;
+    var NUMBER_OF_FILTERS = filters.length; // 3
+    FILTER_X_SIZE = 3;
+    FILTER_Y_SIZE = 300;
+    CONV_RESULT_WIDTH = NUMBER_OF_WORDS - FILTER_X_SIZE + 1;
+    CONV_RESULT_HEIGHT = VECTOR_LENGTH - FILTER_Y_SIZE + 1;
+    var height, width;
+    var x_offset, new_height;
+    width = CONV_RESULT_WIDTH * NUMBER_OF_FILTERS * RECT_SIZE + PADDING * (NUMBER_OF_FILTERS-1);
+    // set width
+    svg.attr("width", 465);
+    //console.log(NUMBER_OF_WORDS,NUMBER_OF_FILTERS,FILTER_X_SIZE,FILTER_Y_SIZE,CONV_RESULT_WIDTH,CONV_RESULT_HEIGHT)
+
+    // show input
+    x_offset = (465 - (RECT_SIZE * NUMBER_OF_WORDS)) / 2;
+    height = show_rect(input, svg, x_offset, 0, "input", 0, 0, words);
+
+    // show convolutional layer
+    conv_res.forEach(function(v, idx) {
+        x_offset = idx * ((RECT_SIZE * 3) + PADDING);
+        coords[1].push([]);
+        prev_dict[1].push([]);
+        new_height = show_rect(v, svg, x_offset+150, height + PADDING, "conv_layer", 1, idx);
+    });
+    height = new_height;
+
+    svg.append("g").attr("id", "lines");
+    build_prev_dict(input, conv_res, 1, 1, 1);
 }

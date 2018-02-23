@@ -58,7 +58,12 @@ var searcher = (function () {
 
   }
 
-  function searchWeightsWithDim(callback, i, dim) {
+  function searchWeightsWithDim(callback, i, dim, count) {
+    if (i == count) {
+        callback(weights);
+        return;
+    }
+
     var db_name = "weights_" + dim
     var cursor = db.transaction([db_name], "readonly")
       .objectStore(db_name)
@@ -67,13 +72,12 @@ var searcher = (function () {
     cursor.onsuccess = function (e) {
       var res = e.target.result;
       if (res) {
-        //weights[weights.length] = Array(res.value);
+        weights[weights.length] = Array(res.value);
         //console.log(weights[weights.length]);
-        callback(res.value);
       } else {
-        //weights[weights.length] = Array();
-        callback(Array());
+        weights[weights.length] = Array();
       }
+      searchWeightsWithDim(callback, i+1, dim, count);
     };
   }
 
@@ -97,6 +101,20 @@ var searcher = (function () {
     };
   }
 
+  function getDBCount(db_name, callback) {
+    try{
+      var request1 = db.transaction([db_name], "readonly")
+                       .objectStore(db_name).count();
+
+      request1.onsuccess = function(e) {
+        var count = e.target.result;
+        callback(count);
+      }
+    } catch (e) {
+      console.log("Error opening weights!");
+    }
+  }
+
   return {
     search: function (qt, callbackWordvecs) {
       queryTerms = qt;
@@ -106,13 +124,9 @@ var searcher = (function () {
 
     getWeights: function (dim, callback) {
       weights = [];
-      if (dim == 3) {
-        searchWeightsWithDim(callback, 11, dim);
-      } else if (dim == 5) {
-        searchWeightsWithDim(callback, 49, dim);
-      } else {
-        searchWeightsWithDim(callback, 0, dim);
-      }
+      getDBCount("weights_" + dim, function(count) {
+        searchWeightsWithDim(callback, 0, dim, count);
+      })
     },
 
     getSentence: function (callback) {

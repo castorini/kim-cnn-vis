@@ -30,7 +30,7 @@ function build_input(results) {
 
 function cconv(input, weight, dim) {
   var sum = [];
-  dim += 3;
+
   for (var r = 0; r < input.length-dim+1; r++) {
     sum[r] = [];
     sum[r][0] = 0;
@@ -39,11 +39,6 @@ function cconv(input, weight, dim) {
       sum[r][0] += input[r+1][i] * weight[1][i];
       sum[r][0] += input[r+2][i] * weight[2][i];
     }
-    if (dim == 3) {
-      sum[r][0] += 0.01;
-    } else if (dim == 5) {
-      sum[r][0] += -0.17;
-    }
   }
   return sum;
 }
@@ -51,10 +46,9 @@ function cconv(input, weight, dim) {
 // change this, need to use a different filter to convolve on each 3*300
 function conv(input, weights) {
   var result = [];
-  for (var i = 0; i < weights.length; i++) {  // 3
-    result[i] = cconv(input, weights[i], i);
-  }
-  console.log(result)
+
+  result = cconv(input, weights, weights.length);
+
   return result;
     //return weights.map(weight => nj.convolve(input, weight).tolist());
     // nj.add(nj.dot(w,z),b)
@@ -95,14 +89,24 @@ function display_conv(results, query, weights) {
     }
 
     var input = build_input(results);
-    var conv_res = conv(input, weights);
-    console.log(conv_res)
-    conv_res = [conv_res[0], conv_res[2]];  // 5
+    var conv_res = [];
+    var temp = [];
+    for (var i = 0; i < 3; i++) {
+      conv_res[i] = [];
+      temp[i] = []
+      for (var j = 0; j < 100; j++) {
+        conv_res[i][j] = conv(input, weights[i][j][0]);
+        // for this sentence, ijth filter conv res
+        if (j == 0) {
+          temp[i] = conv_res[i][j];
+        }
+      }
+    }
 
-    var args, polling_res;
-    [args, polling_res] = max_polling(conv_res);
-    var output = fully_connected(polling_res);
+    //var args, polling_res;
+    //[args, polling_res] = max_polling(conv_res);
+    //var output = fully_connected(polling_res);
     show_gradient_indicator();
-    show_network(query, input, weights, conv_res, args, polling_res, output);
-    return output;
+    //show_network(query, input, weights, conv_res, args, polling_res, output);
+    show_network(query, input, weights, temp);
 }
