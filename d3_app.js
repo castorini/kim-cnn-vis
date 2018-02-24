@@ -68,19 +68,26 @@ function draw_paths() {
         var source = d3.select(id_str);
         source.classed("select", false);
         svg.append("line")
-            .style("stroke", "#A9A9A9")
+            .style("stroke", "gray")
             .attr("x1", Number(select_rect.attr("x")) + RECT_SIZE / 2)
             .attr("y1", select_rect.attr("y"))
             .attr("x2", Number(source.attr("x")) + RECT_SIZE / 2)
             .attr("y2", Number(source.attr("y")) + RECT_SIZE);
     })
 
-    /*for (var i = result[0][2]; i <= result[3][2]; i++) {
+    for (var i = 2; i <= 4; i++) {
       for (var j = 0; j <= 299; j++) {
         var id_str = '[id="'+0+","+0+","+i+","+j+'"]';
         var source = d3.select(id_str).classed("select", true);
       }
-    }*/
+    }
+
+    svg.append("line")
+        .style("stroke", "#A9A9A9")
+        .attr("x1", Number(select_rect.attr("x")) + RECT_SIZE / 2)
+        .attr("y1", select_rect.attr("y"))
+        .attr("x2", 200 + RECT_SIZE / 2)
+        .attr("y2", 200 + RECT_SIZE);
 }
 
 function show_source(rect) {
