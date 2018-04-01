@@ -135,7 +135,7 @@ function setup() {
 
 var test_res = [];
 
-function showAll(ignore, b_index) {
+function showAll(ignore, b_index, test) {
   document.getElementById("sent").innerHTML = "";
 
   var startTime = window.performance.now();
@@ -154,6 +154,10 @@ function showAll(ignore, b_index) {
     segments[i] = [q, label];
   }
 
+  batch_size = batch_size || 64
+  b_index = b_index || 0
+  test = test || false
+
   var cur = [];
   for (var i = b_index*batch_size; i < b_index*batch_size+batch_size; i++) {
     cur[cur.length] = segments[i];
@@ -163,6 +167,7 @@ function showAll(ignore, b_index) {
     return new Promise(function(resolve, reject) {
       searcher.showVecs(q[0], Array(), function(results) {
         //var ret2 = display_conv(q[1], results, q[0], weights, bias, fc_weights, fc_bias, ignore);
+        //inf_res[inf_res.length] = ret2;
         var ret = [q, results];
         if (ret != undefined) {
           resolve(ret)
@@ -204,24 +209,28 @@ function showAll(ignore, b_index) {
       }
     }
 
-    var ret = display_conv_batch(batch_size, max_len, labels, vecs, qs, weights, bias, fc_weights, fc_bias, ignore);
+    if (test) {
+      var ret = display_conv_batch(batch_size, max_len, labels, vecs, qs, weights, bias, fc_weights, fc_bias, ignore, true);
 
-    if ((b_index+1)*batch_size+batch_size > dev_sentences.length) {
-      updateMsg("Finished processing " + response.length + " sentences in " + ret + "ms.");
-      test_res[test_res.length] = ret;
-      updateMsg("Done");
-      average();
+      if ((b_index+1)*batch_size+batch_size > dev_sentences.length) {
+        updateMsg("Finished processing " + response.length + " sentences in " + ret + "ms.");
+        test_res[test_res.length] = ret;
+        updateMsg("Done");
+        average();
+      } else {
+        updateMsg("Finished processing " + response.length + " sentences in " + ret + "ms. ");
+        test_res[test_res.length] = ret;
+        showAll(undefined, b_index+1, true)
+      }
     } else {
-      updateMsg("Finished processing " + response.length + " sentences in " + ret + "ms. ");
-      test_res[test_res.length] = ret;
-      showAll(undefined, b_index+1)
-    }
+      var ret = display_conv_batch(batch_size, max_len, labels, vecs, qs, weights, bias, fc_weights, fc_bias, ignore, false);
 
-    /*for (var i = 0; i < ret.length; i++) {
-      nn_res[nn_res.length] = ret[i];
-      var draw = ret[i][0];
-      display_sentence_coloring(draw[0], draw[1], draw[2], [-1, -1], false, -1);
-    }*/
+      for (var i = 0; i < ret.length; i++) {
+        nn_res[nn_res.length] = ret[i];
+        var draw = ret[i][0];
+        display_sentence_coloring(draw[0], draw[1], draw[2], [-1, -1], false, -1);
+      }
+    }
   });
 }
 

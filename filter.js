@@ -172,6 +172,7 @@ function analyze(query, max_poll_all, max_poll, fc1_res, output, interested_weig
   }
   // get weights
   var cont = contribution(max_poll, interested_weight_vec, fc1_bias) // [ [100],[100],[100] ]
+  console.log(fc1_bias)
   var matchedIndex = filter_max_index(max_poll_all);
   var matchedWeight = filter_max_weight(max_poll_all);
 
@@ -286,7 +287,7 @@ function display_conv(label, results, query, weights, bias, weights_fc1, bias_fc
     return ret;
 }
 
-function display_conv_batch(batch, max_len, label, results, query, weights, bias, weights_fc1, bias_fc1, ignore) {
+function display_conv_batch(batch, max_len, label, results, query, weights, bias, weights_fc1, bias_fc1, ignore, test) {
     if (query.length < 5) {
         clean_up();
         return;
@@ -304,12 +305,37 @@ function display_conv_batch(batch, max_len, label, results, query, weights, bias
     var fc1_res = fc1(max_poll_res_real, weights_fc1, bias_fc1);  // longest time
 
     var output = soft_max(fc1_res);
-    // size 100
+    // size = batch_size
     var res_index = dl.argMax(output, 1).dataSync(); //TODO: change to data(), return promise
     var lapsed = (window.performance.now() - startTime);
 
+    if (test) {
+      return lapsed;
+    }
 
-    return lapsed;
+    var ret = [];
+    for (var i = 0; i < batch_size; i++) {
+      var interested_weight_vec = weights_fc1[res_index[i]];
+
+      var predictedLabel = L[res_index[i]];
+      // console.log(output);
+      // show_gradient_indicator();
+
+      var ww = analyze(query[i], max_poll_res, max_poll_res_real, bias_fc1, output,
+                      interested_weight_vec, bias_fc1[res_index[i]], ignore);
+
+      var highlight = [];
+      for (var j = 0; j < query[i].length; j++) {
+        highlight[highlight.length] = [query[i][j], ww[j]];
+      }
+      highlight[highlight.length] = ['\n', 0];
+      ret[i] = [];
+      ret[i][0] = [highlight, label[i], predictedLabel];
+      ret[i][1] = conv_res; // [700, 800, 900]
+      ret[i][2] = max_poll_res; // [[2],[2],[2]]
+    }
+
+    return ret;
 }
 
 function display_single_conv(results, query, weights, bias, weights_fc1, bias_fc1) {
