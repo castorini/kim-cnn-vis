@@ -41,10 +41,17 @@ function conv(input, weights, bias, len, bs) {
     var pad = 'valid';
     in_tensor_with_pad = tf.concat([pads[i], in_tensor, pads[i]], 1);
 
-    var bt = tf.tensor(bias[i]).as1D();
-
     result[i] = tf.conv2d(in_tensor_with_pad, in_filter, stride, pad);
-    //result[i][j].add(bt);
+
+    var bt = tf.tensor(bias[i]).as1D();
+    var height = result[i].shape[1];
+    var stacked_bias = [];
+    while (height > 0) {
+      stacked_bias[stacked_bias.length] = bt;
+      height--;
+    }
+    stacked_bias = tf.stack(stacked_bias);
+    result[i].add(stacked_bias);
     result[i].relu();
   }
 
@@ -76,8 +83,16 @@ function fc1(input, weights, bias, bs) {
   var w_tensor = tf.tensor(weights).as2D(6, 300);
   var mm = tf.matMul(w_tensor, combined).as2D(6, bs);
 
-  var b_tensor = tf.tensor1d(bias)
-  //var res = tf.add(mm, b_tensor);
+  var b_tensor = tf.tensor(bias).as2D(6, 1);
+  var width = bs;
+  var concat_bias = b_tensor;
+  width--;
+  while (width > 0) {
+    concat_bias = tf.concat([concat_bias, b_tensor], 1);
+    width--;
+  }
+  
+  mm.add(concat_bias);
   return mm;
 }
 
