@@ -4,27 +4,17 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-<title>word2vec Demo</title>
-<!-- Bootstrap -->
-<!-- Latest compiled and minified CSS -->
+
+<title>Kim CNN Demo</title>
+
 <link rel="stylesheet" href="bootstrap/bootstrap.min.css">
 <link rel="stylesheet" href="d3_app.css">
-<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-<!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
-
-<!-- https://dev.twitter.com/web/javascript/loading -->
-<!-- Check out this handy way of embeddin tweets: https://dev.twitter.com/web/embedded-tweets/javascript-create -->
 <script src="http://d3js.org/d3.v4.min.js"></script>
 
 <script type="text/javascript" src="db.js"></script>
 <script type="text/javascript" src="search.js"></script>
 <script type="text/javascript" src="bootstrap/numjs.min.js"></script>
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/deeplearn@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.6.1"></script>
 <script type="text/javascript" src="filter.js"></script>
 
 <script
@@ -42,7 +32,7 @@ crossorigin="anonymous"></script>
 </style>
 
 <script>
-
+// Initializations and helper functions
 // http://stackoverflow.com/questions/5199901/how-to-sort-an-associative-array-by-its-values-in-javascript
 function logResults(results, k) {
   document.getElementById('results').innerHTML = "";
@@ -57,23 +47,6 @@ function logResults(results, k) {
 
 searcher.setNumDocs(1128929);
 
-// Querying
-
-function searchButton() {
-  //var q = document.querySelector("#query").value.split(" ");
-  var q = "no movement , no yuks , not much of anything .".split(" ");
-
-  q = q.map(function(x) { return x.toLowerCase()})
-           .filter(function(x) { return x.length > 0 ? true : false; });
-
-  // Perform wordvec retrieval and twitter search
-  searcher.search(q, function(results) {
-    console.log("Results for: " + q);
-    //logResults(results);
-    display_conv(results, q);
-  });
-}
-
 function storeToDB(i, item) {
   var transaction = db.transaction(["nn_res"], "readwrite");
   var store = transaction.objectStore("nn_res");
@@ -83,6 +56,32 @@ function storeToDB(i, item) {
 
 function updateMsg(msg) {
   document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>" + msg + "</div>";
+}
+
+function initializeParameters() {
+  setTimeout(function(){
+    setup();
+  }, 200);
+}
+
+document.addEventListener("DOMContentLoaded", initializeParameters, false);
+
+// Querying
+function searchButton() {
+  document.getElementById("sent").innerHTML = "";
+  var q = document.querySelector("#query").value.split(" ");
+  q = "today is a terrible day".split(" ");
+  q = q.map(function(x) { return x.toLowerCase()})
+           .filter(function(x) { return x.length > 0 ? true : false; });
+
+  // Perform wordvec retrieval
+  searcher.showVecs(q, Array(), function(results) {
+    var startTime = window.performance.now();
+    updateMsg("Started processing sentence: " + q);
+
+    display_single_conv(results, q, weights, bias, fc_weights, fc_bias);
+    updateMsg("Finished processing sentence in: " + (window.performance.now() - startTime) + "ms.");
+  });
 }
 
 var nn_res = [];
@@ -246,22 +245,6 @@ function average() {
   updateMsg("average: " + sum/test_res.length);
 }
 
-function searchButton() {
-  document.getElementById("sent").innerHTML = "";
-  var q = document.querySelector("#query").value.split(" ");
-  q = q.map(function(x) { return x.toLowerCase()})
-           .filter(function(x) { return x.length > 0 ? true : false; });
-
-  // Perform wordvec retrieval and twitter search
-  searcher.showVecs(q, Array(), function(results) {
-    var startTime = window.performance.now();
-    updateMsg("Started processing sentence: " + q);
-    //logResults(results);
-    display_single_conv(results, q, weights, bias, fc_weights, fc_bias);
-    updateMsg("Finished processing sentence in: " + (window.performance.now() - startTime) + "ms.");
-  });
-}
-
 function batchButton() {
   test_res = [];
   batch_size = parseInt(document.querySelector("#batch").value);
@@ -397,10 +380,6 @@ function sort_by_filters() {
   }
 }
 
-function get_top_filters() {
-
-}
-
 function ignore_filters() {
   var nwCB = document.getElementById("show_nw_checkbox");
   var igCB = document.getElementById("ignore_filters_checkbox");
@@ -480,7 +459,7 @@ p.wordvec {
 <div class="container">
 
 <div class="page-header">
-<h1>word2vec <small>Filter Demo</small></h1>
+<h1>Kim CNN <small>Sentiment Classification Demo</small></h1>
 </div>
 
 <p>The following demo searches word2vecs.
@@ -496,13 +475,13 @@ Be sure to <a href="indexing-demo.html">build the index</a> first!</p>
   <option value="byFilter">By Filter</option>
 </select>-->
 Show negative weights: <input type="checkbox" id="show_nw_checkbox" onclick="show_negative_weights()">
-<!--Sort filters: <input type="checkbox" id="sort_filters_checkbox" onclick="sort_by_filters()">-->
-Ignore insignificant filters: <input type="checkbox" id="ignore_filters_checkbox" onclick="ignore_filters()">
+<!--Sort filters: <input type="checkbox" id="sort_filters_checkbox" onclick="sort_by_filters()">
+Ignore insignificant filters: <input type="checkbox" id="ignore_filters_checkbox" onclick="ignore_filters()">-->
 <div id="message"></div>
 </p>
 <input type="text" id="query" placeholder="query">
 <button id="searchButton" onclick="searchButton()">Search</button> (try "the" or "they")</p>
-<input type="text" id="batch" placeholder="batch size">
+<input type="text" id="batch" placeholder="batch size default: 32">
 <button id="batchButton" onclick="batchButton()">Batch Size</button>
 
 <div id="results" style="padding-bottom: 50px">

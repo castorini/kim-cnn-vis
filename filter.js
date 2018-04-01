@@ -1,18 +1,12 @@
-
-// used for node.js
-// var nj = require('numjs');
-
 const VECTOR_LENGTH = 300;
 
 var filtersExample = [[[0.01, 0.02],[0.03, 0.04],[0.05, 0.06]],
                 [[-0.15,0.16],[0.2, -0.21],[-0.25,0.26],[0.3, -0.31]],
                 [[0.23,0.24],[0.25, -0.2],[0.33,0.34],[0.15, -0.1],[0.43,0.44]]];
-var batch_size = 32;
+var batch_size = 32;  // default
 
 // build an input matrix for CNN
 function build_input(results) {
-    // range from [0.0, 1.0).
-
     var ret = results.map(function (result) {
         if (result[1].length <= 0) { // the word is not a top10k one
             // narraw random values down into range (-.25, .25]
@@ -30,25 +24,26 @@ function build_input(results) {
     return ret;
 }
 
-function conv(input, weights, bias, len) {
-  //dl.squeeze(dl.conv1d(dl.tensor(input[0]).as2D(300, 1), dl.tensor(weights[0][0][2]).as3D(300,1,1), 1, 'valid')).print();
+function conv(input, weights, bias, len, bs) {
+  //tf.squeeze(tf.conv1d(tf.tensor(input[0]).as2D(300, 1), tf.tensor(weights[0][0][2]).as3D(300,1,1), 1, 'valid')).print();
   var result = [];
-  var in_tensor = dl.tensor(input).as4D(batch_size, len, 300, 1);
+  bs = bs || batch_size;
+  var in_tensor = tf.tensor(input).as4D(bs, len, 300, 1);
 
   var in_tensor_with_pad = in_tensor;
-  var pads = [dl.zeros([2, 300, 1]), dl.zeros([3, 300, 1]), dl.zeros([4, 300, 1])];
+  var pads = [tf.zeros([bs, 2, 300, 1]), tf.zeros([bs, 3, 300, 1]), tf.zeros([bs, 4, 300, 1])];
 
   for (var i = 0; i < weights.length; i++) {  // 3
     result[i] = [];
-    var in_filter = dl.tensor(weights[i]).as4D(i+3, 300, 1, 100);
+    var in_filter = tf.tensor(weights[i]).as4D(i+3, 300, 1, 100);
 
     var stride = 1;
     var pad = 'valid';
-    //in_tensor_with_pad = dl.concat([pads[i], in_tensor, pads[i]]);
+    in_tensor_with_pad = tf.concat([pads[i], in_tensor, pads[i]], 1);
 
-    var bt = dl.tensor(bias[i]).as1D();
+    var bt = tf.tensor(bias[i]).as1D();
 
-    result[i] = dl.squeeze(dl.conv2d(in_tensor, in_filter, stride, pad));
+    result[i] = tf.conv2d(in_tensor_with_pad, in_filter, stride, pad);
     //result[i][j].add(bt);
     result[i].relu();
   }
@@ -61,7 +56,7 @@ function max_polling(input, ignore) {
   for (var i = 0; i < input.length; i++) {  // 3
     res[i] = max_polling_helper(input[i]);
   }
-  // res shape = 3*2*100
+  // res shape = 3*100
   return res;
 }
 
@@ -70,24 +65,25 @@ function max_polling_helper(input) {
   return [input.argMax(axis), input.max(axis)]; // 100*100
 }
 
-function fc1(input, weights, bias) {
+function fc1(input, weights, bias, bs) {
   // max polling result
   // input: [t(100), t(100), t(100)]
   // correct
   // [t(100x100), t(100x100), t(100x100)]
+  bs = bs || batch_size;
 
-  var combined = dl.concat(input, 0).as2D(batch_size, 300).transpose();  // 300x100
-  var w_tensor = dl.tensor(weights).as2D(6, 300);
-  var mm = dl.matMul(w_tensor, combined).as2D(6, batch_size);
+  var combined = tf.concat(input, 0).as2D(bs, 300).transpose();
+  var w_tensor = tf.tensor(weights).as2D(6, 300);
+  var mm = tf.matMul(w_tensor, combined).as2D(6, bs);
 
-  var b_tensor = dl.tensor1d(bias)
-  //var res = dl.add(mm, b_tensor);
+  var b_tensor = tf.tensor1d(bias)
+  //var res = tf.add(mm, b_tensor);
   return mm;
 }
 
 // y = w z + b;
 function soft_max(z) {
-  return dl.softmax(z.transpose()); //[100x6]
+  return tf.softmax(z.transpose()); //[100x6]
 }
 
 
@@ -172,7 +168,7 @@ function analyze(query, max_poll_all, max_poll, fc1_res, output, interested_weig
   }
   // get weights
   var cont = contribution(max_poll, interested_weight_vec, fc1_bias) // [ [100],[100],[100] ]
-  console.log(fc1_bias)
+
   var matchedIndex = filter_max_index(max_poll_all);
   var matchedWeight = filter_max_weight(max_poll_all);
 
@@ -208,26 +204,9 @@ function analyze(query, max_poll_all, max_poll, fc1_res, output, interested_weig
   return res;
 }
 
-function get_highest_prob(input) {
-  var max = input[0][0];
-  var idx = 0;
-  for (var i = 0; i < input.length; i++) {
-    if (input[i] > max) {
-      max = input[i][0];
-      idx = i;
-    }
-  }
-  return idx;
-}
-
-function round_and_fix(num, decimals) {
-  var t = Math.pow(10, decimals);
-  return (Math.round((num * t) + (decimals>0?1:0)*(Math.sign(num) * (10 / Math.pow(100, decimals)))) / t).toFixed(decimals);
-}
-
 function get_conv_res(results, weights, bias, max_len) {
   var input = build_input(results);
-  var conv_res = conv(input, weights, bias, max_len);
+  var conv_res = conv(input, weights, bias, max_len, 1);
   return conv_res;
 }
 
@@ -250,11 +229,11 @@ function display_conv(label, results, query, weights, bias, weights_fc1, bias_fc
 
     var output = soft_max(fc1_res);
 
-    var res_index = dl.argMax(output).dataSync(); //TODO: change to data(), return promise
+    var res_index = tf.argMax(output).dataSync(); //TODO: change to data(), return promise
 
     var interested_weight_vec = weights_fc1[res_index];
 
-    var predictedLabel = L[res_index];
+    var predictetfabel = L[res_index];
     // console.log(output);
     // show_gradient_indicator();
 
@@ -278,11 +257,11 @@ function display_conv(label, results, query, weights, bias, weights_fc1, bias_fc
       max_poll_res_data[i][0] = max_poll_res[i][0].dataSync();
       max_poll_res_data[i][1] = max_poll_res[i][1].dataSync();
     }*/
-    ret[0] = [highlight, label, predictedLabel];
+    ret[0] = [highlight, label, predictetfabel];
     ret[1] = conv_res; // [700, 800, 900]
     ret[2] = max_poll_res; // [[2],[2],[2]]
 
-    //display_ww(highlight, label, predictedLabel);
+    //display_ww(highlight, label, predictetfabel);
 
     return ret;
 }
@@ -306,7 +285,7 @@ function display_conv_batch(batch, max_len, label, results, query, weights, bias
 
     var output = soft_max(fc1_res);
     // size = batch_size
-    var res_index = dl.argMax(output, 1).dataSync(); //TODO: change to data(), return promise
+    var res_index = tf.argMax(output, 1).dataSync(); //TODO: change to data(), return promise
     var lapsed = (window.performance.now() - startTime);
 
     if (test) {
@@ -317,7 +296,7 @@ function display_conv_batch(batch, max_len, label, results, query, weights, bias
     for (var i = 0; i < batch_size; i++) {
       var interested_weight_vec = weights_fc1[res_index[i]];
 
-      var predictedLabel = L[res_index[i]];
+      var predictetfabel = L[res_index[i]];
       // console.log(output);
       // show_gradient_indicator();
 
@@ -330,7 +309,7 @@ function display_conv_batch(batch, max_len, label, results, query, weights, bias
       }
       highlight[highlight.length] = ['\n', 0];
       ret[i] = [];
-      ret[i][0] = [highlight, label[i], predictedLabel];
+      ret[i][0] = [highlight, label[i], predictetfabel];
       ret[i][1] = conv_res; // [700, 800, 900]
       ret[i][2] = max_poll_res; // [[2],[2],[2]]
     }
@@ -344,24 +323,20 @@ function display_single_conv(results, query, weights, bias, weights_fc1, bias_fc
         return;
     }
     var L = [-1, 2, 3, 1, 4, 0];
-    var conv_res = get_conv_res(results, weights, bias);
-    var startTime = window.performance.now();
-    console.log((window.performance.now() - startTime));
+    var bs = 1;
+    var conv_res = get_conv_res(results, weights, bias, results.length, bs);
+
     var args, polling_res;
     var max_poll_res = max_polling(conv_res); // [args, polling_res]
     // console.log(max_poll_res[0][1]) -> max polling res of 3 dim filter, 100 max values
     // console.log(args);
-    console.log((window.performance.now() - startTime));
     var max_poll_res_real = [max_poll_res[0][1], max_poll_res[1][1], max_poll_res[2][1]];
 
-    var fc1_res = fc1(max_poll_res_real, weights_fc1, bias_fc1);
-    console.log((window.performance.now() - startTime));
+    var fc1_res = fc1(max_poll_res_real, weights_fc1, bias_fc1, bs);
     var output = soft_max(fc1_res);
-    console.log((window.performance.now() - startTime));
-    var res_index = get_highest_prob(output);
+    var res_index = tf.argMax(output, 1).dataSync();
     var interested_weight_vec = weights_fc1[res_index];
-    console.log((window.performance.now() - startTime));
-    var predictedLabel = L[res_index];
+    var predictetfabel = L[res_index];
     // console.log(output)
     // show_gradient_indicator();
 
@@ -369,17 +344,15 @@ function display_single_conv(results, query, weights, bias, weights_fc1, bias_fc
                     interested_weight_vec, bias_fc1[res_index]);
     //console.log(ww)
 
-    console.log((window.performance.now() - startTime));
     var highlight = [];
     for (var i = 0; i < query.length; i++) {
       highlight[highlight.length] = [query[i], ww[i]];
     }
     highlight[highlight.length] = ['\n', 0];
 
-    display_ww(highlight, -1, predictedLabel, [-1, -1], false, -1);
-    console.log((window.performance.now() - startTime));
+    display_ww(highlight, -1, predictetfabel, [-1, -1], false, -1);
 }
 
-function display_sentence_coloring(highlight, label, predictedLabel, start, areSame, bias) {
-  display_ww(highlight, label, predictedLabel, start, areSame, bias);
+function display_sentence_coloring(highlight, label, predictetfabel, start, areSame, bias) {
+  display_ww(highlight, label, predictetfabel, start, areSame, bias);
 }
