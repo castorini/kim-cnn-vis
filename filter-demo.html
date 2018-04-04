@@ -13,7 +13,6 @@
 
 <script type="text/javascript" src="db.js"></script>
 <script type="text/javascript" src="search.js"></script>
-<script type="text/javascript" src="bootstrap/numjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.6.1"></script>
 <script type="text/javascript" src="filter.js"></script>
 
@@ -210,7 +209,6 @@ function showAll(ignore, b_index, test) {
 
     if (test) {
       var ret = display_conv_batch(batch_size, max_len, labels, vecs, qs, weights, bias, fc_weights, fc_bias, ignore, true);
-
       if ((b_index+1)*batch_size+batch_size > dev_sentences.length) {
         updateMsg("Finished processing " + response.length + " sentences in " + ret + "ms.");
         test_res[test_res.length] = ret;

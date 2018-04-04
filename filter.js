@@ -39,9 +39,9 @@ function conv(input, weights, bias, len, bs) {
 
     var stride = 1;
     var pad = 'valid';
-    // in_tensor_with_pad = tf.concat([pads[i], in_tensor, pads[i]], 1);
+    in_tensor_with_pad = tf.concat([pads[i], in_tensor, pads[i]], 1);
 
-    result[i] = tf.conv2d(in_tensor, in_filter, stride, pad);
+    result[i] = tf.conv2d(in_tensor_with_pad, in_filter, stride, pad);
 
     /*var bt = tf.tensor(bias[i]).as1D();
     var height = result[i].shape[1];
@@ -220,6 +220,58 @@ function analyze(query, max_poll_all, max_poll, fc1_res, output, interested_weig
   return res;
 }
 
+function analyze_sep_width(query, max_poll_all, max_poll, fc1_res, output, interested_weight_vec, fc1_bias, ignore) {
+  // init
+  var res = Array(query.length);
+
+  // get weights
+  var cont = contribution(max_poll, interested_weight_vec, fc1_bias) // [ [100],[100],[100] ]
+
+  var matchedIndex = filter_max_index(max_poll_all);
+  var matchedWeight = filter_max_weight(max_poll_all);
+
+  var resByFilter = []; // 3*100
+  var mapping = [];
+
+  for (var i = 0; i < matchedIndex.length; i++) { // 3
+    resByFilter[i] = [];
+    mapping[i] = [];
+    for (var k = 0; k < query.length; k++) {
+      res[k] = 0;
+      mapping[i][k] = [];
+    }
+    for (var j = 0; j < matchedIndex[i].length; j++) {  // 100
+      var idx = matchedIndex[i][j];
+      if (i == 0) {
+        idx -= 2;
+      } else if (i == 1) {
+        idx -= 3;
+      } else {
+        idx -= 4;
+      }
+      var w = matchedWeight[i][j];
+      if (ignore) {
+        if (w <= 0.05 && w >= -0.05) {
+          continue;
+        }
+      }
+      var dim = i+3;
+      for (var k = 0; k < dim; k++) {
+        if (idx+k < 0 || idx+k >= query.length) {
+          continue;
+        }
+        res[idx+k] += w*cont[i][j];
+        mapping[i][idx+k].push(j);
+      }
+    }
+    for (var k = 0; k < query.length; k++) {
+      resByFilter[i][k] = parseInt(res[k]*100);
+    }
+  }
+
+  return [resByFilter, mapping];
+}
+
 function get_conv_res(results, weights, bias, max_len) {
   var input = build_input(results);
   var conv_res = conv(input, weights, bias, max_len, 1);
@@ -341,7 +393,7 @@ function display_single_conv(results, query, weights, bias, weights_fc1, bias_fc
     var L = [-1, 2, 3, 1, 4, 0];
     var bs = 1;
     var conv_res = get_conv_res(results, weights, bias, results.length, bs);
-
+    // console.log(conv_res)
     var args, polling_res;
     var max_poll_res = max_polling(conv_res); // [args, polling_res]
     // console.log(max_poll_res[0][1]) -> max polling res of 3 dim filter, 100 max values
@@ -350,7 +402,9 @@ function display_single_conv(results, query, weights, bias, weights_fc1, bias_fc
 
     var fc1_res = fc1(max_poll_res_real, weights_fc1, bias_fc1, bs);
     var output = soft_max(fc1_res);
+    output.print()
     var res_index = tf.argMax(output, 1).dataSync();
+
     var interested_weight_vec = weights_fc1[res_index];
     var predictetfabel = L[res_index];
     // console.log(output)
@@ -358,7 +412,7 @@ function display_single_conv(results, query, weights, bias, weights_fc1, bias_fc
 
     var ww = analyze(query, max_poll_res, max_poll_res_real, fc1_res, output,
                     interested_weight_vec, bias_fc1[res_index]);
-    //console.log(ww)
+    // console.log(ww)
 
     var highlight = [];
     for (var i = 0; i < query.length; i++) {
@@ -371,4 +425,47 @@ function display_single_conv(results, query, weights, bias, weights_fc1, bias_fc
 
 function display_sentence_coloring(highlight, label, predictetfabel, start, areSame, bias) {
   display_ww(highlight, label, predictetfabel, start, areSame, bias);
+}
+
+function all_feature_activations(wordvecs, query, weights, bias, fcw, fcb) {
+  console.log(wordvecs)
+  console.log(query)
+  console.log(weights)
+  console.log(bias)
+  console.log(fcw)
+  console.log(fcb)
+  // for each width (3, 4, 5)
+  // word to weight, word to filter#s
+
+  if (query.length < 5) {
+      clean_up();
+      return;
+  }
+  var L = [-1, 2, 3, 1, 4, 0];
+  var bs = 1;
+  var conv_res = get_conv_res(wordvecs, weights, bias, wordvecs.length, bs);
+
+  var args, polling_res;
+  var max_poll_res = max_polling(conv_res); // [args, polling_res]
+
+  var max_poll_res_real = [max_poll_res[0][1], max_poll_res[1][1], max_poll_res[2][1]];
+
+  var fc1_res = fc1(max_poll_res_real, fcw, fcb, bs);
+  var output = soft_max(fc1_res);
+  output.print()
+  var res_index = tf.argMax(output, 1).dataSync();
+
+  var interested_weight_vec = fcw[res_index];
+  var predictetfabel = L[res_index];
+
+  var vis_res = analyze_sep_width(query, max_poll_res, max_poll_res_real, fc1_res, output,
+                  interested_weight_vec, fcb[res_index]);
+
+  var ww = vis_res[0];
+  var mp = vis_res[1];
+
+  console.log(ww)
+  console.log(mp)
+
+  draw_heatmap(query, ww, mp);
 }
