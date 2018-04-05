@@ -9,7 +9,6 @@
 <!-- Bootstrap -->
 <!-- Latest compiled and minified CSS -->
 <link rel="stylesheet" href="bootstrap/bootstrap.min.css">
-<link rel="stylesheet" href="d3_app.css">
 <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
 <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
 <!--[if lt IE 9]>
@@ -108,7 +107,7 @@ function setup() {
 
 function searchButton() {
   var q = document.querySelector("#query").value.split(" ");
-  q = "today is a terrible day".split(" ");
+  q = "today is a terrible day, so I am not going to go outside".split(" ");
   q = q.map(function(x) { return x.toLowerCase()})
            .filter(function(x) { return x.length > 0 ? true : false; });
 
@@ -178,7 +177,12 @@ Be sure to <a href="indexing-demo.html">build the index</a> first!</p>
 
 <div class="wrapper" id="container">
     <div>
-        <div id="Matrix" style="display:inline-block;float:left;"></div>
+      <div>
+        <p style="display:inline-block; margin-left: 130px">width = 3</p>
+        <p style="display:inline-block; margin-left: 40px">width = 4</p>
+        <p style="display:inline-block; margin-left: 35px">width = 5</p>
+      </div>
+      <div id="Matrix" style="display:inline-block;float:left;margin-left: 10px;"></div>
     </div>
 </div>
 </div>

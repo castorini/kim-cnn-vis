@@ -35,8 +35,8 @@ function Matrix(data, options) {
 	    showLabels = options.show_labels,
 	    startColor = options.start_color,
 	    endColor = options.end_color,
-        highlightCellOnHover = options.highlight_cell_on_hover,
-        highlightCellColor = options.highlight_cell_color;
+      highlightCellOnHover = options.highlight_cell_on_hover,
+      highlightCellColor = options.highlight_cell_color;
 
 	var dataValues = data['values'];
 	var dataLabels = data['labels'];
@@ -49,8 +49,8 @@ function Matrix(data, options) {
 		throw new Error('2-D array expected');
 	}
 
-    var maxValue = d3.max(dataValues, function(layer) { return d3.max(layer, function(d) { return d; }); });
-    var minValue = d3.min(dataValues, function(layer) { return d3.min(layer, function(d) { return d; }); });
+  var maxValue = d3.max(dataValues, function(layer) { return d3.max(layer, function(d) { return d; }); });
+  var minValue = d3.min(dataValues, function(layer) { return d3.min(layer, function(d) { return d; }); });
 
 	var numrows = dataValues.length;
 	var numcols = dataValues[0].length;
@@ -58,11 +58,11 @@ function Matrix(data, options) {
 	var svg = d3.select(container).append("svg")
 	    .attr("width", width + margin.left + margin.right)
 	    .attr("height", height + margin.top + margin.bottom)
-		.append("g")
+			.append("g")
 	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 	var background = svg.append("rect")
-	    .style("stroke-width", "2px")
+	    //.style("stroke-width", "2px")
 	    .attr("width", width)
 	    .attr("height", height);
 
@@ -84,24 +84,35 @@ function Matrix(data, options) {
 	    .attr("class", "row")
 	    .attr("transform", function(d, i) { return "translate(0," + y(i) + ")"; });
 
-	var cell = row.selectAll(".cell")
-	    .data(function(d) { return d; })
-		.enter().append("g")
-	    .attr("class", "cell")
-	    .attr("transform", function(d, i) { return "translate(" + x(i) + ", 0)"; });
+  if (showLabels) {
+		var cell = row.selectAll(".cell")
+		    .data(function(d, i) { return dataLabels[i]; })
+				.enter().append("g")
+		    .attr("class", "cell")
+		    .attr("transform", function(d, i) { return "translate(" + i*height + ", 0)"; });
 
-	cell.append('rect')
-	    .attr("width", x.rangeBand())
-	    .attr("height", y.rangeBand())
-	    .style("stroke-width", 0);
+		cell.append('rect')
+		    .attr("width", x.rangeBand())
+		    .attr("height", y.rangeBand()+1);
 
-    cell.append("text")
+		cell.append("text")
 	    .attr("dy", ".32em")
 	    .attr("x", x.rangeBand() / 2)
 	    .attr("y", y.rangeBand() / 2)
 	    .attr("text-anchor", "middle")
-	    .style("fill", function(d, i) { return d >= maxValue/2 ? 'white' : 'black'; })
+	    .style("fill", 'black')
 	    .text(function(d, i) { return d; });
+	} else {
+		var cell = row.selectAll(".cell")
+		    .data(function(d) { return d; })
+				.enter().append("g")
+		    .attr("class", "cell")
+		    .attr("transform", function(d, i) { return "translate(" + x(i) + ", 0)"; });
+
+		cell.append('rect')
+		    .attr("width", x.rangeBand())
+		    .attr("height", y.rangeBand()+1);
+	}
 
 	row.selectAll(".cell")
 	    .data(function(d, i) { return dataValues[i]; })
@@ -117,7 +128,7 @@ function Matrix(data, options) {
         });
     }
 
-    if (showLabels){
+    /*if (showLabels){
         var labels = svg.append('g')
             .attr('class', "labels");
 
@@ -164,6 +175,6 @@ function Matrix(data, options) {
             .attr("dy", ".32em")
             .attr("text-anchor", "end")
             .text(function(d, i) { return d; });
-    }
+    }*/
 
 }
