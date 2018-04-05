@@ -231,7 +231,7 @@ function display_ww(input, label, plabel, start, same, bias) {
 
     var div = d3.select(".sentences");
     if (start[0] != -1 && start[1] != -1) {
-      var css = "font-size:160%;"
+      var css = "font-family: monospace;font-size:160%;"
       if (bias == -1) {
         div.append('div')
           .attr('class', 'd')
@@ -283,7 +283,7 @@ function toColor3(v, len, i, label, same) {
     l += '%';
     if (same) {
       if (v == 0) {
-        l = 60;
+        l = 80;
       } else {
         l = 40;
       }
@@ -325,28 +325,104 @@ function render(div, data, plabel, same) {
   var sorted = sortWithIndeces(new_intensity_arr);
   var rank = sorted.sortIndices;
 
-  for (var i = 0; i < len; i++) {
-    var word = data[i][0];
-    var intensity = data[i][1];
+  if (!same) {
+    for (var i = 0; i < len; i++) {
+      var word = data[i][0];
+      var intensity = data[i][1];
+      //console.log(intensity + "," + len + "," + rank[i] + "," + plabel)
+      var cole = toColor3(intensity, len, rank[i], plabel, same);
 
-    //console.log(intensity + "," + len + "," + rank[i] + "," + plabel)
-    var cole = toColor3(intensity, len, rank[i], plabel, same);
+      var css = 'background-color:' + cole;
 
-    var css = 'background-color:' + cole;
+      if(word == ' ') {
+        css += ';color:' + cole;
+      }
+      if(word == '\n') {
+        css += ';display:block;'
+        //div.append('br')
+      }
 
-    if(word == ' ') {
-      css += ';color:' + cole;
+      word += "&nbsp;&nbsp;";
+
+      var dnew = div.append('div');
+      dnew.attr('class', 'd')
+        .attr('style', css)
+        .html(word);
     }
-    if(word == '\n') {
-      css += ';display:block;'
-      //div.append('br')
+  } else {
+    var hl_start_index = 0;
+    var max_prev_len = 0;
+    for (var i = 0; i < len; i++) {
+      var word = data[i][0];
+      var intensity = data[i][1];
+      if (intensity == 1) {
+        hl_start_index = i;
+        break;
+      }
     }
 
-    word += "&nbsp;&nbsp;";
+    var left = Math.max(hl_start_index-4, 0);
+    for (var i = left; i < hl_start_index; i++) {
+      var word = data[i][0];
+      max_prev_len += word.length;
+      max_prev_len += 1;
+    }
+    var right = Math.min(hl_start_index+3-1+4, len-1);
 
-    var dnew = div.append('div');
-    dnew.attr('class', 'd')
-      .attr('style', css)
-      .html(word);
+    for (var i = 0; i < len; i++) {
+      if (i < left) {
+        continue;
+      }
+      var padding = "";
+      if (i == left) {
+        var pad_len = 30-max_prev_len;
+        for (var p = 0; p < pad_len; p++) {
+          padding += "&nbsp;";
+        }
+        if (i != 0) {
+          padding += "... "
+        } else {
+          padding += "&nbsp;&nbsp;&nbsp;&nbsp;";
+        }
+      }
+      if (i > right) {
+        if (i < len) {
+          var dnew = div.append('div');
+          dnew.attr('class', 'd')
+            .attr('style', "display:block;")
+            .html("\n"+"&nbsp;&nbsp;");
+        }
+        break;
+      }
+
+      var word = padding + data[i][0];
+      var intensity = data[i][1];
+      //console.log(intensity + "," + len + "," + rank[i] + "," + plabel)
+      var cole = toColor3(intensity, len, rank[i], plabel, same);
+
+      var css = 'font-family: monospace; background-color:' + cole;
+
+      if(word == ' ') {
+        css += ';color:' + cole;
+      }
+      if(word == '\n') {
+        css += ';display:block;'
+        //div.append('br')
+      }
+
+      if (i >= left && i <= right) {
+        word += "&nbsp;";  // &nbsp;&nbsp;
+      } else {
+        word = "";
+      }
+      if (i == right && i != len-1) {
+        word += "..."
+      }
+
+      var dnew = div.append('div');
+      dnew.attr('class', 'd')
+        .attr('style', css)
+        .html(word);
+    }
   }
 }

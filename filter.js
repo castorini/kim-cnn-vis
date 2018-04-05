@@ -462,8 +462,5 @@ function all_feature_activations(wordvecs, query, weights, bias, fcw, fcb) {
   var ww = vis_res[0];
   var mp = vis_res[1];
 
-  console.log(ww)
-  console.log(mp)
-
   draw_heatmap(query, ww, mp);
 }
