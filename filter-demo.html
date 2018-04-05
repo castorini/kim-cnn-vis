@@ -291,13 +291,13 @@ function byFilter(show_positive, ignore) {
   var prev_f = -1;
   for (var d = 0; d < 3; d++) {
     filter_res[d] = [];
-    for (var f = 0; f < groupByFilter[d].length; f++) {
+    for (var f = 0; f < groupByFilter[d].length; f++) { // 100
       filter_res[d][f] = [];
       if (groupByFilter[d][f][0][0] < 0.2) {
         // console.log("d:" + d + "f:" + f)
         // continue;
       }
-      for (var k = 0; k < 10; k++) {
+      for (var k = 0; k < 10; k++) {  // top 10 activations
         var index = groupByFilter[d][f][k][1];
         var draw = nn_res[index][0];
         var conv_res = nn_res[index][1];
@@ -305,6 +305,7 @@ function byFilter(show_positive, ignore) {
 
         var matchedIndex = filter_max_index_non_tensor(max_poll_res);
         var idx = matchedIndex[d][f];
+
         if (d == 0) {
           idx -= 2;
         } else if (d == 1) {
@@ -317,7 +318,7 @@ function byFilter(show_positive, ignore) {
         for (var i = 0; i < len; i++) {
           highlight[highlight.length] = [draw[0][i][0], 0];
         }
-
+        console.log(highlight)
         var dim = d+3;
         for (var p = 0; p < dim; p++) {
           if (idx+p < 0 || idx+p >= len-1) {

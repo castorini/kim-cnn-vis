@@ -379,7 +379,11 @@ function display_conv_batch(batch, max_len, label, results, query, weights, bias
       ret[i] = [];
       ret[i][0] = [highlight, label[i], predictetfabel];
       ret[i][1] = conv_res; // [700, 800, 900]
-      ret[i][2] = max_poll_res; // [[2],[2],[2]]
+
+      var dim1 = [tf.squeeze(max_poll_res[0][0]).slice([i, 0], [1, 100]).dataSync(), tf.squeeze(max_poll_res[0][1]).slice([i, 0], [1, 100]).dataSync()];
+      var dim2 = [tf.squeeze(max_poll_res[1][0]).slice([i, 0], [1, 100]).dataSync(), tf.squeeze(max_poll_res[1][1]).slice([i, 0], [1, 100]).dataSync()];
+      var dim3 = [tf.squeeze(max_poll_res[2][0]).slice([i, 0], [1, 100]).dataSync(), tf.squeeze(max_poll_res[2][1]).slice([i, 0], [1, 100]).dataSync()];
+      ret[i][2] = [dim1, dim2, dim3]; // [[2],[2],[2]]
     }
 
     return ret;
@@ -428,12 +432,6 @@ function display_sentence_coloring(highlight, label, predictetfabel, start, areS
 }
 
 function all_feature_activations(wordvecs, query, weights, bias, fcw, fcb) {
-  console.log(wordvecs)
-  console.log(query)
-  console.log(weights)
-  console.log(bias)
-  console.log(fcw)
-  console.log(fcb)
   // for each width (3, 4, 5)
   // word to weight, word to filter#s
 
