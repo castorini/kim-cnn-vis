@@ -29,8 +29,8 @@ function conv(input, weights, bias, len, bs) {
   bs = bs || batch_size;
   var in_tensor = tf.tensor(input).as4D(bs, len, 300, 1);
 
-  //var in_tensor_with_pad = in_tensor;
-  //var pads = [tf.zeros([bs, 2, 300, 1]), tf.zeros([bs, 3, 300, 1]), tf.zeros([bs, 4, 300, 1])];
+  var in_tensor_with_pad = in_tensor;
+  var pads = [tf.zeros([bs, 2, 300, 1]), tf.zeros([bs, 3, 300, 1]), tf.zeros([bs, 4, 300, 1])];
 
   for (var i = 0; i < weights.length; i++) {  // 3
     result[i] = [];
@@ -51,9 +51,9 @@ function conv(input, weights, bias, len, bs) {
     // in_filter.print()
     var stride = 1;
     var pad = 'valid';
-    //in_tensor_with_pad = tf.concat([pads[i], in_tensor, pads[i]], 1);
+    in_tensor_with_pad = tf.concat([pads[i], in_tensor, pads[i]], 1);
 
-    result[i] = tf.conv2d(in_tensor, in_filter, stride, pad);
+    result[i] = tf.conv2d(in_tensor_with_pad, in_filter, stride, pad);
     //result[i].print()
     /*var bt = tf.tensor(bias[i]).as1D();
     var height = result[i].shape[1];
