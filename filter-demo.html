@@ -118,7 +118,7 @@ function setup() {
 
                       setTimeout(function(){
                         showAll();
-                      }, 100);
+                      }, 200);
                     })
 
                   })
@@ -146,6 +146,9 @@ function showAll(ignore, b_index, test) {
   var segments = [];
   var one = [];
   for (var i = 0; i < dev_sentences.length; i++) {
+    if (dev_sentences[i] == undefined) {
+      continue;
+    }
     var sentence = dev_sentences[i];
     var label = dev_labels[i];
     var q = sentence.split(" ");
