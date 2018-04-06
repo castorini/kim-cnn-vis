@@ -115,10 +115,6 @@ function setup() {
                       dev_sentences = sentences;
                       dev_labels = labels;
                       updateMsg("Finished loading parameters in " + (window.performance.now() - startTime)/1000 + "s.");
-
-                      setTimeout(function(){
-                        showAll();
-                      }, 200);
                     })
 
                   })
@@ -255,12 +251,18 @@ function showAll(ignore, b_index, test) {
     } else {
       startTime = window.performance.now();
       var ret = display_conv_batch(batch_size, max_len, labels, vecs, qs, weights, bias, fc_weights, fc_bias, ignore, false);
-      updateMsg("Finished processing 1 batch of sentences in " + (window.performance.now() - startTime)/1000 + "s. ");
-
-      for (var i = 0; i < ret.length; i++) {
-        nn_res[nn_res.length] = ret[i];
-        var draw = ret[i][0];
-        //display_sentence_coloring(draw[0], draw[1], draw[2], [-1, -1], false, -1);
+      
+      if ((b_index+1)*batch_size+batch_size > dev_sentences.length) {
+        updateMsg("Finished processing " + response.length + " sentences in " + ret + "ms.");
+        for (var i = 0; i < ret.length; i++) {
+          nn_res[nn_res.length] = ret[i];
+        }
+        updateMsg("Done");
+      } else {
+        for (var i = 0; i < ret.length; i++) {
+          nn_res[nn_res.length] = ret[i];
+        }
+        showAll(undefined, b_index+1, false)
       }
     }
   });
@@ -414,40 +416,6 @@ function sort_by_filters() {
   }
 }
 
-function ignore_filters() {
-  var nwCB = document.getElementById("show_nw_checkbox");
-  var igCB = document.getElementById("ignore_filters_checkbox");
-
-  /*if (nwCB.checked == true){
-    if (igCB.checked == true) {
-      byFilter(true, true);
-    } else {
-      byFilter(true, false);
-    }
-  } else {
-    if (igCB.checked == true) {
-      byFilter(false, true);
-    } else {
-      byFilter(false, false);
-    }
-  }*/
-  if (igCB.checked == true) {
-    showAll(true);
-  } else {
-    showAll(false);
-  }
-}
-
-/*
-window.test = function(e) {
-  if (e.value === 'showAll') {
-    document.getElementById("results").innerHTML = "";
-    // nextButton()
-  } else if (e.value === 'byFilter') {
-    console.log(e.value);
-  }
-}*/
-
 </script>
 
 <style>
@@ -502,6 +470,7 @@ Be sure to <a href="indexing-demo.html">build the index</a> first!</p>
 
 <button id="setupButton" onclick="setup()">Setup</button>
 <button id="start" onclick="start()">Start Test</button>
+<button id="showAll" onclick="showAll(undefined, 0, false)">Process All</button>
 <button id="byFilter" onclick="byFilter()">By Filter</button>
 <!--<select id="filter" onchange="test(this);">
   <option value="showAll">Show All</option>
@@ -515,7 +484,7 @@ Ignore insignificant filters: <input type="checkbox" id="ignore_filters_checkbox
 <input type="text" id="query" placeholder="query">
 <button id="searchButton" onclick="searchButton()">Run</button> (try "the" or "they")</p>
 <input type="text" id="batch" placeholder="batch size default: 32">
-<button id="batchButton" onclick="batchButton()">Batch Size</button>
+<button id="batchButton" onclick="batchButton()">Set Batch Size</button>
 
 <div id="results" style="padding-bottom: 50px">
   <div class="sentences" id="sent"></div>

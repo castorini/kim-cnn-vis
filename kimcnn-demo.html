@@ -107,7 +107,7 @@ function setup() {
 function searchButton() {
   var q = document.querySelector("#query").value.split(" ");
   if (q.length == 1 && q[0] == "") {
-    q = "the film would work much better as a video installation in a museum , where viewers would be free to leave .".split(" ");
+    q = "a very well-made , funny and entertaining picture .".split(" ");
   }
   q = q.map(function(x) { return x.toLowerCase()})
            .filter(function(x) { return x.length > 0 ? true : false; });
@@ -173,7 +173,7 @@ p.wordvec {
 <p>The following demo searches word2vecs.
 Be sure to <a href="indexing-demo.html">build the index</a> first!</p>
 <div id="message"></div>
-<input type="text" style="width: 300px;" id="query" placeholder='"the film would work much better ..."'>
+<input type="text" style="width: 300px;" id="query" placeholder='"a very well-made , funny ..."'>
 <button id="searchButton" onclick="searchButton()">Run</button></p>
 
 <div class="wrapper" id="container">

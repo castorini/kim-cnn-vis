@@ -25,24 +25,68 @@ function build_input(results) {
 }
 
 function conv(input, weights, bias, len, bs) {
+  /*const x = tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8], [1, 4, 2, 1]);
+  //const w = tf.tensor4d([1, 2, 1, 2, 1, 2, 1, 2], [2, 2, 1, 2]);
+  const w = tf.tensor4d([1, 1, 1, 1, 2, 2, 2, 2], [2, 2, 1, 2]);
+  w.print()
+  var temp = Array(3);
+  temp[0] = Array(2);
+  temp[0][0] = [1, 2];
+  temp[0][1] = [1, 2];
+  temp[1] = Array(2);
+  temp[1][0] = [1, 2];
+  temp[1][1] = [1, 2];
+  temp[2] = Array(2);
+  temp[2][0] = [1, 2];
+  temp[2][1] = [1, 2];
+
+
+  var tempp = Array(2);
+  tempp[0] = Array(3);
+  tempp[0][0] = [1, 1];
+  tempp[0][1] = [1, 1];
+  tempp[0][2] = [1, 1];
+  tempp[1] = Array(3);
+  tempp[1][0] = [2, 2];
+  tempp[1][1] = [2, 2];
+  tempp[1][2] = [2, 2];*/
+
+  /*var temp2 = tf.tensor(tempp).as4D(3, 2, 1, 2);
+  console.log(tempp)
+  temp2.print()
+  const r = tf.conv2d(x, temp2, 1, 'valid');
+  r.print()*/
   //tf.squeeze(tf.conv1d(tf.tensor(input[0]).as2D(300, 1), tf.tensor(weights[0][0][2]).as3D(300,1,1), 1, 'valid')).print();
   var result = [];
   bs = bs || batch_size;
   var in_tensor = tf.tensor(input).as4D(bs, len, 300, 1);
 
-  //var in_tensor_with_pad = in_tensor;
-  //var pads = [tf.zeros([bs, 2, 300, 1]), tf.zeros([bs, 3, 300, 1]), tf.zeros([bs, 4, 300, 1])];
+  var in_tensor_with_pad = in_tensor;
+  var pads = [tf.zeros([bs, 2, 300, 1]), tf.zeros([bs, 3, 300, 1]), tf.zeros([bs, 4, 300, 1])];
 
   for (var i = 0; i < weights.length; i++) {  // 3
     result[i] = [];
-    var in_filter = tf.tensor(weights[i]).as4D(i+3, 300, 1, 100);
+    // console.log(weights[i])
 
+    var temp = Array(i+3);
+    for (var a = 0; a < i+3; a++) {
+      temp[a] = Array(300);
+      for (var b = 0; b < 300; b++) {
+        temp[a][b] = Array(100);
+        for (var c = 0; c < 100; c++) {
+          temp[a][b][c] = weights[i][c][a][b];
+        }
+      }
+    }
+
+    var in_filter = tf.tensor(temp).as4D(i+3, 300, 1, 100);
+    // in_filter.print()
     var stride = 1;
     var pad = 'valid';
-    //in_tensor_with_pad = tf.concat([pads[i], in_tensor, pads[i]], 1);
+    in_tensor_with_pad = tf.concat([pads[i], in_tensor, pads[i]], 1);
 
-    result[i] = tf.conv2d(in_tensor, in_filter, stride, pad);
-
+    result[i] = tf.conv2d(in_tensor_with_pad, in_filter, stride, pad);
+    //result[i].print()
     /*var bt = tf.tensor(bias[i]).as1D();
     var height = result[i].shape[1];
     var stacked_bias = [];

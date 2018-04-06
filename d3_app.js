@@ -241,7 +241,7 @@ function display_ww(input, label, plabel, start, same, bias) {
         div.append('div')
           .attr('class', 'd')
           .attr('style', css)
-          .html("Filter " + start[0] + "-" + start[1] + " (bias = " + bias + ")");
+          .html("Filter " + start[1] + " (width = " + start[0] + ", bias = " + bias + ")");
       }
       div.append('br');
     }
@@ -368,6 +368,9 @@ function render(div, data, plabel, same) {
       max_prev_len += 1;
     }
     var right = Math.min(hl_start_index+3-1+4, len-1);
+    for (var i = 0; i < len; i++) {
+
+    }
 
     for (var i = 0; i < len; i++) {
       if (i < left) {
@@ -375,12 +378,12 @@ function render(div, data, plabel, same) {
       }
       var padding = "";
       if (i == left) {
-        var pad_len = 30-max_prev_len;
+        var pad_len = 35-max_prev_len;
         for (var p = 0; p < pad_len; p++) {
           padding += "&nbsp;";
         }
         if (i != 0) {
-          padding += "... "
+          padding += "...&nbsp;"
         } else {
           padding += "&nbsp;&nbsp;&nbsp;&nbsp;";
         }
@@ -395,12 +398,13 @@ function render(div, data, plabel, same) {
         break;
       }
 
-      var word = padding + data[i][0];
+      var word = data[i][0];
       var intensity = data[i][1];
       //console.log(intensity + "," + len + "," + rank[i] + "," + plabel)
       var cole = toColor3(intensity, len, rank[i], plabel, same);
 
       var css = 'font-family: monospace; background-color:' + cole;
+      var css_pad = 'font-family: monospace; background-color: #ffffff';
 
       if(word == ' ') {
         css += ';color:' + cole;
@@ -419,10 +423,17 @@ function render(div, data, plabel, same) {
         word += "..."
       }
 
+      if (padding.length != 0) {
+        var dnew = div.append('div');
+        dnew.attr('class', 'd')
+            .attr('style', css_pad)
+            .html(padding);
+      }
+
       var dnew = div.append('div');
       dnew.attr('class', 'd')
-        .attr('style', css)
-        .html(word);
+          .attr('style', css)
+          .html(word);
     }
   }
 }
