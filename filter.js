@@ -30,8 +30,8 @@ function conv(input, weights, bias, len, bs) {
   bs = bs || batch_size;
   var in_tensor = tf.tensor(input).as4D(bs, len, 300, 1);
 
-  var in_tensor_with_pad = in_tensor;
-  var pads = [tf.zeros([bs, 2, 300, 1]), tf.zeros([bs, 3, 300, 1]), tf.zeros([bs, 4, 300, 1])];
+  //var in_tensor_with_pad = in_tensor;
+  //var pads = [tf.zeros([bs, 2, 300, 1]), tf.zeros([bs, 3, 300, 1]), tf.zeros([bs, 4, 300, 1])];
 
   for (var i = 0; i < weights.length; i++) {  // 3
     result[i] = [];
@@ -39,9 +39,9 @@ function conv(input, weights, bias, len, bs) {
 
     var stride = 1;
     var pad = 'valid';
-    in_tensor_with_pad = tf.concat([pads[i], in_tensor, pads[i]], 1);
+    //in_tensor_with_pad = tf.concat([pads[i], in_tensor, pads[i]], 1);
 
-    result[i] = tf.conv2d(in_tensor_with_pad, in_filter, stride, pad);
+    result[i] = tf.conv2d(in_tensor, in_filter, stride, pad);
 
     /*var bt = tf.tensor(bias[i]).as1D();
     var height = result[i].shape[1];
@@ -390,11 +390,14 @@ function display_conv_batch(batch, max_len, label, results, query, weights, bias
     return ret;
 }
 
-function display_single_conv(results, query, weights, bias, weights_fc1, bias_fc1) {
+function display_single_conv(results, query, weights, bias, weights_fc1, bias_fc1, test) {
+
     if (query.length < 5) {
         clean_up();
         return;
     }
+
+    var startTime = window.performance.now();
     var L = [-1, 2, 3, 1, 4, 0];
     var bs = 1;
     var conv_res = get_conv_res(results, weights, bias, results.length, bs);
@@ -407,8 +410,13 @@ function display_single_conv(results, query, weights, bias, weights_fc1, bias_fc
 
     var fc1_res = fc1(max_poll_res_real, weights_fc1, bias_fc1, bs);
     var output = soft_max(fc1_res);
-    output.print()
+
     var res_index = tf.argMax(output, 1).dataSync();
+    var lapsed = (window.performance.now() - startTime);
+
+    if (test) {
+      return lapsed;
+    }
 
     var interested_weight_vec = weights_fc1[res_index];
     var predictetfabel = L[res_index];

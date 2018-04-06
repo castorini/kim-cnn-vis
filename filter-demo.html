@@ -74,10 +74,10 @@ function searchButton() {
            .filter(function(x) { return x.length > 0 ? true : false; });
 
   // Perform wordvec retrieval
+  var startTime = window.performance.now();
   searcher.showVecs(q, Array(), function(results) {
-    var startTime = window.performance.now();
     updateMsg("Started processing sentence: " + q);
-
+    console.log(window.performance.now() - startTime)
     display_single_conv(results, q, weights, bias, fc_weights, fc_bias);
     updateMsg("Finished processing sentence in: " + (window.performance.now() - startTime) + "ms.");
   });
@@ -116,6 +116,10 @@ function setup() {
                       dev_sentences = sentences;
                       dev_labels = labels;
                       updateMsg("Finished loading parameters in " + (window.performance.now() - startTime)/1000 + "s.");
+
+                      setTimeout(function(){
+                        showAll();
+                      }, 100);
                     })
 
                   })
@@ -132,11 +136,11 @@ function setup() {
 }
 
 var test_res = [];
+var wordvec_time = 0;
 
 function showAll(ignore, b_index, test) {
   document.getElementById("sent").innerHTML = "";
 
-  var startTime = window.performance.now();
   updateMsg("Started processing sentences.");
 
   //var nn_res = getAll();
@@ -161,6 +165,7 @@ function showAll(ignore, b_index, test) {
     cur[cur.length] = segments[i];
   }
 
+  var startTime = window.performance.now();
   let requests = cur.map(function(q) {
     return new Promise(function(resolve, reject) {
       searcher.showVecs(q[0], Array(), function(results) {
@@ -179,6 +184,7 @@ function showAll(ignore, b_index, test) {
   var total = dev_sentences.length/batch_size;
 
   Promise.all(requests).then(function(response) {
+    wordvec_time = window.performance.now() - startTime;
     // [[[],#],[list of arrays]]
     var labels = [];
     var vecs = [];
@@ -208,24 +214,51 @@ function showAll(ignore, b_index, test) {
     }
 
     if (test) {
-      var ret = display_conv_batch(batch_size, max_len, labels, vecs, qs, weights, bias, fc_weights, fc_bias, ignore, true);
-      if ((b_index+1)*batch_size+batch_size > dev_sentences.length) {
-        updateMsg("Finished processing " + response.length + " sentences in " + ret + "ms.");
-        test_res[test_res.length] = ret;
-        updateMsg("Done");
-        average();
+      if (batch_size == 1) {
+        var new_res = [];
+        for (var k = 0; k < vecs[0].length; k++) {
+          new_res[k] = [qs[0][k], vecs[0][k]]
+        }
+
+        var ret = display_single_conv(new_res, qs[0], weights, bias, fc_weights, fc_bias, true);
+
+        if ((b_index+1)*batch_size+batch_size > dev_sentences.length) {
+          updateMsg("Finished processing " + response.length + " sentences in " + ret + "ms.");
+          if (ret != undefined) {
+            test_res[test_res.length] = ret;
+          }
+          updateMsg("Done");
+          average();
+        } else {
+          updateMsg("Finished processing " + response.length + " sentences in " + ret + "ms. ");
+          if (ret != undefined) {
+            test_res[test_res.length] = ret;
+          }
+          showAll(undefined, b_index+1, true)
+        }
       } else {
-        updateMsg("Finished processing " + response.length + " sentences in " + ret + "ms. ");
-        test_res[test_res.length] = ret;
-        showAll(undefined, b_index+1, true)
+        var ret = display_conv_batch(batch_size, max_len, labels, vecs, qs, weights, bias, fc_weights, fc_bias, ignore, true);
+
+        if ((b_index+1)*batch_size+batch_size > dev_sentences.length) {
+          updateMsg("Finished processing " + response.length + " sentences in " + ret + "ms.");
+          test_res[test_res.length] = ret;
+          updateMsg("Done");
+          average();
+        } else {
+          updateMsg("Finished processing " + response.length + " sentences in " + ret + "ms. ");
+          test_res[test_res.length] = ret;
+          showAll(undefined, b_index+1, true)
+        }
       }
     } else {
+      startTime = window.performance.now();
       var ret = display_conv_batch(batch_size, max_len, labels, vecs, qs, weights, bias, fc_weights, fc_bias, ignore, false);
+      updateMsg("Finished processing 1 batch of sentences in " + (window.performance.now() - startTime)/1000 + "s. ");
 
       for (var i = 0; i < ret.length; i++) {
         nn_res[nn_res.length] = ret[i];
         var draw = ret[i][0];
-        display_sentence_coloring(draw[0], draw[1], draw[2], [-1, -1], false, -1);
+        //display_sentence_coloring(draw[0], draw[1], draw[2], [-1, -1], false, -1);
       }
     }
   });
@@ -240,7 +273,8 @@ function average() {
   for (var i = 0; i < test_res.length; i++) {
     sum += test_res[i];
   }
-  updateMsg("average: " + sum/test_res.length);
+
+  updateMsg("average: " + sum/test_res.length + ", average word vectors fetch time: " + wordvec_time);
 }
 
 function batchButton() {
@@ -466,7 +500,6 @@ Be sure to <a href="indexing-demo.html">build the index</a> first!</p>
 
 <button id="setupButton" onclick="setup()">Setup</button>
 <button id="start" onclick="start()">Start Test</button>
-<button id="showAll" onclick="showAll()">Show All</button>
 <button id="byFilter" onclick="byFilter()">By Filter</button>
 <!--<select id="filter" onchange="test(this);">
   <option value="showAll">Show All</option>
@@ -478,7 +511,7 @@ Ignore insignificant filters: <input type="checkbox" id="ignore_filters_checkbox
 <div id="message"></div>
 </p>
 <input type="text" id="query" placeholder="query">
-<button id="searchButton" onclick="searchButton()">Search</button> (try "the" or "they")</p>
+<button id="searchButton" onclick="searchButton()">Run</button> (try "the" or "they")</p>
 <input type="text" id="batch" placeholder="batch size default: 32">
 <button id="batchButton" onclick="batchButton()">Batch Size</button>
 
