@@ -17,12 +17,12 @@ function draw_heatmap(query, highlight, mp) {
 
   drawString(data);
 
-  drawWeight(highlight[0]);
-  drawWeight(highlight[1]);
-  drawWeight(highlight[2]);
+  drawWeight(highlight[0], mp[0]);
+  drawWeight(highlight[1], mp[1]);
+  drawWeight(highlight[2], mp[2]);
 }
 
-function drawWeight(input) {
+function drawWeight(input, mp) {
   var data_values = [];
   var data_labels = [];
   input.forEach(function(item){
@@ -34,17 +34,18 @@ function drawWeight(input) {
     values: data_values,
     labels: data_labels
   };
-  drawMatrix(data);
+  drawMatrix(data, mp);
 }
 
 function drawString(data){
      // Set the dimensions of the canvas / graph
     var	margin = {top: 0, right: 10, bottom: 50, left: 10};
 
+    var len = data.values.length;
     var chart_options = {
         container: "#Matrix",
         width: 80,
-        height: 400,
+        height: len*23,
         margin: margin,
         show_labels : true,
         start_color : "#ffffff",
@@ -53,24 +54,25 @@ function drawString(data){
         highlight_cell_color: "#9b59b6"
     };
 
-    Matrix(data, chart_options);
+    Matrix(data, undefined, chart_options);
 }
 
-function drawMatrix(data){
+function drawMatrix(data, mp){
      // Set the dimensions of the canvas / graph
     var	margin = {top: 0, right: 10, bottom: 50, left: 10};
 
+    var len = data.values.length;
     var chart_options = {
         container: "#Matrix",
         width: 80,  // document.getElementById("container").offsetWidth*0.3 - margin.left - margin.right
-        height: 400,
+        height: len*23,
         margin: margin,
         show_labels : false,
         start_color : "#efefef",
         end_color : "#3498db",
         highlight_cell_on_hover: true,
-        highlight_cell_color: "#e6e6e6"
+        highlight_cell_color: "#D8BFD8"
     };
 
-    Matrix(data, chart_options);
+    Matrix(data, mp, chart_options);
 }

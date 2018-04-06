@@ -26,7 +26,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 
 */
 
-function Matrix(data, options) {
+function Matrix(data, mp, options) {
 
 	var margin = options.margin,
 	    width = options.width,
@@ -84,8 +84,9 @@ function Matrix(data, options) {
 	    .attr("class", "row")
 	    .attr("transform", function(d, i) { return "translate(0," + y(i) + ")"; });
 
+	var cell;
   if (showLabels) {
-		var cell = row.selectAll(".cell")
+		cell = row.selectAll(".cell")
 		    .data(function(d, i) { return dataLabels[i]; })
 				.enter().append("g")
 		    .attr("class", "cell")
@@ -103,8 +104,8 @@ function Matrix(data, options) {
 	    .style("fill", 'black')
 	    .text(function(d, i) { return d; });
 	} else {
-		var cell = row.selectAll(".cell")
-		    .data(function(d) { return d; })
+		cell = row.selectAll(".cell")
+		    .data(function(d, i) { return d; })
 				.enter().append("g")
 		    .attr("class", "cell")
 		    .attr("transform", function(d, i) { return "translate(" + x(i) + ", 0)"; });
@@ -118,15 +119,15 @@ function Matrix(data, options) {
 	    .data(function(d, i) { return dataValues[i]; })
 	    .style("fill", colorMap);
 
-    if(highlightCellOnHover){
-        cell
-        .on("mouseover", function(d) {
-            d3.select(this).style("fill", highlightCellColor);
-        })
-        .on("mouseout", function() {
-            d3.select(this).style("fill", colorMap);
-        });
-    }
+  if (highlightCellOnHover) {
+      cell
+      .on("mouseover", function(d, i) {
+          d3.select(this).style("fill", highlightCellColor);
+      })
+      .on("mouseout", function() {
+          d3.select(this).style("fill", colorMap);
+      });
+  }
 
     /*if (showLabels){
         var labels = svg.append('g')

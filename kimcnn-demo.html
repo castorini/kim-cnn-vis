@@ -107,7 +107,9 @@ function setup() {
 
 function searchButton() {
   var q = document.querySelector("#query").value.split(" ");
-  q = "today is a terrible day, so I am not going to go outside".split(" ");
+  if (q.length == 1 && q[0] == "") {
+    q = "the film would work much better as a video installation in a museum , where viewers would be free to leave .".split(" ");
+  }
   q = q.map(function(x) { return x.toLowerCase()})
            .filter(function(x) { return x.length > 0 ? true : false; });
 
@@ -172,8 +174,8 @@ p.wordvec {
 <p>The following demo searches word2vecs.
 Be sure to <a href="indexing-demo.html">build the index</a> first!</p>
 <div id="message"></div>
-<input type="text" id="query" placeholder="query">
-<button id="searchButton" onclick="searchButton()">Search</button> (try "the" or "they")</p>
+<input type="text" style="width: 300px;" id="query" placeholder='"the film would work much better ..."'>
+<button id="searchButton" onclick="searchButton()">Run</button></p>
 
 <div class="wrapper" id="container">
     <div>
@@ -184,7 +186,7 @@ Be sure to <a href="indexing-demo.html">build the index</a> first!</p>
       </div>
       <div id="Matrix" style="display:inline-block;float:left;margin-left: 10px;"></div>
       <div id="tables" style="float:right;margin-right:20px">
-        <p>Table</p>
+        <p></p>
       </div>
     </div>
 </div>

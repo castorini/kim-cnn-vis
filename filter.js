@@ -260,12 +260,13 @@ function analyze_sep_width(query, max_poll_all, max_poll, fc1_res, output, inter
         if (idx+k < 0 || idx+k >= query.length) {
           continue;
         }
-        res[idx+k] += w*cont[i][j];
+        //res[idx+k] += w*cont[i][j];
         mapping[i][idx+k].push(j);
       }
     }
     for (var k = 0; k < query.length; k++) {
-      resByFilter[i][k] = parseInt(res[k]*100);
+      //resByFilter[i][k] = parseInt(res[k]*100);
+      resByFilter[i][k] = mapping[i][k].length;
     }
   }
 
@@ -461,6 +462,7 @@ function all_feature_activations(wordvecs, query, weights, bias, fcw, fcb) {
 
   var ww = vis_res[0];
   var mp = vis_res[1];
+  console.log(mp)
 
   draw_heatmap(query, ww, mp);
 }
