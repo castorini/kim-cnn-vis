@@ -237,13 +237,14 @@ function showAll(ignore, b_index, test) {
       } else {
         var ret = display_conv_batch(batch_size, max_len, labels, vecs, qs, weights, bias, fc_weights, fc_bias, ignore, true);
 
-        if (b_index = 5) { // (b_index+1)*batch_size+batch_size > dev_sentences.length
+        if (b_index == 3) { // (b_index+1)*batch_size+batch_size > dev_sentences.length
           updateMsg("Finished processing " + response.length + " sentences in " + ret + "ms.");
           test_res[test_res.length] = ret;
           updateMsg("Done");
           average();
         } else {
           updateMsg("Finished processing " + response.length + " sentences in " + ret + "ms. ");
+          console.log(ret)
           test_res[test_res.length] = ret;
           showAll(undefined, b_index+1, true)
         }
