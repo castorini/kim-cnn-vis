@@ -112,7 +112,7 @@ function Matrix(data, mp, options) {
 
 		cell.append('rect')
 		    .attr("width", x.rangeBand())
-		    .attr("height", y.rangeBand()+1);
+		    .attr("height", y.rangeBand()+1)
 	}
 
 	row.selectAll(".cell")
@@ -122,10 +122,12 @@ function Matrix(data, mp, options) {
   if (highlightCellOnHover) {
       cell
       .on("mouseover", function(d, i) {
-          d3.select(this).style("fill", highlightCellColor);
+          //d3.select(this).style("fill", highlightCellColor);
+					d3.select(this).style("transform", "scale(1.1,1.1)").style("transform-origin", "25% 25%");
       })
       .on("mouseout", function() {
-          d3.select(this).style("fill", colorMap);
+          //d3.select(this).style("fill", colorMap);
+					d3.select(this).style("transform", "scale(1.0,1.0)").style("transform-origin", "25% 25%");
       });
   }
 

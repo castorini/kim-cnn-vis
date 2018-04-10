@@ -36,7 +36,7 @@ function conv(input, weights, bias, len, bs) {
     result[i] = [];
     // console.log(weights[i])
 
-    /*var temp = Array(i+3);
+    var temp = Array(i+3);
     for (var a = 0; a < i+3; a++) {
       temp[a] = Array(300);
       for (var b = 0; b < 300; b++) {
@@ -45,9 +45,9 @@ function conv(input, weights, bias, len, bs) {
           temp[a][b][c] = weights[i][c][a][b];
         }
       }
-    }*/
+    }
 
-    var in_filter = tf.tensor(weights[i]).as4D(i+3, 300, 1, 100);
+    var in_filter = tf.tensor(temp).as4D(i+3, 300, 1, 100);
     // in_filter.print()
     var stride = 1;
     var pad = 'valid';
@@ -55,7 +55,7 @@ function conv(input, weights, bias, len, bs) {
 
     result[i] = tf.conv2d(in_tensor, in_filter, stride, pad);
     //result[i].print()
-    /*var bt = tf.tensor(bias[i]).as1D();
+    var bt = tf.tensor(bias[i]).as1D();
     var height = result[i].shape[1];
     var stacked_bias = [];
     while (height > 0) {
@@ -63,7 +63,7 @@ function conv(input, weights, bias, len, bs) {
       height--;
     }
     stacked_bias = tf.stack(stacked_bias);
-    result[i].add(stacked_bias);*/
+    result[i].add(stacked_bias);
 
     result[i].relu();
   }
@@ -96,7 +96,7 @@ function fc1(input, weights, bias, bs) {
   var w_tensor = tf.tensor(weights).as2D(6, 300);
   var mm = tf.matMul(w_tensor, combined).as2D(6, bs);
 
-  /*var b_tensor = tf.tensor(bias).as2D(6, 1);
+  var b_tensor = tf.tensor(bias).as2D(6, 1);
   var width = bs;
   var concat_bias = b_tensor;
   width--;
@@ -105,7 +105,7 @@ function fc1(input, weights, bias, bs) {
     width--;
   }
 
-  mm.add(concat_bias);*/
+  mm.add(concat_bias);
   return mm;
 }
 
@@ -160,7 +160,7 @@ function filter_max_weight(max_poll) {
   var res = [];
   for (var dim = 0; dim < 3; dim++) { // 3
     res[dim] = [];
-    var cur = max_poll[dim][0].dataSync();
+    var cur = max_poll[dim][1].dataSync();
     for (var c = 0; c < 100; c++) { // 100
       res[dim][c] = cur[c];
     }
@@ -250,17 +250,10 @@ function analyze_sep_width(query, max_poll_all, max_poll, fc1_res, output, inter
     mapping[i] = [];
     for (var k = 0; k < query.length; k++) {
       res[k] = 0;
-      mapping[i][k] = [];
+      mapping[i][k] = 0;
     }
     for (var j = 0; j < matchedIndex[i].length; j++) {  // 100
       var idx = matchedIndex[i][j];
-      if (i == 0) {
-        idx -= 2;
-      } else if (i == 1) {
-        idx -= 3;
-      } else {
-        idx -= 4;
-      }
       var w = matchedWeight[i][j];
       if (ignore) {
         if (w <= 0.05 && w >= -0.05) {
@@ -268,17 +261,15 @@ function analyze_sep_width(query, max_poll_all, max_poll, fc1_res, output, inter
         }
       }
       var dim = i+3;
-      for (var k = 0; k < dim; k++) {
-        if (idx+k < 0 || idx+k >= query.length) {
-          continue;
-        }
-        //res[idx+k] += w*cont[i][j];
-        mapping[i][idx+k].push(j);
+      if (idx < 0 || idx >= query.length) {
+
+      } else {
+        mapping[i][idx] = Math.max(mapping[i][idx], w);
       }
     }
     for (var k = 0; k < query.length; k++) {
       //resByFilter[i][k] = parseInt(res[k]*100);
-      resByFilter[i][k] = mapping[i][k].length;
+      resByFilter[i][k] = mapping[i][k];
     }
   }
 

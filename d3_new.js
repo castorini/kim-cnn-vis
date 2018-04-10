@@ -68,7 +68,7 @@ function drawMatrix(data, mp){
         height: len*23,
         margin: margin,
         show_labels : false,
-        start_color : "#efefef",
+        start_color : "#ffffff",
         end_color : "#3498db",
         highlight_cell_on_hover: true,
         highlight_cell_color: "#D8BFD8"
