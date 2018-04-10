@@ -101,7 +101,22 @@ function Matrix(data, mp, options) {
 	    .attr("x", x.rangeBand() / 2)
 	    .attr("y", y.rangeBand() / 2)
 	    .attr("text-anchor", "middle")
-	    .style("fill", 'black')
+			.style("fill", function(d) {
+				if (d.localeCompare("beguiling") == 0 || d.localeCompare("splash") == 0
+					|| d.localeCompare("of") == 0 || d.localeCompare("xx") == 0|| d.localeCompare("xx") == 0) {
+					return "black"
+				} else {
+					return "#C0C0C0"
+				}
+			 })
+		 .style("font-weight", function(d) {
+				if (d.localeCompare("beguiling") == 0 || d.localeCompare("splash") == 0
+					|| d.localeCompare("of") == 0 || d.localeCompare("xx") == 0|| d.localeCompare("xx") == 0) {
+					return "900"
+				} else {
+					return ""
+				}
+			 })
 	    .text(function(d, i) { return d; });
 	} else {
 		cell = row.selectAll(".cell")

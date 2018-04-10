@@ -231,7 +231,7 @@ function display_ww(input, label, plabel, start, same, bias) {
 
     var div = d3.select(".sentences");
     if (start[0] != -1 && start[1] != -1) {
-      var css = "font-family: monospace;font-size:160%;"
+      var css = "font-family: Lucida Console,Monaco,monospace;font-size:160%;"
       if (bias == -1) {
         div.append('div')
           .attr('class', 'd')
