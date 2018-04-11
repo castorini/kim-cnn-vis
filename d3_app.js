@@ -231,7 +231,7 @@ function display_ww(input, label, plabel, start, same, bias) {
 
     var div = d3.select(".sentences");
     if (start[0] != -1 && start[1] != -1) {
-      var css = "font-family: Lucida Console,Monaco,monospace;font-size:160%;"
+      var css = "font-family:Lucida Console,Monaco,monospace;font-size:120%;margin-bottom: 10px;"
       if (bias == -1) {
         div.append('div')
           .attr('class', 'd')
@@ -403,11 +403,16 @@ function render(div, data, plabel, same) {
       //console.log(intensity + "," + len + "," + rank[i] + "," + plabel)
       var cole = toColor3(intensity, len, rank[i], plabel, same);
 
-      var css = 'font-family: monospace; background-color:' + cole;
-      var css_pad = 'font-family: monospace; background-color: #ffffff';
+      var css = 'font-family:Lucida Console,Monaco,monospace;font-weight:';
+      if (intensity == 0) {
+        css += "100;";
+      } else {
+        css += "900;";
+      }
+      var css_pad = 'font-family:Lucida Console,Monaco,monospace;background-color: #ffffff';
 
       if(word == ' ') {
-        css += ';color:' + cole;
+        //css += ';color:' + cole;
       }
       if(word == '\n') {
         css += ';display:block;'
