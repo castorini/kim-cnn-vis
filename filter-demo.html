@@ -220,7 +220,7 @@ function showAll(ignore, b_index, test) {
 
         var ret = display_single_conv(new_res, qs[0], weights, bias, fc_weights, fc_bias, true);
 
-        if (b_index == 100) {
+        if (b_index == 3) {
           updateMsg("Finished processing " + response.length + " sentences in " + ret + "ms.");
           if (ret != undefined) {
             test_res[test_res.length] = ret;
