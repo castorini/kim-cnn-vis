@@ -27,7 +27,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 function Matrix(data, mp, options) {
-
+	var words = ["'s", "exceptional", "performances"]
 	var margin = options.margin,
 	    width = options.width,
 	    height = options.height,
@@ -102,20 +102,26 @@ function Matrix(data, mp, options) {
 	    .attr("y", y.rangeBand() / 2)
 	    .attr("text-anchor", "middle")
 			.style("fill", function(d) {
-				if (d.localeCompare("beguiling") == 0 || d.localeCompare("splash") == 0
-					|| d.localeCompare("of") == 0 || d.localeCompare("xx") == 0|| d.localeCompare("xx") == 0) {
-					return "black"
-				} else {
-					return "#C0C0C0"
+				for (var i = 0; i < words.length; i++) {
+					if (d.localeCompare(words[i]) == 0) {
+						if (words[i].localeCompare("'s") == 0) {
+							words.splice(i, 1);
+						}
+						return "black";
+					}
 				}
+				return "#C0C0C0";
 			 })
 		 .style("font-weight", function(d) {
-				if (d.localeCompare("beguiling") == 0 || d.localeCompare("splash") == 0
-					|| d.localeCompare("of") == 0 || d.localeCompare("xx") == 0|| d.localeCompare("xx") == 0) {
-					return "900"
-				} else {
-					return ""
+				for (var i = 0; i < words.length; i++) {
+					if (d.localeCompare(words[i]) == 0) {
+						if (words[i].localeCompare("'s") == 0) {
+							words.splice(i, 1);
+						}
+						return "900";
+					}
 				}
+				return "";
 			 })
 	    .text(function(d, i) { return d; });
 	} else {

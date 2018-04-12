@@ -17,15 +17,16 @@ function draw_heatmap(query, highlight, mp) {
 
   drawString(data);
 
-  drawWeight(highlight[0], mp[0]);
-  drawWeight(highlight[1], mp[1]);
-  drawWeight(highlight[2], mp[2]);
+  drawWeight(query.length-2, highlight[0], mp[0]);
+  drawWeight(query.length-3, highlight[1], mp[1]);
+  drawWeight(query.length-4, highlight[2], mp[2]);
 }
 
-function drawWeight(input, mp) {
+function drawWeight(len, input, mp) {
   var data_values = [];
   var data_labels = [];
   input.forEach(function(item){
+    console.log(item)
     data_values.push([item]);
     data_labels.push('');
   });

@@ -68,7 +68,7 @@ document.addEventListener("DOMContentLoaded", initializeParameters, false);
 function searchButton() {
   document.getElementById("sent").innerHTML = "";
   var q = document.querySelector("#query").value.split(" ");
-  q = "today is a terrible day".split(" ");
+  //q = "a rigorously structured and exquisitely filmed drama about a father and son connection that is a brief shooting star of love .".split(" ");
   q = q.map(function(x) { return x.toLowerCase()})
            .filter(function(x) { return x.length > 0 ? true : false; });
 

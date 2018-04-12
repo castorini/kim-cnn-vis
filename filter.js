@@ -251,6 +251,7 @@ function analyze_sep_width(query, max_poll_all, max_poll, fc1_res, output, inter
     for (var k = 0; k < query.length; k++) {
       res[k] = 0;
       mapping[i][k] = 0;
+      resByFilter[i][k] = 0;
     }
     for (var j = 0; j < matchedIndex[i].length; j++) {  // 100
       var idx = matchedIndex[i][j];
@@ -269,6 +270,9 @@ function analyze_sep_width(query, max_poll_all, max_poll, fc1_res, output, inter
     }
     for (var k = 0; k < query.length; k++) {
       //resByFilter[i][k] = parseInt(res[k]*100);
+      if (k > query.length - (i + 3) + 1) {
+        break;
+      }
       resByFilter[i][k] = mapping[i][k];
     }
   }
