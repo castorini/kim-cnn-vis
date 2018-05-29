@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-<title>word2vec Demo</title>
+<title>Kim CNN In-Browser Demo</title>
 <!-- Bootstrap -->
 <!-- Latest compiled and minified CSS -->
 <link rel="stylesheet" href="bootstrap/bootstrap.min.css">
@@ -35,7 +35,7 @@ body {
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="./index.html">word2vec</a>
+          <a class="navbar-brand" href="./index.html">Kim CNN In-Browser Demo</a>
         </div>
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
@@ -52,38 +52,18 @@ body {
 <div class="container">
 
 <div class="page-header">
-<h1>word2vec</h1>
-<p class="lead">A proof-of-concept in-browser JavaScript-based search engine</p>
+<h1>Kim CNN In-Browser Demo</h1>
+<p class="lead">CNNs for NLP in the Browser: Client-Side Deployment and Visualization Opportunities</p>
 </div>
 
-<p>JavaScript engines inside modern web browsers are capable of
-running sophisticated multi-player games, rendering impressive 3D
-scenes, and supporting complex, interactive visualizations. Can this
-processing power be harnessed for information retrieval?</p>
-
-<p>JScene (pronounced Jay-Scene, rhymes with Lucene) explores the
-feasibility of building a JavaScript search engine that runs
-completely self-contained on the client side within the
-browser&mdash;this includes building the inverted index, gathering
-terms statistics for scoring, and performing query evaluation. The
-design takes advantage of the IndexDB API, which is implemented by the
-LevelDB key-value store inside Google's Chrome browser.</p>
-
-<p>Experiments show that although the performance of the JavaScript
-prototype falls far short of the open-source Lucene search engine, it
-is sufficiently responsive for interactive applications.  This
-feasibility demonstration opens the door to interesting applications
-and architectures.</p>
-
-<p>For more details, see:</p>
-
-<ul>
-
-<li>Jimmy Lin. <a href="https://cs.uwaterloo.ca/~jimmylin/publications/Lin_ICTIR2015.pdf">Building a Self-Contained Search Engine in the Browser.</a> <i>Proceedings of the ACM SIGIR International Conference on the Theory of Information Retrieval (ICTIR 2015)</i>, September 2015, Northampton, Massachusetts.
-
-<li>Jimmy Lin. <a href="http://arxiv.org/abs/1410.4500">On the Feasibility and Implications of Self-Contained Search Engines in the Browser.</a> <i>arXiv:1410.4500</i>, October 2014. (Longer version of above paper.)</li>
-
-</ul>
+<p>We demonstrate a JavaScript implementation of a convolutional neural network that performs
+feedforward inference completely in the browser. Such a deployment means that models
+can run completely on the client, on a wide range of devices, without making backend
+server requests. This design is useful for applications with stringent latency requirements
+or low connectivity. Our evaluations show the feasibility of JavaScript as a deployment target.
+Furthermore, an in-browser implementation enables seamless integration with the
+JavaScript ecosystem for information visualization, providing opportunities to visually inspect
+neural networks and better understand their inner workings.</p>
 
 </div>
 
