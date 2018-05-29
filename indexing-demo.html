@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-<title>word2vec Demo</title>
+<title>Kim CNN In-Browser Demo</title>
 <!-- Bootstrap -->
 <!-- Latest compiled and minified CSS -->
 <link rel="stylesheet" href="bootstrap/bootstrap.min.css">
@@ -32,38 +32,28 @@
 <script type="text/javascript" src="parameters/dev_dataset.js"></script></script>
 
 <script>
-function statsButton(e) {
+function statsButton(collection, statsDivId) {
   console.log("Getting stats...");
 
-  try{
-    var request1 = db.transaction(["wordvecs"], "readonly")
-                     .objectStore("wordvecs").count();
+  var statsCollectionToDivId = {
+    wordvecs: 'word2vec50d-stats',
+    wordvecslarge: 'word2vec300d-stats'
+  };
 
-    request1.onsuccess = function(e) {
-      console.log("Total number of word vector: " + e.target.result);
-      document.getElementById('wordVecs').innerHTML = e.target.result;
+  Object.keys(statsCollectionToDivId).forEach(collection => {
+    var statsDivId = statsCollectionToDivId[collection];
+    try {
+      var request = db.transaction([collection], "readonly")
+                       .objectStore(collection).count();
+
+      request.onsuccess = function(e) {
+        $(`#${statsDivId}`).html(e.target.result);
+      }
+    } catch (e) {
+      console.log("Error opening index!");
+      $(`#${statsDivId}`).html(0);
     }
-  } catch (e) {
-    console.log("Error opening index!");
-    document.getElementById('wordVecs').innerHTML = 0;
-  }
-}
-
-function statsLargeButton(e) {
-  console.log("Getting stats...");
-
-  try{
-    var request1 = db.transaction(["wordvecslarge"], "readonly")
-                     .objectStore("wordvecslarge").count();
-
-    request1.onsuccess = function(e) {
-      console.log("Total number of word vector: " + e.target.result);
-      document.getElementById('wordVecsLarge').innerHTML = e.target.result;
-    }
-  } catch (e) {
-    console.log("Error opening index!");
-    document.getElementById('wordVecsLarge').innerHTML = 0;
-  }
+  });
 }
 
 function weight3StatsButton(e) {
@@ -235,65 +225,57 @@ function deleteIndex() {
 
   DBDeleteRequest.onsuccess = function(event) {
     console.log("Index deleted successfully");
-    document.getElementById('wordVecs').innerHTML = 0;
+    $('#word2vec50d-message').html('');
+    $('#word2vec300d-message').html('');
   };
 
   // reinitialize in case user wants to re-index again.
   initializeDB.apply();
 }
 
-function indexButton() {
-  console.log("Starting to index...");
-  document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>Starting to index...</div>";
-
+function getUpdateMessageHander(messageDivId) {
   var updateMessageHandler = {
     update: function(startTime, currentTime, i) {
       console.log("Indexed " + i + " documents: Elapsed time = " + (currentTime - startTime) + "ms");
-      document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>Indexed " + i + " documents: Elapsed time = " + (currentTime - startTime) + " ms</div>";
+      $(`#${messageDivId}`).html(`<div class='alert alert-success alert-dismissible' role='alert'>
+          <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
+          <span aria-hidden='true'>&times;</span></button>
+          Indexed ${i} documents: Elapsed time ${currentTime - startTime} ms
+        </div>`);
     },
 
     finished: function(startTime, currentTime, i) {
       console.log("Number of docs indexed: " + i);
       console.log("Indexing time: " + (currentTime - startTime) + "ms");
-      document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Indexing Complete!</strong> " + i + " documents indexed in " + (currentTime - startTime) + " ms.</div>";
+      $(`#${messageDivId}`).html(`<div class='alert alert-success alert-dismissible' role='alert'>
+        <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
+        <span aria-hidden='true'>&times;</span></button>
+        <strong>Indexing Complete!</strong>
+        ${i} documents indexed in ${currentTime - startTime} ms.
+      </div>`);
       statsButton();
     },
 
     error: function(e) {
       console.log("Error", e.target.error.name);
-      document.getElementById('message').innerHTML = "<div class='alert alert-danger alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Error!</strong> Does an index already exist? If so, please delete old index first. (Also try refreshing the page.)</div>";
+      $(`#${messageDivId}`).html(`<div class='alert alert-danger alert-dismissible' role='alert'>
+        <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
+        <span aria-hidden='true'>&times;</span></button><strong>Error!</strong>
+        Does an index already exist? If so, please delete old index first. (Also try refreshing the page.)
+      </div>`);
     }
   };
-
-  indexer.setWordvecsMessageHandler(updateMessageHandler);
-  indexer.index(word2vec);
+  return updateMessageHandler;
 }
 
-function indexLargeButton() {
-  console.log("Starting to index large...");
-  document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>Starting to index large...</div>";
+function indexButton(dim, word_vecs) {
+  var messageDivId = dim === 50 ? 'word2vec50d-message' : 'word2vec300d-message';
+  $(`#${messageDivId}`).html(`<div class='alert alert-success alert-dismissible' role='alert'>
+    <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
+    <span aria-hidden='true'>&times;</span></button>Starting to index word vectors (${dim}d)...</div>`);
 
-  var updateMessageHandler = {
-    update: function(startTime, currentTime, i) {
-      console.log("Indexed " + i + " documents: Elapsed time = " + (currentTime - startTime) + "ms");
-      document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>Indexed " + i + " documents: Elapsed time = " + (currentTime - startTime) + " ms</div>";
-    },
-
-    finished: function(startTime, currentTime, i) {
-      console.log("Number of docs indexed: " + i);
-      console.log("Indexing time: " + (currentTime - startTime) + "ms");
-      document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Indexing Complete!</strong> " + i + " documents indexed in " + (currentTime - startTime) + " ms.</div>";
-      statsButton();
-    },
-
-    error: function(e) {
-      console.log("Error", e.target.error.name);
-      document.getElementById('message').innerHTML = "<div class='alert alert-danger alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Error!</strong> Does an index already exist? If so, please delete old index first. (Also try refreshing the page.)</div>";
-    }
-  };
-
-  indexer.setWordvecsLargeMessageHandler(updateMessageHandler);
-  indexer.index_large(word2veclarge);
+  indexer.setWordvecsMessageHandler(getUpdateMessageHander(messageDivId));
+  indexer.index(word_vecs);
 }
 
 function weight3Button() {
@@ -564,7 +546,7 @@ body {
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="./index.html">word2vec</a>
+          <a class="navbar-brand" href="./index.html">Kim CNN In-Browser Demo</a>
         </div>
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
@@ -582,47 +564,24 @@ body {
 <div class="container">
 
 <div class="page-header">
-<h1>word2vec <small>Indexing Demo</small></h1>
+<h1>Kim CNN In-Browser Demo <small>Indexing Demo</small></h1>
 </div>
 
-<p>The following demo builds the indices on top10K (from 6B tokens, 400K vocab) words and their vectors (300d) from <a href=https://nlp.stanford.edu/projects/glove/>Glove</a> using IndexedDB. Everything is designed to work on Chrome, so YMMV on other
+<p>The following demo builds the indices on top10K (from 6B tokens, 400K vocab) words and their vectors (300d) from <a href=https://nlp.stanford.edu/projects/glove/>GloVe</a> using IndexedDB. Everything is designed to work on Chrome, so YMMV on other
 browsers.</p>
-<!--
-<p>If you pop open your JavaScript console, you'll find the
-variable <code>tweets</code> containing the tweets that we're going to
-index:</p>
 
-<pre style="font-size: 80%;">
-&gt; tweets
-Array[1916]
-</pre>
-
-<p>These are JSON objects generated by
-Twitter's <a href="https://support.twitter.com/articles/20170160">"Download
-your tweet archive"</a> service, so you can manipulate the collection
-as normal JSON objects:</p>
-
-<pre style="font-size: 80%;">
-&gt; tweets[1912].text
-"Moving day! http://t.co/yBse0eJmnq"
-
-&gt; tweets[1912].created_at
-"2015-08-05 12:19:21 +0000"
-</pre>
--->
 <p>Okay, now we're ready to index. First click the "Build Index"
 button. You can watch the
 indexing progress in the JavaScript console. After that, click the
 "Get Index Stats" button: there should be 10000 word vectors.</p>
 
 <p>
-<button id="indexButton" onclick="indexButton()">Build Index</button>
+<button onclick="indexButton(50, word2vec)">Build Index for 50d word2vec</button>
 <button id="statsButton" onclick="statsButton()">Get Index Stats</button>
 <button id="deleteIndex" onclick="deleteIndex()">Delete All</button>
 </p>
 <p>
-<button id="indexLargeButton" onclick="indexLargeButton()">Build Large Index</button>
-<button id="statsLargeButton" onclick="statsLargeButton()">Get Large Index Stats</button>
+<button onclick="indexButton(300, word2veclarge)">Build Index for 300d word2vec</button>
 </p>
 <p>
 <button id="weight3Button" onclick="weight3Button()">Load Weights</button>
@@ -647,12 +606,14 @@ indexing progress in the JavaScript console. After that, click the
 </p>
 
 <div id="message"></div>
+<div id="word2vec50d-message"></div>
+<div id="word2vec300d-message"></div>
 
 <h3>Current Index Status</h3>
 
 <table class="table">
-<tr><td>Number of Word Vectors</td><td><div id="wordVecs"></div></td></tr>
-<tr><td>Number of Word Vectors(300)</td><td><div id="wordVecsLarge"></div></td></tr>
+<tr><td>Number of word vectors (50d)</td><td><div id="word2vec50d-stats"></div></td></tr>
+<tr><td>Number of word vectors (300d)</td><td><div id="word2vec300d-stats"></div></td></tr>
 <tr><td>Number of Weights(3)</td><td><div id="weights_3"></div></td></tr>
 <tr><td>Number of Weights(4)</td><td><div id="weights_4"></div></td></tr>
 <tr><td>Number of Weights(5)</td><td><div id="weights_5"></div></td></tr>
