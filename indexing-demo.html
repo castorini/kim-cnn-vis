@@ -37,7 +37,16 @@ function statsButton(collection, statsDivId) {
 
   var statsCollectionToDivId = {
     wordvecs: 'word2vec50d-stats',
-    wordvecslarge: 'word2vec300d-stats'
+    wordvecslarge: 'word2vec300d-stats',
+    weights_3: 'weights-3',
+    weights_4: 'weights-4',
+    weights_5: 'weights-5',
+    weights_fc1: 'weights-fc1',
+    bias_3: 'bias-3',
+    bias_4: 'bias-4',
+    bias_5: 'bias-5',
+    bias_fc1: 'bias-fc1',
+    dataset: 'dataset'
   };
 
   Object.keys(statsCollectionToDivId).forEach(collection => {
@@ -54,159 +63,6 @@ function statsButton(collection, statsDivId) {
       $(`#${statsDivId}`).html(0);
     }
   });
-}
-
-function weight3StatsButton(e) {
-  console.log("Getting weight stats...");
-
-  try{
-    var request1 = db.transaction(["weights_3"], "readonly")
-                     .objectStore("weights_3").count();
-
-    request1.onsuccess = function(e) {
-      console.log("Total number of weights: " + e.target.result);
-      document.getElementById('weights_3').innerHTML = e.target.result;
-    }
-  } catch (e) {
-    console.log("Error opening weights!");
-    document.getElementById('weights_3').innerHTML = 0;
-  }
-}
-
-function weight4StatsButton(e) {
-  console.log("Getting weight stats...");
-
-  try{
-    var request1 = db.transaction(["weights_4"], "readonly")
-                     .objectStore("weights_4").count();
-
-    request1.onsuccess = function(e) {
-      console.log("Total number of weights: " + e.target.result);
-      document.getElementById('weights_4').innerHTML = e.target.result;
-    }
-  } catch (e) {
-    console.log("Error opening weights!");
-    document.getElementById('weights_4').innerHTML = 0;
-  }
-}
-
-function weight5StatsButton(e) {
-  console.log("Getting weight stats...");
-
-  try{
-    var request1 = db.transaction(["weights_5"], "readonly")
-                     .objectStore("weights_5").count();
-
-    request1.onsuccess = function(e) {
-      console.log("Total number of weights: " + e.target.result);
-      document.getElementById('weights_5').innerHTML = e.target.result;
-    }
-  } catch (e) {
-    console.log("Error opening weights!");
-    document.getElementById('weights_5').innerHTML = 0;
-  }
-}
-
-function weightfc1StatsButton(e) {
-  console.log("Getting weight stats...");
-
-  try{
-    var request1 = db.transaction(["weights_fc1"], "readonly")
-                     .objectStore("weights_fc1").count();
-
-    request1.onsuccess = function(e) {
-      console.log("Total number of weights: " + e.target.result);
-      document.getElementById('weights_fc1').innerHTML = e.target.result;
-    }
-  } catch (e) {
-    console.log("Error opening weights!");
-    document.getElementById('weights_fc1').innerHTML = 0;
-  }
-}
-
-function bias3StatsButton(e) {
-  console.log("Getting bias stats...");
-
-  try{
-    var request1 = db.transaction(["bias_3"], "readonly")
-                     .objectStore("bias_3").count();
-
-    request1.onsuccess = function(e) {
-      console.log("Total number of bias: " + e.target.result);
-      document.getElementById('bias_3').innerHTML = e.target.result;
-    }
-  } catch (e) {
-    console.log("Error opening bias!");
-    document.getElementById('bias_3').innerHTML = 0;
-  }
-}
-
-function bias4StatsButton(e) {
-  console.log("Getting bias stats...");
-
-  try{
-    var request1 = db.transaction(["bias_4"], "readonly")
-                     .objectStore("bias_4").count();
-
-    request1.onsuccess = function(e) {
-      console.log("Total number of bias: " + e.target.result);
-      document.getElementById('bias_4').innerHTML = e.target.result;
-    }
-  } catch (e) {
-    console.log("Error opening bias!");
-    document.getElementById('bias_4').innerHTML = 0;
-  }
-}
-
-function bias5StatsButton(e) {
-  console.log("Getting bias stats...");
-
-  try{
-    var request1 = db.transaction(["bias_5"], "readonly")
-                     .objectStore("bias_5").count();
-
-    request1.onsuccess = function(e) {
-      console.log("Total number of bias: " + e.target.result);
-      document.getElementById('bias_5').innerHTML = e.target.result;
-    }
-  } catch (e) {
-    console.log("Error opening bias!");
-    document.getElementById('bias_5').innerHTML = 0;
-  }
-}
-
-function biasfc1StatsButton(e) {
-  console.log("Getting bias stats...");
-
-  try{
-    var request1 = db.transaction(["bias_fc1"], "readonly")
-                     .objectStore("bias_fc1").count();
-
-    request1.onsuccess = function(e) {
-      console.log("Total number of bias: " + e.target.result);
-      document.getElementById('bias_fc1').innerHTML = e.target.result;
-    }
-  } catch (e) {
-    console.log("Error opening bias!");
-    document.getElementById('bias_fc1').innerHTML = 0;
-  }
-}
-
-function datasetStatsButton(e) {
-  console.log("Getting sentences...");
-
-  try{
-    var request1 = db.transaction(["dataset"], "readonly")
-                     .objectStore("dataset").count();
-
-    request1.onsuccess = function(e) {
-      console.log("Total number of sentences: " + e.target.result);
-      document.getElementById('dataset').innerHTML = e.target.result;
-    }
-  } catch (e) {
-    console.log("Error opening dataset!");
-    document.getElementById('dataset').innerHTML = 0;
-  }
 }
 
 function deleteIndex() {
@@ -292,7 +148,6 @@ function weight3Button() {
       console.log("Number of docs indexed: " + i);
       console.log("Indexing time: " + (currentTime - startTime) + "ms");
       document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Indexing Complete!</strong> " + i + " documents indexed in " + (currentTime - startTime) + " ms.</div>";
-      weight3StatsButton();
       weight4Button();
     },
 
@@ -320,7 +175,6 @@ function weight4Button() {
       console.log("Number of docs indexed: " + i);
       console.log("Indexing time: " + (currentTime - startTime) + "ms");
       document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Indexing Complete!</strong> " + i + " documents indexed in " + (currentTime - startTime) + " ms.</div>";
-      weight4StatsButton();
       weight5Button();
     },
 
@@ -348,7 +202,6 @@ function weight5Button() {
       console.log("Number of docs indexed: " + i);
       console.log("Indexing time: " + (currentTime - startTime) + "ms");
       document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Indexing Complete!</strong> " + i + " documents indexed in " + (currentTime - startTime) + " ms.</div>";
-      weight5StatsButton();
     },
 
     error: function(e) {
@@ -403,7 +256,6 @@ function bias3Button() {
       console.log("Number of docs indexed: " + i);
       console.log("Indexing time: " + (currentTime - startTime) + "ms");
       document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Indexing Complete!</strong> " + i + " documents indexed in " + (currentTime - startTime) + " ms.</div>";
-      bias3StatsButton();
       bias4Button();
     },
 
@@ -431,7 +283,6 @@ function bias4Button() {
       console.log("Number of docs indexed: " + i);
       console.log("Indexing time: " + (currentTime - startTime) + "ms");
       document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Indexing Complete!</strong> " + i + " documents indexed in " + (currentTime - startTime) + " ms.</div>";
-      bias4StatsButton();
       bias5Button();
     },
 
@@ -459,7 +310,6 @@ function bias5Button() {
       console.log("Number of docs indexed: " + i);
       console.log("Indexing time: " + (currentTime - startTime) + "ms");
       document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Indexing Complete!</strong> " + i + " documents indexed in " + (currentTime - startTime) + " ms.</div>";
-      bias5StatsButton();
     },
 
     error: function(e) {
@@ -585,24 +435,19 @@ indexing progress in the JavaScript console. After that, click the
 </p>
 <p>
 <button id="weight3Button" onclick="weight3Button()">Load Weights</button>
-<button id="weight3StatsButton" onclick="weight3StatsButton()">Get Weights Stats</button>
 </p>
 </p>
 <p>
 <button id="weightfc1Button" onclick="weightfc1Button()">Load Weights(fc1)</button>
-<button id="weightfc1StatsButton" onclick="weightfc1StatsButton()">Get Weights(fc1) Stats</button>
 </p>
 <p>
 <button id="bias3Button" onclick="bias3Button()">Load Bias</button>
-<button id="bias3StatsButton" onclick="bias3StatsButton()">Get Bias Stats</button>
 </p>
 <p>
 <button id="biasfc1Button" onclick="biasfc1Button()">Load Bias(fc1)</button>
-<button id="biasfc1StatsButton" onclick="biasfc1StatsButton()">Get Bias(fc1) Stats</button>
 </p>
 <p>
 <button id="datasetButton" onclick="datasetButton()">Load Dataset</button>
-<button id="datasetStatsButton" onclick="datasetStatsButton()">Get Dataset Stats</button>
 </p>
 
 <div id="message"></div>
@@ -614,14 +459,14 @@ indexing progress in the JavaScript console. After that, click the
 <table class="table">
 <tr><td>Number of word vectors (50d)</td><td><div id="word2vec50d-stats"></div></td></tr>
 <tr><td>Number of word vectors (300d)</td><td><div id="word2vec300d-stats"></div></td></tr>
-<tr><td>Number of Weights(3)</td><td><div id="weights_3"></div></td></tr>
-<tr><td>Number of Weights(4)</td><td><div id="weights_4"></div></td></tr>
-<tr><td>Number of Weights(5)</td><td><div id="weights_5"></div></td></tr>
-<tr><td>Number of Weights(fc1)</td><td><div id="weights_fc1"></div></td></tr>
-<tr><td>Number of Bias(3)</td><td><div id="bias_3"></div></td></tr>
-<tr><td>Number of Bias(4)</td><td><div id="bias_4"></div></td></tr>
-<tr><td>Number of Bias(5)</td><td><div id="bias_5"></div></td></tr>
-<tr><td>Number of Bias(fc1)</td><td><div id="bias_fc1"></div></td></tr>
+<tr><td>Number of Weights(3)</td><td><div id="weights-3"></div></td></tr>
+<tr><td>Number of Weights(4)</td><td><div id="weights-4"></div></td></tr>
+<tr><td>Number of Weights(5)</td><td><div id="weights-5"></div></td></tr>
+<tr><td>Number of Weights(fc1)</td><td><div id="weights-fc1"></div></td></tr>
+<tr><td>Number of Bias(3)</td><td><div id="bias-3"></div></td></tr>
+<tr><td>Number of Bias(4)</td><td><div id="bias-4"></div></td></tr>
+<tr><td>Number of Bias(5)</td><td><div id="bias-5"></div></td></tr>
+<tr><td>Number of Bias(fc1)</td><td><div id="bias-fc1"></div></td></tr>
 <tr><td>Number of Sentences</td><td><div id="dataset"></div></td></tr>
 </table>
 
