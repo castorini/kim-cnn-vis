@@ -135,41 +135,24 @@ function indexButton(dim, word_vecs) {
 }
 
 function weightButton() {
-  indexer.setWeights(weights_3, 3, statsButton);
-  indexer.setWeights(weights_4, 4, statsButton);
-  indexer.setWeights(weights_5, 5, statsButton);
-  indexer.setWeights(fc1_weights, "fc1", statsButton);
-  indexer.setBias(bias_3, 3, statsButton);
-  indexer.setBias(bias_4, 4, statsButton);
-  indexer.setBias(bias_5, 5, statsButton);
-  indexer.setBias(fc1_bias, "fc1", statsButton);
+  indexer.loadWeights(weights_3, 3, statsButton);
+  indexer.loadWeights(weights_4, 4, statsButton);
+  indexer.loadWeights(weights_5, 5, statsButton);
+  indexer.loadWeights(fc1_weights, "fc1", statsButton);
+  indexer.loadBias(bias_3, 3, statsButton);
+  indexer.loadBias(bias_4, 4, statsButton);
+  indexer.loadBias(bias_5, 5, statsButton);
+  indexer.loadBias(fc1_bias, "fc1", statsButton);
 }
 
 function datasetButton() {
-  console.log("Starting to get sentences...");
-  document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>Starting to get sentences...</div>";
+  var messageDivId = 'dataset-message';
+  $(`#${messageDivId}`).html(`<div class='alert alert-success alert-dismissible' role='alert'>
+    <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
+    <span aria-hidden='true'>&times;</span></button>Starting to get sentences...</div>`);
 
-  var updateMessageHandler = {
-    update: function(startTime, currentTime, i) {
-      console.log("Indexed " + i + " documents: Elapsed time = " + (currentTime - startTime) + "ms");
-      document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>Indexed " + i + " documents: Elapsed time = " + (currentTime - startTime) + " ms</div>";
-    },
-
-    finished: function(startTime, currentTime, i) {
-      console.log("Number of docs indexed: " + i);
-      console.log("Indexing time: " + (currentTime - startTime) + "ms");
-      document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Indexing Complete!</strong> " + i + " documents indexed in " + (currentTime - startTime) + " ms.</div>";
-      statsButton();
-    },
-
-    error: function(e) {
-      console.log("Error", e.target.error.name);
-      document.getElementById('message').innerHTML = "<div class='alert alert-danger alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Error!</strong> Does an index already exist? If so, please delete old index first. (Also try refreshing the page.)</div>";
-    }
-  };
-
-  indexer.setDatasetMessageHandler(updateMessageHandler);
-  indexer.getDataset(dev_dataset);
+  indexer.setDatasetMessageHandler(getUpdateMessageHander(messageDivId));
+  indexer.loadDataset(dev_dataset);
 }
 
 </script>
@@ -236,9 +219,9 @@ indexing progress in the JavaScript console. After that, click the
 <button id="datasetButton" onclick="datasetButton()">Load Dataset</button>
 </p>
 
-<div id="message"></div>
 <div id="word2vec50d-message"></div>
 <div id="word2vec300d-message"></div>
+<div id="dataset-message"></div>
 
 <h3>Current Index Status</h3>
 

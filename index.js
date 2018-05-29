@@ -18,7 +18,7 @@ var indexer = (function () {
     return parseFloat(res);
   }
 
-  function get_dataset(i) {
+  function index_dataset(i) {
     if (i != 0 && i % 100 == 0) {
       datasetMessageHandler.update(startTime, new Date().getTime(), i);
     }
@@ -38,7 +38,7 @@ var indexer = (function () {
     }
 
     request.onsuccess = function (e) {
-      get_dataset(i + 1);
+      index_dataset(i + 1);
     }
   }
 
@@ -115,7 +115,7 @@ var indexer = (function () {
       index_wordvec_large(0);
     },
 
-    setWeights: function (weights, dim, cb) {
+    loadWeights: function (weights, dim, cb) {
       var db_name = "weights_" + dim;
       var transaction = db.transaction([db_name], "readwrite");
       var store = transaction.objectStore(db_name);
@@ -130,7 +130,7 @@ var indexer = (function () {
       });
     },
 
-    setBias: function (biases, dim, cb) {
+    loadBias: function (biases, dim, cb) {
       var db_name = "bias_" + dim;
       var transaction = db.transaction([db_name], "readwrite");
       var store = transaction.objectStore(db_name);
@@ -145,10 +145,10 @@ var indexer = (function () {
       });
     },
 
-    getDataset: function (w) {
+    loadDataset: function (w) {
       startTime = new Date().getTime();
       dataset = w;
-      get_dataset(0);
+      index_dataset(0);
     },
   };
 
