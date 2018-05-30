@@ -83,6 +83,7 @@ function deleteIndex() {
     console.log("Index deleted successfully");
     $('#word2vec50d-message').html('');
     $('#word2vec300d-message').html('');
+    statsButton();
   };
 
   // reinitialize in case user wants to re-index again.
@@ -124,14 +125,14 @@ function getUpdateMessageHander(messageDivId) {
   return updateMessageHandler;
 }
 
-function indexButton(dim, word_vecs) {
+function indexButton(dim, word_vecs, store_name) {
   var messageDivId = dim === 50 ? 'word2vec50d-message' : 'word2vec300d-message';
   $(`#${messageDivId}`).html(`<div class='alert alert-success alert-dismissible' role='alert'>
     <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
     <span aria-hidden='true'>&times;</span></button>Starting to index word vectors (${dim}d)...</div>`);
 
   indexer.setWordvecsMessageHandler(getUpdateMessageHander(messageDivId));
-  indexer.index(word_vecs);
+  indexer.indexWord2Vec(word_vecs, store_name);
 }
 
 function weightButton() {
@@ -196,27 +197,23 @@ body {
 <h1>Kim CNN In-Browser Demo <small>Indexing Demo</small></h1>
 </div>
 
-<p>The following demo builds the indices on top10K (from 6B tokens, 400K vocab) words and their vectors (300d) from <a href=https://nlp.stanford.edu/projects/glove/>GloVe</a> using IndexedDB. Everything is designed to work on Chrome, so YMMV on other
+<p>The following demo stores <a href=https://nlp.stanford.edu/projects/glove/>GloVe</a> word vectors in IndexedDB. Everything is designed to work on Chrome, so YMMV on other
 browsers.</p>
 
 <p>Okay, now we're ready to index. First click the "Build Index"
-button. You can watch the
-indexing progress in the JavaScript console. After that, click the
-"Get Index Stats" button: there should be 10000 word vectors.</p>
+button. You can watch the indexing progress in the JavaScript console. After that, click the
+"Get Index Stats" button.</p>
 
 <p>
-<button onclick="indexButton(50, word2vec)">Build Index for 50d word2vec</button>
-<button id="statsButton" onclick="statsButton()">Get Index Stats</button>
-<button id="deleteIndex" onclick="deleteIndex()">Delete All</button>
+<button class="btn btn-primary" onclick="indexButton(50, word2vec, 'wordvecs')">Build Index for 50d word2vec</button>
+<button class="btn btn-primary" onclick="indexButton(300, word2veclarge, 'wordvecslarge')">Build Index for 300d word2vec</button>
+<button class="btn btn-primary" id="statsButton" onclick="statsButton()">Get Index Stats</button>
+<button class="btn btn-primary" id="deleteIndex" onclick="deleteIndex()">Delete All</button>
 </p>
+
 <p>
-<button onclick="indexButton(300, word2veclarge)">Build Index for 300d word2vec</button>
-</p>
-<p>
-<button onclick="weightButton()">Load Weights</button>
-</p>
-<p>
-<button id="datasetButton" onclick="datasetButton()">Load Dataset</button>
+<button class="btn btn-primary" onclick="weightButton()">Load Weights</button>
+<button class="btn btn-primary" id="datasetButton" onclick="datasetButton()">Load Dataset</button>
 </p>
 
 <div id="word2vec50d-message"></div>

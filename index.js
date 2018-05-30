@@ -1,12 +1,9 @@
 var indexer = (function () {
   var wordvecsMessageHandler = {};
-  var wordvecsLargeMessageHandler = {};
   var datasetMessageHandler = {};
   var numTokens = 0;
   var startTime;
 
-  var word2vec;
-  var word2vec_large;
   var dataset;
   var cur_dim;
   var weightsLoaded = 0;
@@ -42,7 +39,7 @@ var indexer = (function () {
     }
   }
 
-  function index_wordvec(i) {
+  function index_wordvec(i, word2vec, store_name) {
     if (i != 0 && i % 100 == 0) {
       wordvecsMessageHandler.update(startTime, new Date().getTime(), i);
     }
@@ -52,8 +49,8 @@ var indexer = (function () {
       return;
     }
 
-    var transaction = db.transaction(["wordvecs"], "readwrite");
-    var store = transaction.objectStore("wordvecs");
+    var transaction = db.transaction([store_name], "readwrite");
+    var store = transaction.objectStore(store_name);
     var request = store.add(word2vec[i]["word2vec"], word2vec[i]["word"]);
 
     request.onerror = function (e) {
@@ -62,31 +59,7 @@ var indexer = (function () {
     }
 
     request.onsuccess = function (e) {
-      index_wordvec(i + 1);
-    }
-  }
-
-  function index_wordvec_large(i) {
-    if (i != 0 && i % 100 == 0) {
-      wordvecsLargeMessageHandler.update(startTime, new Date().getTime(), i);
-    }
-
-    if (i == word2vec_large.length) {
-      console.log("Finished loading wordvecs_large.");
-      return;
-    }
-
-    var transaction = db.transaction(["wordvecslarge"], "readwrite");
-    var store = transaction.objectStore("wordvecslarge");
-    var request = store.add(word2vec_large[i]["word2vec"], word2vec_large[i]["word"]);
-
-    request.onerror = function (e) {
-      // Dispatch to error message handler
-      wordvecsLargeMessageHandler.error(e);
-    }
-
-    request.onsuccess = function (e) {
-      index_wordvec_large(i + 1);
+      index_wordvec(i + 1, word2vec, store_name);
     }
   }
 
@@ -95,24 +68,13 @@ var indexer = (function () {
       wordvecsMessageHandler = h;
     },
 
-    setWordvecsLargeMessageHandler: function(h) {
-      wordvecsLargeMessageHandler = h;
-    },
-
     setDatasetMessageHandler: function(h) {
       datasetMessageHandler = h;
     },
 
-    index: function (w) {
+    indexWord2Vec: function (word2vec, store_name) {
       startTime = new Date().getTime();
-      word2vec = w;
-      index_wordvec(0);
-    },
-
-    index_large: function (w) {
-      startTime = new Date().getTime();
-      word2vec_large = w;
-      index_wordvec_large(0);
+      index_wordvec(0, word2vec, store_name);
     },
 
     loadWeights: function (weights, dim, cb) {
