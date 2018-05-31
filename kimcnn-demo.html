@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-<title>word2vec Demo</title>
+<title>Kim CNN In-Browser Demo</title>
 <!-- Bootstrap -->
 <!-- Latest compiled and minified CSS -->
 <link rel="stylesheet" href="bootstrap/bootstrap.min.css">
@@ -149,15 +149,15 @@ p.wordvec {
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="./index.html">word2vec</a>
+          <a class="navbar-brand" href="./index.html">Kim CNN In-Browser Demo</a>
         </div>
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
             <li><a href="./index.html">Home</a></li>
-            <li><a href="./indexing-demo.html">Demo: Indexing</a></li>
-            <li><a href="./search-demo.html">Demo: Search</a></li>
-            <li class="active"><a href="./kimcnn-demo.html">Demo: Kim CNN</a></li>
-            <li><a href="./filter-demo.html">Demo: Filter</a></li>
+            <li><a href="./indexing-demo.html">Indexing</a></li>
+            <li><a href="./search-demo.html">Search</a></li>
+            <li class="active"><a href="./kimcnn-demo.html">Feature Map Activations</a></li>
+            <li><a href="./filter-demo.html">Individual Filter Activations</a></li>
             <li><a href="https://github.com/castorini/kim-cnn-vis">Code (GitHub)</a></li>
           </ul>
         </div><!--/.nav-collapse -->
@@ -165,30 +165,47 @@ p.wordvec {
     </nav>
 
 <div class="container" style="font-family:Lucida Console,Monaco,monospace">
-
-<div class="page-header">
-<h1>word2vec <small>Filter Demo</small></h1>
-</div>
-
-<p>The following demo searches word2vecs.
-Be sure to <a href="indexing-demo.html">build the index</a> first!</p>
-<div id="message"></div>
-<input type="text" style="width: 300px;" id="query" placeholder="it 's a remarkably solid and subtly satirical tour de force .">
-<button id="searchButton" onclick="searchButton()">Run</button></p>
-
-<div class="wrapper" id="container">
-    <div>
-      <div>
-        <p style="display:inline-block; margin-left: 132px">width=3</p>
-        <p style="display:inline-block; margin-left: 33px">width=4</p>
-        <p style="display:inline-block; margin-left: 30px">width=5</p>
-      </div>
-      <div id="Matrix" style="display:inline-block;float:left;margin-left: 10px;"></div>
-      <div id="tables" style="float:right;margin-right:20px">
-        <p></p>
+  <div class="row">
+    <div class="col-md-12">
+      <div class="page-header">
+      <h1>Kim CNN<small> Feature Map Activations</small></h1>
       </div>
     </div>
-</div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <p>The following demo shows a heatmap of which windows activate the most highly, most often out of all windows.
+      Be sure to <a href="indexing-demo.html">build the index</a> first!</p>
+      <div id="message"></div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <input type="text" class="form-control" id="query" placeholder="it 's a remarkably solid and subtly satirical tour de force .">
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <button type="button" class="btn btn-primary pull-right" id="searchButton" style="float:right;margin-top:10px" onclick="searchButton()">Run</button>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <div class="wrapper" id="container">
+          <div>
+            <div>
+              <p style="display:inline-block; margin-left: 132px">width=3</p>
+              <p style="display:inline-block; margin-left: 33px">width=4</p>
+              <p style="display:inline-block; margin-left: 30px">width=5</p>
+            </div>
+            <div id="Matrix" style="display:inline-block;float:left;clear: both;margin-left: 10px;"></div>
+            <div id="tables" style="float:right;margin-right:20px">
+              <p></p>
+            </div>
+          </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 
