@@ -460,39 +460,54 @@ p.wordvec {
     </nav>
 
 <div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="page-header">
+      <h1>Kim CNN <small>Individual Filter Activations</small></h1>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <p>The following demo shows the windows that activate the most highly for each filter.
+      Be sure to <a href="indexing-demo.html">build the index</a> first!</p>
+      <p>Instructions: Click 'Process All' to process all the sentences. Then click 'By Filter' to the windows with the highest activations detected by each filter. 'Start Test' is used to measure performance.</p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <button class="btn btn-primary" id="start" onclick="start()">Start Test</button>
+      <button class="btn btn-primary" id="showAll" onclick="showAll(undefined, 0, false)">Process All</button>
+      <button class="btn btn-primary" id="byFilter" onclick="byFilter()">By Filter</button>
+      Show negative weights: <input type="checkbox" id="show_nw_checkbox" onclick="show_negative_weights()">
+      <input type="text" id="batch" placeholder="batch size default: 32">
+      <button class="btn btn-primary" id="batchButton" onclick="batchButton()">Set Batch Size</button>
+      <!--Sort filters: <input type="checkbox" id="sort_filters_checkbox" onclick="sort_by_filters()">
+      Ignore insignificant filters: <input type="checkbox" id="ignore_filters_checkbox" onclick="ignore_filters()">-->
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <div id="message" style="margin-top:10px"></div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-10">
+      <input type="text" class="form-control" id="query" placeholder="query">
+    </div>
+    <div class="col-md-2">
+      <button class="btn btn-primary" id="searchButton" onclick="searchButton()">Run</button></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <div id="results" style="padding-bottom: 50px">
+        <div class="sentences" id="sent"></div>
+      </div>
+    </div>
+  </div>
 
-<div class="page-header">
-<h1>Kim CNN <small>Individual Filter Activations</small></h1>
 </div>
-
-<p>The following demo shows the windows that activate the most highly for each filter.
-Be sure to <a href="indexing-demo.html">build the index</a> first!</p>
-<p>Instructions: Click 'Setup' to load parameters, then click 'Show All' to process all the sentences.</p>
-
-<button id="setupButton" onclick="setup()">Setup</button>
-<button id="start" onclick="start()">Start Test</button>
-<button id="showAll" onclick="showAll(undefined, 0, false)">Process All</button>
-<button id="byFilter" onclick="byFilter()">By Filter</button>
-<!--<select id="filter" onchange="test(this);">
-  <option value="showAll">Show All</option>
-  <option value="byFilter">By Filter</option>
-</select>-->
-Show negative weights: <input type="checkbox" id="show_nw_checkbox" onclick="show_negative_weights()">
-<!--Sort filters: <input type="checkbox" id="sort_filters_checkbox" onclick="sort_by_filters()">
-Ignore insignificant filters: <input type="checkbox" id="ignore_filters_checkbox" onclick="ignore_filters()">-->
-<div id="message"></div>
-</p>
-<input type="text" id="query" placeholder="query">
-<button id="searchButton" onclick="searchButton()">Run</button> (try "the" or "they")</p>
-<input type="text" id="batch" placeholder="batch size default: 32">
-<button id="batchButton" onclick="batchButton()">Set Batch Size</button>
-
-<div id="results" style="padding-bottom: 50px">
-  <div class="sentences" id="sent"></div>
-</div>
-
-</div>
-
 
 <!-- Bootstrap core JavaScript
 ================================================== -->
