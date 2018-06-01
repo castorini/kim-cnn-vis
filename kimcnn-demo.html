@@ -16,14 +16,18 @@
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
 <![endif]-->
 
-<!-- https://dev.twitter.com/web/javascript/loading -->
-<!-- Check out this handy way of embeddin tweets: https://dev.twitter.com/web/embedded-tweets/javascript-create -->
-
+<script
+src="https://code.jquery.com/jquery-2.1.3.min.js"
+integrity="sha256-ivk71nXhz9nsyFDoYoGf2sbjrR9ddh+XDkCcfZxjvcM="
+crossorigin="anonymous"></script>
 <script type="text/javascript" src="db.js"></script>
 <script type="text/javascript" src="search.js"></script>
 <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.12.2/d3.min.js"></script>-->
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.6.1"></script>
+<link rel="stylesheet" href="awesomplete/awesomplete.css" />
+<script src="awesomplete/awesomplete.min.js" async></script>
+<link rel="stylesheet" href="default.css">
 
 <link rel="stylesheet" type="text/css" href="matrix.css"/>
 <script type="text/javascript" src="matrix.js"></script>
@@ -122,6 +126,33 @@ function searchButton() {
   });
 }
 
+$(document).ready(function() {
+  var sampleSentences = sampleInputs.map(d => d.sentence);
+  var input = document.getElementById("query");
+  var comboplete = new Awesomplete(input, {
+    minChars: 0,
+    maxItems: 15,
+  	list: sampleSentences,
+    sort: function (a, b) {
+      return a.length > b.length;
+    }
+  });
+
+  Awesomplete.$('#query').addEventListener("click", function() {
+  	if (comboplete.ul.childNodes.length === 0) {
+  		comboplete.minChars = 0;
+  		comboplete.evaluate();
+  	}
+  	else if (comboplete.ul.hasAttribute('hidden')) {
+  		comboplete.open();
+  	}
+  	else {
+  		comboplete.close();
+  	}
+  });
+
+});
+
 </script>
 
 <style>
@@ -181,7 +212,7 @@ p.wordvec {
   </div>
   <div class="row">
     <div class="col-md-12">
-      <input type="text" class="form-control" id="query" placeholder="it 's a remarkably solid and subtly satirical tour de force .">
+      <input type="text" class="form-control" id="query" />
     </div>
   </div>
   <div class="row">
@@ -212,10 +243,10 @@ p.wordvec {
 <!-- Bootstrap core JavaScript
 ================================================== -->
 <!-- Placed at the end of the document so the pages load faster -->
-<script src="bootstrap/jquery.min.js"></script>
 <script src="bootstrap/bootstrap.min.js"></script>
 <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
 <script src="bootstrap/ie10-viewport-bug-workaround.js"></script>
 <script src="d3_new.js"></script>
+<script src="sample-inputs.js"></script>
 </body>
 </html>
