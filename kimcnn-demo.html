@@ -28,6 +28,8 @@ crossorigin="anonymous"></script>
 <link rel="stylesheet" href="awesomplete/awesomplete.css" />
 <script src="awesomplete/awesomplete.min.js" async></script>
 <link rel="stylesheet" href="default.css">
+<script src="sample-inputs.js"></script>
+<script type="text/javascript" src="common.js"></script>
 
 <link rel="stylesheet" type="text/css" href="matrix.css"/>
 <script type="text/javascript" src="matrix.js"></script>
@@ -126,33 +128,6 @@ function searchButton() {
   });
 }
 
-$(document).ready(function() {
-  var sampleSentences = sampleInputs.map(d => d.sentence);
-  var input = document.getElementById("query");
-  var comboplete = new Awesomplete(input, {
-    minChars: 0,
-    maxItems: 15,
-  	list: sampleSentences,
-    sort: function (a, b) {
-      return a.length > b.length;
-    }
-  });
-
-  Awesomplete.$('#query').addEventListener("click", function() {
-  	if (comboplete.ul.childNodes.length === 0) {
-  		comboplete.minChars = 0;
-  		comboplete.evaluate();
-  	}
-  	else if (comboplete.ul.hasAttribute('hidden')) {
-  		comboplete.open();
-  	}
-  	else {
-  		comboplete.close();
-  	}
-  });
-
-});
-
 </script>
 
 <style>
@@ -247,6 +222,5 @@ p.wordvec {
 <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
 <script src="bootstrap/ie10-viewport-bug-workaround.js"></script>
 <script src="d3_new.js"></script>
-<script src="sample-inputs.js"></script>
 </body>
 </html>
