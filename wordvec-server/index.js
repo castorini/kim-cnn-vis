@@ -8,6 +8,7 @@ app.get('/', function(req, res){
   res.send('<h1>Hello world</h1>');
 });
 
+io.set('origins', '*:*');
 io.on('connection', function(socket){
   socket.on('wordvecs', function(msg){
     console.log('Preparing to send 50d word vectors: ' + msg);
