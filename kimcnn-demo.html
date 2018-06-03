@@ -37,18 +37,6 @@ crossorigin="anonymous"></script>
 
 <script>
 
-// http://stackoverflow.com/questions/5199901/how-to-sort-an-associative-array-by-its-values-in-javascript
-function logResults(results, k) {
-  document.getElementById('results').innerHTML = "";
-
-  for (var i = 0; i < results.length; i++) {
-  var para = document.createElement('p');
-  para.appendChild(document.createTextNode('vector for \"' + results[i][0] + '\"\n' + results[i][1]));
-  para.className = 'wordvec';
-  document.getElementById('results').appendChild(para);
-  }
-}
-
 $(document).ready(function() {
   initializeParameters();
   SearchBar.initAutocomplete();
@@ -73,7 +61,6 @@ function searchButton() {
     updateMsg("Finished processing sentence in: " + (window.performance.now() - startTime) + "ms.");
   });
 }
-
 </script>
 
 <style>

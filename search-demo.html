@@ -57,10 +57,10 @@ function searchButton() {
 
   // Perform wordvec retrieval
   var startTime = window.performance.now();
-  searcher.showVecs(q, Array(), function(results) {
+  searcher.showVecs(q, Array(), function(wordvecs) {
+    // wordvecs is [[word, wordvec] ...]
     updateMsg("Started processing sentence: " + q);
-    console.log(window.performance.now() - startTime)
-    display_single_conv(results, q, weights, bias, fc_weights, fc_bias);
+    display_single_conv(wordvecs, q, weights, bias, fc_weights, fc_bias);
     updateMsg("Finished processing sentence in: " + (window.performance.now() - startTime) + "ms.");
     // display_cnn(results, q);
   });
