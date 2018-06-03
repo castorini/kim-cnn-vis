@@ -5,6 +5,12 @@ var fc_bias;
 var dev_sentences;
 var dev_labels;
 
+function initializeParameters() {
+  setTimeout(function(){
+    setup();
+  }, 200);
+}
+
 function updateMsg(msg) {
   document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>" + msg + "</div>";
 }

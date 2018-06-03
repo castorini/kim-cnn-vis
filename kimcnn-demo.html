@@ -49,17 +49,8 @@ function logResults(results, k) {
   }
 }
 
-searcher.setNumDocs(1128929);
-
-function initializeParameters() {
-  setTimeout(function(){
-    setup();
-  }, 200);
-}
-
-document.addEventListener("DOMContentLoaded", initializeParameters, false);
-
 $(document).ready(function() {
+  initializeParameters();
   SearchBar.initAutocomplete();
 });
 
