@@ -431,17 +431,17 @@ function display_single_conv(wordvecs, query, weights, bias, weights_fc1, bias_f
     var actuallabel = sampleInputs.find(d => d.sentence === queryString).label;
     // show_gradient_indicator();
 
-    var ww = analyze(query, max_pool_res, max_pool_res_real, fc1_res, output,
-                    interested_weight_vec, bias_fc1[res_index]);
-    // ww has same length as sentence
-
-    var highlight = [];
-    for (var i = 0; i < query.length; i++) {
-      highlight[highlight.length] = [query[i], ww[i]];
-    }
-    highlight[highlight.length] = ['\n', 0];
-
-    display_ww(highlight, actuallabel, predictedlabel, [-1, -1], false, -1);
+    // var ww = analyze(query, max_pool_res, max_pool_res_real, fc1_res, output,
+    //                 interested_weight_vec, bias_fc1[res_index]);
+    // // ww has same length as sentence
+    //
+    // var highlight = [];
+    // for (var i = 0; i < query.length; i++) {
+    //   highlight[highlight.length] = [query[i], ww[i]];
+    // }
+    // highlight[highlight.length] = ['\n', 0];
+    //
+    // display_ww(highlight, actuallabel, predictedlabel, [-1, -1], false, -1);
 
     $('#inference-result').html(`Predicted: ${predictedlabel} \t Actual: ${actuallabel}`);
 }
