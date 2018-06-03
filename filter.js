@@ -469,7 +469,6 @@ function all_feature_activations(wordvecs, query, weights, bias, fcw, fcb) {
 
   var fc1_res = fc1(max_pool_res_real, fcw, fcb, batch_size);
   var output = soft_max(fc1_res);
-  output.print()
   var res_index = tf.argMax(output, 1).dataSync();
 
   var interested_weight_vec = fcw[res_index];
@@ -480,7 +479,6 @@ function all_feature_activations(wordvecs, query, weights, bias, fcw, fcb) {
 
   var ww = vis_res[0];
   var mp = vis_res[1];
-  console.log(mp)
 
   draw_heatmap(query, ww, mp);
 }

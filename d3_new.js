@@ -26,7 +26,6 @@ function drawWeight(len, input, mp) {
   var data_values = [];
   var data_labels = [];
   input.forEach(function(item){
-    console.log(item)
     data_values.push([item]);
     data_labels.push('');
   });
