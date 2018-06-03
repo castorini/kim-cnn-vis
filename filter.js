@@ -309,7 +309,7 @@ function display_conv(label, results, query, weights, bias, weights_fc1, bias_fc
 
     var interested_weight_vec = weights_fc1[res_index];
 
-    var predictetfabel = L[res_index];
+    var predictedlabel = L[res_index];
     // console.log(output);
     // show_gradient_indicator();
 
@@ -333,11 +333,11 @@ function display_conv(label, results, query, weights, bias, weights_fc1, bias_fc
       max_pool_res_data[i][0] = max_pool_res[i][0].dataSync();
       max_pool_res_data[i][1] = max_pool_res[i][1].dataSync();
     }*/
-    ret[0] = [highlight, label, predictetfabel];
+    ret[0] = [highlight, label, predictedlabel];
     ret[1] = conv_res; // [700, 800, 900]
     ret[2] = max_pool_res; // [[2],[2],[2]]
 
-    //display_ww(highlight, label, predictetfabel);
+    //display_ww(highlight, label, predictedlabel);
 
     return ret;
 }
@@ -372,7 +372,7 @@ function display_conv_batch(batch, max_len, label, results, query, weights, bias
     for (var i = 0; i < batch_size; i++) {
       var interested_weight_vec = weights_fc1[res_index[i]];
 
-      var predictetfabel = L[res_index[i]];
+      var predictedlabel = L[res_index[i]];
       // console.log(output);
       // show_gradient_indicator();
 
@@ -385,7 +385,7 @@ function display_conv_batch(batch, max_len, label, results, query, weights, bias
       }
       highlight[highlight.length] = ['\n', 0];
       ret[i] = [];
-      ret[i][0] = [highlight, label[i], predictetfabel];
+      ret[i][0] = [highlight, label[i], predictedlabel];
       ret[i][1] = conv_res; // [700, 800, 900]
 
       var dim1 = [tf.squeeze(max_pool_res[0][0]).slice([i, 0], [1, 100]).dataSync(), tf.squeeze(max_pool_res[0][1]).slice([i, 0], [1, 100]).dataSync()];
@@ -410,10 +410,9 @@ function display_single_conv(wordvecs, query, weights, bias, weights_fc1, bias_f
     var conv_res = get_conv_res(wordvecs, weights, bias, wordvecs.length);
     // conv_res is [w3 feat maps, w4 feat maps, w5 feat maps]
 
-    var args, pooling_res;
-    var max_pool_res = max_pooling(conv_res); // [args, pooling_res]
+    var max_pool_res = max_pooling(conv_res); // list of 3 items of [args, max_values]
+
     // console.log(max_pool_res[0][1]) -> max pooling res of 3 dim filter, 100 max values
-    // console.log(args);
     var max_pool_res_real = [max_pool_res[0][1], max_pool_res[1][1], max_pool_res[2][1]];
 
     var fc1_res = fc1(max_pool_res_real, weights_fc1, bias_fc1, batch_size);
@@ -427,13 +426,14 @@ function display_single_conv(wordvecs, query, weights, bias, weights_fc1, bias_f
     }
 
     var interested_weight_vec = weights_fc1[res_index];
-    var predictetfabel = L[res_index];
-    // console.log(output)
+    var predictedlabel = L[res_index];
+    var queryString = query.join(' ');
+    var actuallabel = sampleInputs.find(d => d.sentence === queryString).label;
     // show_gradient_indicator();
 
     var ww = analyze(query, max_pool_res, max_pool_res_real, fc1_res, output,
                     interested_weight_vec, bias_fc1[res_index]);
-    // console.log(ww)
+    // ww has same length as sentence
 
     var highlight = [];
     for (var i = 0; i < query.length; i++) {
@@ -441,11 +441,13 @@ function display_single_conv(wordvecs, query, weights, bias, weights_fc1, bias_f
     }
     highlight[highlight.length] = ['\n', 0];
 
-    display_ww(highlight, -1, predictetfabel, [-1, -1], false, -1);
+    display_ww(highlight, actuallabel, predictedlabel, [-1, -1], false, -1);
+
+    $('#inference-result').html(`Predicted: ${predictedlabel} \t Actual: ${actuallabel}`);
 }
 
-function display_sentence_coloring(highlight, label, predictetfabel, start, areSame, bias) {
-  display_ww(highlight, label, predictetfabel, start, areSame, bias);
+function display_sentence_coloring(highlight, label, predictedlabel, start, areSame, bias) {
+  display_ww(highlight, label, predictedlabel, start, areSame, bias);
 }
 
 function all_feature_activations(wordvecs, query, weights, bias, fcw, fcb) {
@@ -471,7 +473,7 @@ function all_feature_activations(wordvecs, query, weights, bias, fcw, fcb) {
   var res_index = tf.argMax(output, 1).dataSync();
 
   var interested_weight_vec = fcw[res_index];
-  var predictetfabel = L[res_index];
+  var predictedlabel = L[res_index];
 
   var vis_res = analyze_sep_width(query, max_pool_res, max_pool_res_real, fc1_res, output,
                   interested_weight_vec, fcb[res_index]);
