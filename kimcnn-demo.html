@@ -59,6 +59,10 @@ function initializeParameters() {
 
 document.addEventListener("DOMContentLoaded", initializeParameters, false);
 
+$(document).ready(function() {
+  SearchBar.initAutocomplete();
+});
+
 // Querying
 
 function searchButton() {

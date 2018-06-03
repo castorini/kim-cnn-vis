@@ -36,21 +36,6 @@ crossorigin="anonymous"></script>
 </style>
 
 <script>
-// Initializations and helper functions
-// http://stackoverflow.com/questions/5199901/how-to-sort-an-associative-array-by-its-values-in-javascript
-function logResults(results, k) {
-  document.getElementById('results').innerHTML = "";
-
-  for (var i = 0; i < results.length; i++) {
-  var para = document.createElement('p');
-  para.appendChild(document.createTextNode('vector for \"' + results[i][0] + '\"\n' + results[i][1]));
-  para.className = 'wordvec';
-  document.getElementById('results').appendChild(para);
-  }
-}
-
-searcher.setNumDocs(1128929);
-
 function storeToDB(i, item) {
   var transaction = db.transaction(["nn_res"], "readwrite");
   var store = transaction.objectStore("nn_res");
@@ -66,26 +51,7 @@ function initializeParameters() {
 
 document.addEventListener("DOMContentLoaded", initializeParameters, false);
 
-// Querying
-function searchButton() {
-  document.getElementById("sent").innerHTML = "";
-  var q = document.querySelector("#query").value.split(" ");
-  //q = "a rigorously structured and exquisitely filmed drama about a father and son connection that is a brief shooting star of love .".split(" ");
-  q = q.map(function(x) { return x.toLowerCase()})
-           .filter(function(x) { return x.length > 0 ? true : false; });
-
-  // Perform wordvec retrieval
-  var startTime = window.performance.now();
-  searcher.showVecs(q, Array(), function(results) {
-    updateMsg("Started processing sentence: " + q);
-    console.log(window.performance.now() - startTime)
-    display_single_conv(results, q, weights, bias, fc_weights, fc_bias);
-    updateMsg("Finished processing sentence in: " + (window.performance.now() - startTime) + "ms.");
-  });
-}
-
 var nn_res = [];
-
 var test_res = [];
 var wordvec_time = 0;
 
@@ -444,14 +410,6 @@ p.wordvec {
   <div class="row">
     <div class="col-md-12">
       <div id="message" style="margin-top:10px"></div>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-md-10">
-      <input type="text" class="form-control" id="query" />
-    </div>
-    <div class="col-md-2">
-      <button class="btn btn-primary" id="searchButton" onclick="searchButton()">Run</button></p>
     </div>
   </div>
   <div class="row">
