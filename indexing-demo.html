@@ -10,6 +10,10 @@
 <!-- Latest compiled and minified CSS -->
 <link rel="stylesheet" href="bootstrap/bootstrap.min.css">
 
+<script src="https://code.jquery.com/jquery-2.1.3.min.js"
+integrity="sha256-ivk71nXhz9nsyFDoYoGf2sbjrR9ddh+XDkCcfZxjvcM="
+crossorigin="anonymous"></script>
+
 <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
 <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
 <!--[if lt IE 9]>
@@ -19,8 +23,8 @@
 
 <script type="text/javascript" src="db.js"></script>
 <script type="text/javascript" src="index.js"></script>
-<script type="text/javascript" src="word2vec.js"></script>
-<script type="text/javascript" src="word2vec_large.js"></script>
+<!-- <script type="text/javascript" src="word2vec.js"></script>
+<script type="text/javascript" src="word2vec_large.js"></script> -->
 <script type="text/javascript" src="parameters/weights_3.js"></script>
 <script type="text/javascript" src="parameters/weights_4.js"></script>
 <script type="text/javascript" src="parameters/weights_5.js"></script>
@@ -125,16 +129,6 @@ function getUpdateMessageHander(messageDivId) {
   return updateMessageHandler;
 }
 
-function indexButton(dim, word_vecs, store_name) {
-  var messageDivId = dim === 50 ? 'word2vec50d-message' : 'word2vec300d-message';
-  $(`#${messageDivId}`).html(`<div class='alert alert-success alert-dismissible' role='alert'>
-    <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
-    <span aria-hidden='true'>&times;</span></button>Starting to index word vectors (${dim}d)...</div>`);
-
-  indexer.setWordvecsMessageHandler(getUpdateMessageHander(messageDivId));
-  indexer.indexWord2Vec(word_vecs, store_name);
-}
-
 function weightButton() {
   indexer.loadWeights(weights_3, 3, statsButton);
   indexer.loadWeights(weights_4, 4, statsButton);
@@ -155,6 +149,33 @@ function datasetButton() {
   indexer.setDatasetMessageHandler(getUpdateMessageHander(messageDivId));
   indexer.loadDataset(dev_dataset);
 }
+
+function indexButton(dim, store_name) {
+  var messageDivId = dim === 50 ? 'word2vec50d-message' : 'word2vec300d-message';
+  $(`#${messageDivId}`).html(`<div class='alert alert-success alert-dismissible' role='alert'>
+    <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
+    <span aria-hidden='true'>&times;</span></button>Starting to fetch word vectors (${dim}d)...</div>`);
+
+   socket.emit(store_name, '');
+   var word_vecs = [];
+   socket.on('length', msg => {
+     console.log('len', msg);
+     var totalVectors = msg.length;
+     var processedVectors = 0;
+     socket.on(store_name, msg => {
+       word_vecs.push(msg);
+       processedVectors += 1;
+       if (processedVectors === totalVectors) {
+         indexer.setWordvecsMessageHandler(getUpdateMessageHander(messageDivId));
+         indexer.indexWord2Vec(word_vecs, store_name);
+       }
+     });
+   });
+}
+
+$(document).ready(function() {
+  socket = io('http://127.0.0.1:3000');
+});
 
 </script>
 
@@ -182,10 +203,9 @@ body {
           <ul class="nav navbar-nav">
             <li><a href="./index.html">Home</a></li>
             <li class="active"><a href="./indexing-demo.html">Indexing</a></li>
-            <li><a href="./search-demo.html">Search</a></li>
+            <li><a href="./search-demo.html">Inference</a></li>
             <li><a href="./kimcnn-demo.html">Feature Map Activations</a></li>
             <li><a href="./filter-demo.html">Individual Filter Activations</a></li>
-            <li><a href="https://github.com/castorini/kim-cnn-vis">Code (GitHub)</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
@@ -205,8 +225,8 @@ button. You can watch the indexing progress in the JavaScript console. After tha
 "Get Index Stats" button.</p>
 
 <p>
-<button class="btn btn-primary" onclick="indexButton(50, word2vec, 'wordvecs')">Build Index for 50d word2vec</button>
-<button class="btn btn-primary" onclick="indexButton(300, word2veclarge, 'wordvecslarge')">Build Index for 300d word2vec</button>
+<button class="btn btn-primary" onclick="indexButton(50, 'wordvecs')">Build Index for 50d word2vec</button>
+<button class="btn btn-primary" onclick="indexButton(300, 'wordvecslarge')">Build Index for 300d word2vec</button>
 <button class="btn btn-primary" id="statsButton" onclick="statsButton()">Get Index Stats</button>
 <button class="btn btn-primary" id="deleteIndex" onclick="deleteIndex()">Delete All</button>
 </p>
@@ -243,6 +263,7 @@ button. You can watch the indexing progress in the JavaScript console. After tha
 <!-- Placed at the end of the document so the pages load faster -->
 <script src="bootstrap/jquery.min.js"></script>
 <script src="bootstrap/bootstrap.min.js"></script>
+<script src="bootstrap/socket.io.js"></script>
 <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
 <script src="bootstrap/ie10-viewport-bug-workaround.js"></script>
 

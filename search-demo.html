@@ -6,6 +6,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 <title>Kim CNN In-Browser Demo</title>
+<script
+src="https://code.jquery.com/jquery-2.1.3.min.js"
+integrity="sha256-ivk71nXhz9nsyFDoYoGf2sbjrR9ddh+XDkCcfZxjvcM="
+crossorigin="anonymous"></script>
 <!-- Bootstrap -->
 <!-- Latest compiled and minified CSS -->
 <link rel="stylesheet" href="bootstrap/bootstrap.min.css">
@@ -23,88 +27,44 @@
 <script type="text/javascript" src="db.js"></script>
 <script type="text/javascript" src="search.js"></script>
 <script type="text/javascript" src="bootstrap/numjs.min.js"></script>
-<script type="text/javascript" src="cnn.js"></script>
+<!-- <script type="text/javascript" src="cnn.js"></script> -->
+<link rel="stylesheet" href="awesomplete/awesomplete.css" />
+<script src="awesomplete/awesomplete.min.js"></script>
+<link rel="stylesheet" href="default.css">
+<script src="sample-inputs.js"></script>
+<script type="text/javascript" src="common.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.6.1"></script>
+<script type="text/javascript" src="filter.js"></script>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.12.2/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sprintf/1.1.1/sprintf.min.js"></script>
 <script>
 
-// http://stackoverflow.com/questions/5199901/how-to-sort-an-associative-array-by-its-values-in-javascript
-function logResults(results, k) {
-  document.getElementById('results').innerHTML = "";
-
-  for (var i = 0; i < results.length; i++) {
-  var para = document.createElement('p');
-  para.appendChild(document.createTextNode('vector for \"' + results[i][0] + '\"\n' + results[i][1]));
-  para.className = 'wordvec';
-  document.getElementById('results').appendChild(para);
-  }
-}
-
-searcher.setNumDocs(1128929);
+$(document).ready(function() {
+  initializeParameters();
+  SearchBar.initAutocomplete();
+});
 
 // Querying
 
 function searchButton() {
-  //var resultsDiv = document.getElementById('results');
-  //resultsDiv.innerHTML = '';
-
+  document.getElementById("sent").innerHTML = "";
   var q = document.querySelector("#query").value.split(" ");
-
-  q = q.map(function(x) { return x.replace(/(^[^A-Za-z]+)|([^A-Za-z]+$)/g, "").toLowerCase()})
+  //q = "a rigorously structured and exquisitely filmed drama about a father and son connection that is a brief shooting star of love .".split(" ");
+  q = q.map(function(x) { return x.toLowerCase()})
            .filter(function(x) { return x.length > 0 ? true : false; });
 
-  // Perform wordvec retrieval and twitter search
-  searcher.search(q, function(results) {
-    console.log("Results for: " + q);
-    //logResults(results);
-    display_cnn(results, q);
-  });
-
-}
-
-var topicsStart;
-function runTopics() {
-  topicsStart = new Date().getTime();
-  runTopics_helper(0);
-}
-
-function runTopics_helper(i) {
-  query_terms = topics[i].text.split(" ");
-  searcher.search(query_terms, function(results, t) {
-    console.log(query_terms + ": " + (new Date().getTime() - t) + "ms");
-    //print_results(results, 10);
-
-    if (i < topics.length - 1) {
-      runTopics_helper(i+1);
-    } else {
-      var e = new Date().getTime();
-      console.log((i+1) + " topics, total time: " + (e - topicsStart) + "ms");
-      console.log("average query latency = " + (e - topicsStart)/(i+1) + "ms");
-    }
+  // Perform wordvec retrieval
+  var startTime = window.performance.now();
+  searcher.showVecs(q, Array(), function(wordvecs) {
+    // wordvecs is [[word, wordvec] ...]
+    updateMsg("Started processing sentence: " + q);
+    display_single_conv(wordvecs, q, weights, bias, fc_weights, fc_bias);
+    updateMsg("Finished processing sentence in: " + (window.performance.now() - startTime) + "ms.");
+    // display_cnn(results, q);
   });
 }
-
-var sampled = {};
-function sampleButton() {
-  var cnt = 0;
-  var cursor = db.transaction(["df"], "readonly").objectStore("df")
-                 .openCursor();
-
-  cursor.onsuccess = function(e) {
-    var res = e.target.result;
-
-    if (res) {
-      if (res.value > 10 && res.key.match("^[#@A-Za-z]+$") && Math.random() < 0.01 ) {
-        cnt++;
-        console.log(res.key + " " + res.value);
-        sampled[res.key] = res.value;
-      }
-      res.continue();
-    } else {
-      console.log("selected terms: " + cnt);
-    }
-  };
-}
-
 </script>
 
 <style>
@@ -118,11 +78,14 @@ p.wordvec {
   color: black;
   overflow: scroll;
 }
+
+.d {
+  display: inline-block;
+}
 </style>
 
 </head>
 <body>
-
   <nav class="navbar navbar-inverse navbar-fixed-top">
       <div class="container">
         <div class="navbar-header">
@@ -138,36 +101,67 @@ p.wordvec {
           <ul class="nav navbar-nav">
             <li><a href="./index.html">Home</a></li>
             <li><a href="./indexing-demo.html">Indexing</a></li>
-            <li class="active"><a href="./search-demo.html">Search</a></li>
+            <li class="active"><a href="./search-demo.html">Inference</a></li>
             <li><a href="./kimcnn-demo.html">Feature Map Activations</a></li>
             <li><a href="./filter-demo.html">Individual Filter Activations</a></li>
-            <li><a href="https://github.com/castorini/kim-cnn-vis">Code (GitHub)</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
     </nav>
 
 <div class="container">
-
-<div class="page-header">
-<h1>word2vec <small>Search Demo</small></h1>
+  <div class="row">
+    <div class="col-md-12">
+      <div class="page-header">
+        <h1>Kim CNN <small>Inference Demo</small></h1>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <p>The following demo searches word vectors.
+      Be sure to <a href="indexing-demo.html">build the index</a> first!</p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <div id="message" style="margin-top:10px"></div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-10">
+      <input type="text" class="form-control" id="query" />
+    </div>
+    <div class="col-md-2">
+      <button class="btn btn-primary" id="searchButton" onclick="searchButton()">Run</button></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <div class="panel panel-default">
+        <div class="panel-body" id="inference-result">
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <div style="padding-bottom: 50px">
+        <div class="sentences" id="sent"></div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <div id="results" style="padding-bottom: 50px">
+        <!-- http://playground.tensorflow.org/ -->
+        <!-- Color Map -->
+        <div><svg id="colormap" width="600" height="70"></svg></div>
+        <div align="center"> <svg id="network" height="0"></svg></div>
+      </div>
+    </div>
+  </div>
 </div>
-
-<p>The following demo searches word vectors.
-Be sure to <a href="indexing-demo.html">build the index</a> first!</p>
-
-<input type="text" id="query" placeholder="query">
-<button id="searchButton" onclick="searchButton()">Search</button> (try "the" or "they")</p>
-
-<div id="results" style="padding-bottom: 50px">
-  <!-- http://playground.tensorflow.org/ -->
-  <!-- Color Map -->
-  <div><svg id="colormap" width="600" height="70"></svg></div>
-  <div align="center"> <svg id="network" height="0"></svg></div>
-</div>
-
-</div>
-
 
 <!-- Bootstrap core JavaScript
 ================================================== -->

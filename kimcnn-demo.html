@@ -26,7 +26,7 @@ crossorigin="anonymous"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.6.1"></script>
 <link rel="stylesheet" href="awesomplete/awesomplete.css" />
-<script src="awesomplete/awesomplete.min.js" async></script>
+<script src="awesomplete/awesomplete.min.js"></script>
 <link rel="stylesheet" href="default.css">
 <script src="sample-inputs.js"></script>
 <script type="text/javascript" src="common.js"></script>
@@ -37,76 +37,10 @@ crossorigin="anonymous"></script>
 
 <script>
 
-// http://stackoverflow.com/questions/5199901/how-to-sort-an-associative-array-by-its-values-in-javascript
-function logResults(results, k) {
-  document.getElementById('results').innerHTML = "";
-
-  for (var i = 0; i < results.length; i++) {
-  var para = document.createElement('p');
-  para.appendChild(document.createTextNode('vector for \"' + results[i][0] + '\"\n' + results[i][1]));
-  para.className = 'wordvec';
-  document.getElementById('results').appendChild(para);
-  }
-}
-
-searcher.setNumDocs(1128929);
-
-function updateMsg(msg) {
-  document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>" + msg + "</div>";
-}
-
-function initializeParameters() {
-  setTimeout(function(){
-    setup();
-  }, 200);
-}
-
-document.addEventListener("DOMContentLoaded", initializeParameters, false);
-
-
-var weights;
-var bias;
-var fc_weights;
-var fc_bias;
-var dev_sentences;
-var dev_labels;
-function setup() {
-  var startTime = window.performance.now();
-  updateMsg("Started loading parameters.");
-
-  searcher.getBias("bias_3", function(bias_3) {
-     searcher.getBias("bias_4", function(bias_4) {
-       searcher.getBias("bias_5", function(bias_5) {
-
-         searcher.getWeights("weights_3", function(weights_3) {
-           searcher.getWeights("weights_4", function(weights_4) {
-             searcher.getWeights("weights_5", function(weights_5) {
-
-                searcher.getBias("bias_fc1", function(bias_fc1) {
-                  searcher.getWeights("weights_fc1", function(weights_fc1) {
-                    weights = Array(weights_3, weights_4, weights_5);
-                    bias = Array(bias_3, bias_4, bias_5);
-                    fc_weights = weights_fc1;
-                    fc_bias = bias_fc1;
-
-                    searcher.getSentenceAll(function(sentences, labels) {
-                      dev_sentences = sentences;
-                      dev_labels = labels;
-                      updateMsg("Finished loading parameters in " + (window.performance.now() - startTime)/1000 + "s.");
-                    })
-                  })
-                })
-
-              })
-            })
-          })
-
-       })
-     })
-   })
-
-}
-
+$(document).ready(function() {
+  initializeParameters();
+  SearchBar.initAutocomplete();
+});
 
 // Querying
 
@@ -127,7 +61,6 @@ function searchButton() {
     updateMsg("Finished processing sentence in: " + (window.performance.now() - startTime) + "ms.");
   });
 }
-
 </script>
 
 <style>
@@ -161,16 +94,15 @@ p.wordvec {
           <ul class="nav navbar-nav">
             <li><a href="./index.html">Home</a></li>
             <li><a href="./indexing-demo.html">Indexing</a></li>
-            <li><a href="./search-demo.html">Search</a></li>
+            <li><a href="./search-demo.html">Inference</a></li>
             <li class="active"><a href="./kimcnn-demo.html">Feature Map Activations</a></li>
             <li><a href="./filter-demo.html">Individual Filter Activations</a></li>
-            <li><a href="https://github.com/castorini/kim-cnn-vis">Code (GitHub)</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
     </nav>
 
-<div class="container" style="font-family:Lucida Console,Monaco,monospace">
+<div class="container">
   <div class="row">
     <div class="col-md-12">
       <div class="page-header">
@@ -197,7 +129,7 @@ p.wordvec {
   </div>
   <div class="row">
     <div class="col-md-12">
-      <div class="wrapper" id="container">
+      <div class="wrapper" id="container" style="font-family:Lucida Console,Monaco,monospace">
           <div>
             <div>
               <p style="display:inline-block; margin-left: 132px">width=3</p>

@@ -4,3 +4,4 @@
 *.pptx
 kim_cnn/
 .idea/
+node_modules/

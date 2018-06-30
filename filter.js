@@ -71,22 +71,22 @@ function conv(input, weights, bias, len, bs) {
   return result;
 }
 
-function max_polling(input, ignore) {
+function max_pooling(input, ignore) {
   var res = [];
   for (var i = 0; i < input.length; i++) {  // 3
-    res[i] = max_polling_helper(input[i]);
+    res[i] = max_pooling_helper(input[i]);
   }
   // res shape = 3*100
   return res;
 }
 
-function max_polling_helper(input) {
+function max_pooling_helper(input) {
   var axis = 1;
   return [input.argMax(axis), input.max(axis)]; // 100*100
 }
 
 function fc1(input, weights, bias, bs) {
-  // max polling result
+  // max pooling result
   // input: [t(100), t(100), t(100)]
   // correct
   // [t(100x100), t(100x100), t(100x100)]
@@ -132,11 +132,11 @@ function get_max(input) {
     return ans;
 }
 
-function filter_max_index(max_poll) {
+function filter_max_index(max_pool) {
   var res = [];
   for (var dim = 0; dim < 3; dim++) { // 3
     res[dim] = [];
-    var cur = max_poll[dim][0].dataSync();
+    var cur = max_pool[dim][0].dataSync();
     for (var c = 0; c < 100; c++) { // 100
       res[dim][c] = cur[c];
     }
@@ -144,11 +144,11 @@ function filter_max_index(max_poll) {
   return res;
 }
 
-function filter_max_index_non_tensor(max_poll) {
+function filter_max_index_non_tensor(max_pool) {
   var res = [];
   for (var dim = 0; dim < 3; dim++) { // 3
     res[dim] = [];
-    var cur = max_poll[dim][0];
+    var cur = max_pool[dim][0];
     for (var c = 0; c < 100; c++) { // 100
       res[dim][c] = cur[c];
     }
@@ -156,11 +156,11 @@ function filter_max_index_non_tensor(max_poll) {
   return res;
 }
 
-function filter_max_weight(max_poll) {
+function filter_max_weight(max_pool) {
   var res = [];
   for (var dim = 0; dim < 3; dim++) { // 3
     res[dim] = [];
-    var cur = max_poll[dim][1].dataSync();
+    var cur = max_pool[dim][1].dataSync();
     for (var c = 0; c < 100; c++) { // 100
       res[dim][c] = cur[c];
     }
@@ -168,7 +168,7 @@ function filter_max_weight(max_poll) {
   return res;
 }
 
-function contribution(max_poll, weight_vec, bias) {
+function contribution(max_pool, weight_vec, bias) {
   var weight_exp_sum = 0;
   for (var i = 0; i < weight_vec.length; i++) {
     weight_exp_sum += Math.exp(weight_vec[i]);
@@ -188,17 +188,17 @@ function contribution(max_poll, weight_vec, bias) {
   return res;
 }
 
-function analyze(query, max_poll_all, max_poll, fc1_res, output, interested_weight_vec, fc1_bias, ignore) {
+function analyze(query, max_pool_all, max_pool, fc1_res, output, interested_weight_vec, fc1_bias, ignore) {
   // init
   var res = Array(query.length);
   for (var i = 0; i < query.length; i++) {
     res[i] = 0;
   }
   // get weights
-  var cont = contribution(max_poll, interested_weight_vec, fc1_bias) // [ [100],[100],[100] ]
+  var cont = contribution(max_pool, interested_weight_vec, fc1_bias) // [ [100],[100],[100] ]
 
-  var matchedIndex = filter_max_index(max_poll_all);
-  var matchedWeight = filter_max_weight(max_poll_all);
+  var matchedIndex = filter_max_index(max_pool_all);
+  var matchedWeight = filter_max_weight(max_pool_all);
 
   var resByFilter = []; // 3*100
 
@@ -232,15 +232,15 @@ function analyze(query, max_poll_all, max_poll, fc1_res, output, interested_weig
   return res;
 }
 
-function analyze_sep_width(query, max_poll_all, max_poll, fc1_res, output, interested_weight_vec, fc1_bias, ignore) {
+function analyze_sep_width(query, max_pool_all, max_pool, fc1_res, output, interested_weight_vec, fc1_bias, ignore) {
   // init
   var res = Array(query.length);
 
   // get weights
-  var cont = contribution(max_poll, interested_weight_vec, fc1_bias) // [ [100],[100],[100] ]
+  var cont = contribution(max_pool, interested_weight_vec, fc1_bias) // [ [100],[100],[100] ]
 
-  var matchedIndex = filter_max_index(max_poll_all);
-  var matchedWeight = filter_max_weight(max_poll_all);
+  var matchedIndex = filter_max_index(max_pool_all);
+  var matchedWeight = filter_max_weight(max_pool_all);
 
   var resByFilter = []; // 3*100
   var mapping = [];
@@ -280,8 +280,8 @@ function analyze_sep_width(query, max_poll_all, max_poll, fc1_res, output, inter
   return [resByFilter, mapping];
 }
 
-function get_conv_res(results, weights, bias, max_len) {
-  var input = build_input(results);
+function get_conv_res(wordvecs, weights, bias, max_len) {
+  var input = build_input(wordvecs);
   var conv_res = conv(input, weights, bias, max_len, 1);
   return conv_res;
 }
@@ -296,12 +296,12 @@ function display_conv(label, results, query, weights, bias, weights_fc1, bias_fc
 
     var conv_res = get_conv_res(results, weights, bias);
 
-    var args, polling_res;
-    var max_poll_res = max_polling(conv_res, ignore); // [args, polling_res]
+    var args, pooling_res;
+    var max_pool_res = max_pooling(conv_res, ignore); // [args, pooling_res]
 
-    var max_poll_res_real = [max_poll_res[0][1], max_poll_res[1][1], max_poll_res[2][1]];
+    var max_pool_res_real = [max_pool_res[0][1], max_pool_res[1][1], max_pool_res[2][1]];
 
-    var fc1_res = fc1(max_poll_res_real, weights_fc1, bias_fc1);
+    var fc1_res = fc1(max_pool_res_real, weights_fc1, bias_fc1);
 
     var output = soft_max(fc1_res);
 
@@ -309,11 +309,11 @@ function display_conv(label, results, query, weights, bias, weights_fc1, bias_fc
 
     var interested_weight_vec = weights_fc1[res_index];
 
-    var predictetfabel = L[res_index];
+    var predictedlabel = L[res_index];
     // console.log(output);
     // show_gradient_indicator();
 
-    var ww = analyze(query, max_poll_res, max_poll_res_real, fc1_res, output,
+    var ww = analyze(query, max_pool_res, max_pool_res_real, fc1_res, output,
                     interested_weight_vec, bias_fc1[res_index], ignore);
     //console.log(ww)
     var ret = [];
@@ -327,17 +327,17 @@ function display_conv(label, results, query, weights, bias, weights_fc1, bias_fc
     for (var i = 0; i < 3; i++) {
       conv_res_data[i] = conv_res[i].dataSync();
     }
-    var max_poll_res_data = []
+    var max_pool_res_data = []
     for (var i = 0; i < 3; i++) {
-      max_poll_res_data[i] = [];
-      max_poll_res_data[i][0] = max_poll_res[i][0].dataSync();
-      max_poll_res_data[i][1] = max_poll_res[i][1].dataSync();
+      max_pool_res_data[i] = [];
+      max_pool_res_data[i][0] = max_pool_res[i][0].dataSync();
+      max_pool_res_data[i][1] = max_pool_res[i][1].dataSync();
     }*/
-    ret[0] = [highlight, label, predictetfabel];
+    ret[0] = [highlight, label, predictedlabel];
     ret[1] = conv_res; // [700, 800, 900]
-    ret[2] = max_poll_res; // [[2],[2],[2]]
+    ret[2] = max_pool_res; // [[2],[2],[2]]
 
-    //display_ww(highlight, label, predictetfabel);
+    //display_ww(highlight, label, predictedlabel);
 
     return ret;
 }
@@ -352,12 +352,12 @@ function display_conv_batch(batch, max_len, label, results, query, weights, bias
     var L = [-1, 2, 3, 1, 4, 0];
     var conv_res = conv(results, weights, bias, max_len);
 
-    var args, polling_res;
-    var max_poll_res = max_polling(conv_res, ignore); // [args, polling_res]
+    var args, pooling_res;
+    var max_pool_res = max_pooling(conv_res, ignore); // [args, pooling_res]
 
-    var max_poll_res_real = [max_poll_res[0][1], max_poll_res[1][1], max_poll_res[2][1]];
+    var max_pool_res_real = [max_pool_res[0][1], max_pool_res[1][1], max_pool_res[2][1]];
 
-    var fc1_res = fc1(max_poll_res_real, weights_fc1, bias_fc1);  // longest time
+    var fc1_res = fc1(max_pool_res_real, weights_fc1, bias_fc1);  // longest time
 
     var output = soft_max(fc1_res);
     // size = batch_size
@@ -372,11 +372,11 @@ function display_conv_batch(batch, max_len, label, results, query, weights, bias
     for (var i = 0; i < batch_size; i++) {
       var interested_weight_vec = weights_fc1[res_index[i]];
 
-      var predictetfabel = L[res_index[i]];
+      var predictedlabel = L[res_index[i]];
       // console.log(output);
       // show_gradient_indicator();
 
-      var ww = analyze(query[i], max_poll_res, max_poll_res_real, bias_fc1, output,
+      var ww = analyze(query[i], max_pool_res, max_pool_res_real, bias_fc1, output,
                       interested_weight_vec, bias_fc1[res_index[i]], ignore);
 
       var highlight = [];
@@ -385,19 +385,19 @@ function display_conv_batch(batch, max_len, label, results, query, weights, bias
       }
       highlight[highlight.length] = ['\n', 0];
       ret[i] = [];
-      ret[i][0] = [highlight, label[i], predictetfabel];
+      ret[i][0] = [highlight, label[i], predictedlabel];
       ret[i][1] = conv_res; // [700, 800, 900]
 
-      var dim1 = [tf.squeeze(max_poll_res[0][0]).slice([i, 0], [1, 100]).dataSync(), tf.squeeze(max_poll_res[0][1]).slice([i, 0], [1, 100]).dataSync()];
-      var dim2 = [tf.squeeze(max_poll_res[1][0]).slice([i, 0], [1, 100]).dataSync(), tf.squeeze(max_poll_res[1][1]).slice([i, 0], [1, 100]).dataSync()];
-      var dim3 = [tf.squeeze(max_poll_res[2][0]).slice([i, 0], [1, 100]).dataSync(), tf.squeeze(max_poll_res[2][1]).slice([i, 0], [1, 100]).dataSync()];
+      var dim1 = [tf.squeeze(max_pool_res[0][0]).slice([i, 0], [1, 100]).dataSync(), tf.squeeze(max_pool_res[0][1]).slice([i, 0], [1, 100]).dataSync()];
+      var dim2 = [tf.squeeze(max_pool_res[1][0]).slice([i, 0], [1, 100]).dataSync(), tf.squeeze(max_pool_res[1][1]).slice([i, 0], [1, 100]).dataSync()];
+      var dim3 = [tf.squeeze(max_pool_res[2][0]).slice([i, 0], [1, 100]).dataSync(), tf.squeeze(max_pool_res[2][1]).slice([i, 0], [1, 100]).dataSync()];
       ret[i][2] = [dim1, dim2, dim3]; // [[2],[2],[2]]
     }
 
     return ret;
 }
 
-function display_single_conv(results, query, weights, bias, weights_fc1, bias_fc1, test) {
+function display_single_conv(wordvecs, query, weights, bias, weights_fc1, bias_fc1, test) {
 
     if (query.length < 5) {
         clean_up();
@@ -406,16 +406,16 @@ function display_single_conv(results, query, weights, bias, weights_fc1, bias_fc
 
     var startTime = window.performance.now();
     var L = [-1, 2, 3, 1, 4, 0];
-    var bs = 1;
-    var conv_res = get_conv_res(results, weights, bias, results.length, bs);
-    // console.log(conv_res)
-    var args, polling_res;
-    var max_poll_res = max_polling(conv_res); // [args, polling_res]
-    // console.log(max_poll_res[0][1]) -> max polling res of 3 dim filter, 100 max values
-    // console.log(args);
-    var max_poll_res_real = [max_poll_res[0][1], max_poll_res[1][1], max_poll_res[2][1]];
+    var batch_size = 1;
+    var conv_res = get_conv_res(wordvecs, weights, bias, wordvecs.length);
+    // conv_res is [w3 feat maps, w4 feat maps, w5 feat maps]
 
-    var fc1_res = fc1(max_poll_res_real, weights_fc1, bias_fc1, bs);
+    var max_pool_res = max_pooling(conv_res); // list of 3 items of [args, max_values]
+
+    // console.log(max_pool_res[0][1]) -> max pooling res of 3 dim filter, 100 max values
+    var max_pool_res_real = [max_pool_res[0][1], max_pool_res[1][1], max_pool_res[2][1]];
+
+    var fc1_res = fc1(max_pool_res_real, weights_fc1, bias_fc1, batch_size);
     var output = soft_max(fc1_res);
 
     var res_index = tf.argMax(output, 1).dataSync();
@@ -426,25 +426,28 @@ function display_single_conv(results, query, weights, bias, weights_fc1, bias_fc
     }
 
     var interested_weight_vec = weights_fc1[res_index];
-    var predictetfabel = L[res_index];
-    // console.log(output)
+    var predictedlabel = L[res_index];
+    var queryString = query.join(' ');
+    var actuallabel = sampleInputs.find(d => d.sentence === queryString).label;
     // show_gradient_indicator();
 
-    var ww = analyze(query, max_poll_res, max_poll_res_real, fc1_res, output,
-                    interested_weight_vec, bias_fc1[res_index]);
-    // console.log(ww)
+    // var ww = analyze(query, max_pool_res, max_pool_res_real, fc1_res, output,
+    //                 interested_weight_vec, bias_fc1[res_index]);
+    // // ww has same length as sentence
+    //
+    // var highlight = [];
+    // for (var i = 0; i < query.length; i++) {
+    //   highlight[highlight.length] = [query[i], ww[i]];
+    // }
+    // highlight[highlight.length] = ['\n', 0];
+    //
+    // display_ww(highlight, actuallabel, predictedlabel, [-1, -1], false, -1);
 
-    var highlight = [];
-    for (var i = 0; i < query.length; i++) {
-      highlight[highlight.length] = [query[i], ww[i]];
-    }
-    highlight[highlight.length] = ['\n', 0];
-
-    display_ww(highlight, -1, predictetfabel, [-1, -1], false, -1);
+    $('#inference-result').html(`Predicted: ${predictedlabel} \t Actual: ${actuallabel}`);
 }
 
-function display_sentence_coloring(highlight, label, predictetfabel, start, areSame, bias) {
-  display_ww(highlight, label, predictetfabel, start, areSame, bias);
+function display_sentence_coloring(highlight, label, predictedlabel, start, areSame, bias) {
+  display_ww(highlight, label, predictedlabel, start, areSame, bias);
 }
 
 function all_feature_activations(wordvecs, query, weights, bias, fcw, fcb) {
@@ -456,28 +459,26 @@ function all_feature_activations(wordvecs, query, weights, bias, fcw, fcb) {
       return;
   }
   var L = [-1, 2, 3, 1, 4, 0];
-  var bs = 1;
-  var conv_res = get_conv_res(wordvecs, weights, bias, wordvecs.length, bs);
+  var batch_size = 1;
+  var conv_res = get_conv_res(wordvecs, weights, bias, wordvecs.length);
 
-  var args, polling_res;
-  var max_poll_res = max_polling(conv_res); // [args, polling_res]
+  var args, pooling_res;
+  var max_pool_res = max_pooling(conv_res); // [args, pooling_res]
 
-  var max_poll_res_real = [max_poll_res[0][1], max_poll_res[1][1], max_poll_res[2][1]];
+  var max_pool_res_real = [max_pool_res[0][1], max_pool_res[1][1], max_pool_res[2][1]];
 
-  var fc1_res = fc1(max_poll_res_real, fcw, fcb, bs);
+  var fc1_res = fc1(max_pool_res_real, fcw, fcb, batch_size);
   var output = soft_max(fc1_res);
-  output.print()
   var res_index = tf.argMax(output, 1).dataSync();
 
   var interested_weight_vec = fcw[res_index];
-  var predictetfabel = L[res_index];
+  var predictedlabel = L[res_index];
 
-  var vis_res = analyze_sep_width(query, max_poll_res, max_poll_res_real, fc1_res, output,
+  var vis_res = analyze_sep_width(query, max_pool_res, max_pool_res_real, fc1_res, output,
                   interested_weight_vec, fcb[res_index]);
 
   var ww = vis_res[0];
   var mp = vis_res[1];
-  console.log(mp)
 
   draw_heatmap(query, ww, mp);
 }
