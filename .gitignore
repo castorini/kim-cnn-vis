@@ -5,3 +5,4 @@
 kim_cnn/
 .idea/
 node_modules/
+parameters/model_parameters.json
