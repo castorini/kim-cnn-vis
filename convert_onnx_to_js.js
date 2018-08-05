@@ -52,7 +52,8 @@ fs.readFile('onnx/kimcnn_static.onnx', function(err, data) {
       fc_biases: fc_biases
     };
 
-    fs.writeFile('parameters/model_parameters.json', JSON.stringify(model_params), 'utf8', (err) => {
+    // Not using JSON because Chrome doesn't allow reading local JSON files by default
+    fs.writeFile('parameters/model_parameters.js', 'var model_params = ' + JSON.stringify(model_params), 'utf8', (err) => {
       if (err) throw err;
       console.log('Saved model parameters file!');
     });
