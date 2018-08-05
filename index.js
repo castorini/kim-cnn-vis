@@ -1,19 +1,10 @@
 var indexer = (function () {
   var wordvecsMessageHandler = {};
   var datasetMessageHandler = {};
-  var numTokens = 0;
   var startTime;
 
   var dataset;
-  var cur_dim;
   var weightsLoaded = 0;
-
-  function round_and_fix(num) {
-    var decimals = 4;
-    var t = Math.pow(10, decimals);
-    var res = (Math.round((num * t) + (decimals>0?1:0)*(Math.sign(num) * (10 / Math.pow(100, decimals)))) / t).toFixed(decimals);
-    return parseFloat(res);
-  }
 
   function index_dataset(i) {
     if (i != 0 && i % 100 == 0) {
@@ -32,11 +23,11 @@ var indexer = (function () {
     request.onerror = function (e) {
       // Dispatch to error message handler
       datasetMessageHandler.error(e);
-    }
+    };
 
     request.onsuccess = function (e) {
       index_dataset(i + 1);
-    }
+    };
   }
 
   function index_wordvec(i, word2vec, store_name) {
@@ -56,11 +47,11 @@ var indexer = (function () {
     request.onerror = function (e) {
       // Dispatch to error message handler
       wordvecsMessageHandler.error(e);
-    }
+    };
 
     request.onsuccess = function (e) {
       index_wordvec(i + 1, word2vec, store_name);
-    }
+    };
   }
 
   return {
@@ -77,30 +68,14 @@ var indexer = (function () {
       index_wordvec(0, word2vec, store_name);
     },
 
-    loadWeights: function (weights, dim, cb) {
-      var db_name = "weights_" + dim;
-      var transaction = db.transaction([db_name], "readwrite");
-      var store = transaction.objectStore(db_name);
-      weights.forEach((w, i) => {
-        var request = store.add(w, i);
+    loadParams: function (params, cb) {
+      var store = db.transaction('kimcnn_parameters', 'readwrite').objectStore('kimcnn_parameters');
+      var kv_pairs_count = Object.keys(model_params).length;
+      Object.keys(params).forEach(k => {
+        var request = store.add(params[k], k);
         request.onsuccess = e => {
           weightsLoaded++;
-          if (weightsLoaded === 612) {
-            cb();
-          }
-        };
-      });
-    },
-
-    loadBias: function (biases, dim, cb) {
-      var db_name = "bias_" + dim;
-      var transaction = db.transaction([db_name], "readwrite");
-      var store = transaction.objectStore(db_name);
-      biases.forEach((b, i) => {
-        var request = store.add(b[0], i);
-        request.onsuccess = e => {
-          weightsLoaded++;
-          if (weightsLoaded === 612) {
+          if (weightsLoaded === kv_pairs_count) {
             cb();
           }
         };

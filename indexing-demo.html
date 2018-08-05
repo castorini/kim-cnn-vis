@@ -23,16 +23,7 @@ crossorigin="anonymous"></script>
 
 <script type="text/javascript" src="db.js"></script>
 <script type="text/javascript" src="index.js"></script>
-<!-- <script type="text/javascript" src="word2vec.js"></script>
-<script type="text/javascript" src="word2vec_large.js"></script> -->
-<script type="text/javascript" src="parameters/weights_3.js"></script>
-<script type="text/javascript" src="parameters/weights_4.js"></script>
-<script type="text/javascript" src="parameters/weights_5.js"></script>
-<script type="text/javascript" src="parameters/bias_3.js"></script>
-<script type="text/javascript" src="parameters/bias_4.js"></script>
-<script type="text/javascript" src="parameters/bias_5.js"></script>
-<script type="text/javascript" src="parameters/fc1_weights.js"></script>
-<script type="text/javascript" src="parameters/fc1_bias.js"></script>
+<script type="text/javascript" src="parameters/model_parameters.js"></script>
 <script type="text/javascript" src="parameters/dev_dataset.js"></script>
 
 <script>
@@ -40,16 +31,8 @@ function statsButton(collection, statsDivId) {
   console.log("Getting stats...");
 
   var statsCollectionToDivId = {
-    wordvecs: 'word2vec50d-stats',
-    wordvecslarge: 'word2vec300d-stats',
-    weights_3: 'weights-3',
-    weights_4: 'weights-4',
-    weights_5: 'weights-5',
-    weights_fc1: 'weights-fc1',
-    bias_3: 'bias-3',
-    bias_4: 'bias-4',
-    bias_5: 'bias-5',
-    bias_fc1: 'bias-fc1',
+    wordvecs: 'word2vec300d-stats',
+    kimcnn_parameters: 'parameters-stats',
     dataset: 'dataset'
   };
 
@@ -85,7 +68,6 @@ function deleteIndex() {
 
   DBDeleteRequest.onsuccess = function(event) {
     console.log("Index deleted successfully");
-    $('#word2vec50d-message').html('');
     $('#word2vec300d-message').html('');
     statsButton();
   };
@@ -130,14 +112,7 @@ function getUpdateMessageHander(messageDivId) {
 }
 
 function weightButton() {
-  indexer.loadWeights(weights_3, 3, statsButton);
-  indexer.loadWeights(weights_4, 4, statsButton);
-  indexer.loadWeights(weights_5, 5, statsButton);
-  indexer.loadWeights(fc1_weights, "fc1", statsButton);
-  indexer.loadBias(bias_3, 3, statsButton);
-  indexer.loadBias(bias_4, 4, statsButton);
-  indexer.loadBias(bias_5, 5, statsButton);
-  indexer.loadBias(fc1_bias, "fc1", statsButton);
+  indexer.loadParams(model_params, statsButton);
 }
 
 function datasetButton() {
@@ -151,112 +126,101 @@ function datasetButton() {
 }
 
 function indexButton(dim, store_name) {
-  var messageDivId = dim === 50 ? 'word2vec50d-message' : 'word2vec300d-message';
+  var messageDivId = 'word2vec300d-message';
   $(`#${messageDivId}`).html(`<div class='alert alert-success alert-dismissible' role='alert'>
     <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
     <span aria-hidden='true'>&times;</span></button>Starting to fetch word vectors (${dim}d)...</div>`);
 
-   socket.emit(store_name, '');
-   var word_vecs = [];
-   socket.on('length', msg => {
-     console.log('len', msg);
-     var totalVectors = msg.length;
-     var processedVectors = 0;
-     socket.on(store_name, msg => {
-       word_vecs.push(msg);
-       processedVectors += 1;
-       if (processedVectors === totalVectors) {
-         indexer.setWordvecsMessageHandler(getUpdateMessageHander(messageDivId));
-         indexer.indexWord2Vec(word_vecs, store_name);
-       }
-     });
-   });
+  socket.emit(store_name, '');
+  var word_vecs = [];
+  socket.on('length', msg => {
+    var totalVectors = msg.length;
+    var processedVectors = 0;
+    socket.on(store_name, msg => {
+      word_vecs.push(msg);
+      processedVectors += 1;
+      if (processedVectors === totalVectors) {
+        indexer.setWordvecsMessageHandler(getUpdateMessageHander(messageDivId));
+        indexer.indexWord2Vec(word_vecs, store_name);
+      }
+    });
+  });
 }
 
-$(document).ready(function() {
-  socket = io('http://127.0.0.1:3000');
-});
+  $(document).ready(function() {
+    socket = io('http://127.0.0.1:3000');
+  });
 
 </script>
 
 <style>
-body {
-  padding-top: 50px;
-}
+  body {
+    padding-top: 50px;
+  }
 </style>
 
 </head>
 <body>
 
   <nav class="navbar navbar-inverse navbar-fixed-top">
-      <div class="container">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="./index.html">Kim CNN In-Browser Demo</a>
-        </div>
-        <div id="navbar" class="collapse navbar-collapse">
-          <ul class="nav navbar-nav">
-            <li><a href="./index.html">Home</a></li>
-            <li class="active"><a href="./indexing-demo.html">Indexing</a></li>
-            <li><a href="./search-demo.html">Inference</a></li>
-            <li><a href="./kimcnn-demo.html">Feature Map Activations</a></li>
-            <li><a href="./filter-demo.html">Individual Filter Activations</a></li>
-          </ul>
-        </div><!--/.nav-collapse -->
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="./index.html">Kim CNN In-Browser Demo</a>
       </div>
-    </nav>
+      <div id="navbar" class="collapse navbar-collapse">
+        <ul class="nav navbar-nav">
+          <li><a href="./index.html">Home</a></li>
+          <li class="active"><a href="./indexing-demo.html">Indexing</a></li>
+          <li><a href="./search-demo.html">Inference</a></li>
+          <li><a href="./kimcnn-demo.html">Feature Map Activations</a></li>
+          <li><a href="./filter-demo.html">Individual Filter Activations</a></li>
+        </ul>
+      </div><!--/.nav-collapse -->
+    </div>
+  </nav>
 
-<div class="container">
+  <div class="container">
 
-<div class="page-header">
-<h1>Kim CNN In-Browser Demo <small>Indexing Demo</small></h1>
-</div>
+    <div class="page-header">
+      <h1>Kim CNN In-Browser Demo <small>Indexing Demo</small></h1>
+    </div>
 
-<p>The following demo stores <a href=https://nlp.stanford.edu/projects/glove/>GloVe</a> word vectors in IndexedDB. Everything is designed to work on Chrome, so YMMV on other
-browsers.</p>
+    <p>The following demo stores <a href=https://nlp.stanford.edu/projects/glove/>GloVe</a> word vectors in IndexedDB. Everything is designed to work on Chrome, so YMMV on other
+    browsers.</p>
 
-<p>Okay, now we're ready to index. First click the "Build Index"
-button. You can watch the indexing progress in the JavaScript console. After that, click the
-"Get Index Stats" button.</p>
+    <p>Okay, now we're ready to index. First click the "Build Index"
+    button. You can watch the indexing progress in the JavaScript console. After that, click the
+    "Get Index Stats" button.</p>
 
-<p>
-<button class="btn btn-primary" onclick="indexButton(50, 'wordvecs')">Build Index for 50d word2vec</button>
-<button class="btn btn-primary" onclick="indexButton(300, 'wordvecslarge')">Build Index for 300d word2vec</button>
-<button class="btn btn-primary" id="statsButton" onclick="statsButton()">Get Index Stats</button>
-<button class="btn btn-primary" id="deleteIndex" onclick="deleteIndex()">Delete All</button>
-</p>
+    <p>
+      <button class="btn btn-primary" onclick="indexButton(300, 'wordvecs')">Build Index for 300d word2vec</button>
+      <button class="btn btn-primary" id="statsButton" onclick="statsButton()">Get Index Stats</button>
+      <button class="btn btn-primary" id="deleteIndex" onclick="deleteIndex()">Delete All</button>
+    </p>
 
-<p>
-<button class="btn btn-primary" onclick="weightButton()">Load Weights</button>
-<button class="btn btn-primary" id="datasetButton" onclick="datasetButton()">Load Dataset</button>
-</p>
+    <p>
+      <button class="btn btn-primary" onclick="weightButton()">Load Weights</button>
+      <button class="btn btn-primary" id="datasetButton" onclick="datasetButton()">Load Dataset</button>
+    </p>
 
-<div id="word2vec50d-message"></div>
-<div id="word2vec300d-message"></div>
-<div id="dataset-message"></div>
+    <div id="word2vec300d-message"></div>
+    <div id="dataset-message"></div>
 
-<h3>Current Index Status</h3>
+    <h3>Current Index Status</h3>
 
-<table class="table">
-<tr><td>Number of word vectors (50d)</td><td><div id="word2vec50d-stats"></div></td></tr>
-<tr><td>Number of word vectors (300d)</td><td><div id="word2vec300d-stats"></div></td></tr>
-<tr><td>Number of Weights(3)</td><td><div id="weights-3"></div></td></tr>
-<tr><td>Number of Weights(4)</td><td><div id="weights-4"></div></td></tr>
-<tr><td>Number of Weights(5)</td><td><div id="weights-5"></div></td></tr>
-<tr><td>Number of Weights(fc1)</td><td><div id="weights-fc1"></div></td></tr>
-<tr><td>Number of Bias(3)</td><td><div id="bias-3"></div></td></tr>
-<tr><td>Number of Bias(4)</td><td><div id="bias-4"></div></td></tr>
-<tr><td>Number of Bias(5)</td><td><div id="bias-5"></div></td></tr>
-<tr><td>Number of Bias(fc1)</td><td><div id="bias-fc1"></div></td></tr>
-<tr><td>Number of Sentences</td><td><div id="dataset"></div></td></tr>
-</table>
+    <table class="table">
+      <tr><td>Number of word vectors (300d)</td><td><div id="word2vec300d-stats"></div></td></tr>
+      <tr><td>Number of Parameters</td><td><div id="parameters-stats"></div></td></tr>
+      <tr><td>Number of Sentences</td><td><div id="dataset"></div></td></tr>
+    </table>
 
-</div>
+  </div>
 
 <!-- Bootstrap core JavaScript
 ================================================== -->

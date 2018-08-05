@@ -1,4 +1,3 @@
-var sep = "+";
 var db;
 
 function indexedDBOk() {
@@ -21,36 +20,8 @@ function initializeDB() {
       thisDB.createObjectStore("wordvecslarge");
     }
 
-    if (!thisDB.objectStoreNames.contains("weights_3")) {
-      thisDB.createObjectStore("weights_3");
-    }
-
-    if (!thisDB.objectStoreNames.contains("weights_4")) {
-      thisDB.createObjectStore("weights_4");
-    }
-
-    if (!thisDB.objectStoreNames.contains("weights_5")) {
-      thisDB.createObjectStore("weights_5");
-    }
-
-    if (!thisDB.objectStoreNames.contains("weights_fc1")) {
-      thisDB.createObjectStore("weights_fc1");
-    }
-
-    if (!thisDB.objectStoreNames.contains("bias_3")) {
-      thisDB.createObjectStore("bias_3");
-    }
-
-    if (!thisDB.objectStoreNames.contains("bias_4")) {
-      thisDB.createObjectStore("bias_4");
-    }
-
-    if (!thisDB.objectStoreNames.contains("bias_5")) {
-      thisDB.createObjectStore("bias_5");
-    }
-
-    if (!thisDB.objectStoreNames.contains("bias_fc1")) {
-      thisDB.createObjectStore("bias_fc1");
+    if (!thisDB.objectStoreNames.contains("kimcnn_parameters")) {
+      thisDB.createObjectStore("kimcnn_parameters");
     }
 
     if (!thisDB.objectStoreNames.contains("dataset")) {
@@ -60,16 +31,16 @@ function initializeDB() {
     if (!thisDB.objectStoreNames.contains("nn_res")) {
       thisDB.createObjectStore("nn_res");
     }
-  }
+  };
 
   openRequest.onsuccess = function (e) {
     db = e.target.result;
     console.log("Initialization complete!");
-  }
+  };
 
   openRequest.onerror = function (e) {
     console.log("Initialization error!");
-  }
+  };
 }
 
 document.addEventListener("DOMContentLoaded", initializeDB, false);
