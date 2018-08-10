@@ -18,62 +18,60 @@
 <![endif]-->
 
 <style>
-body {
-  padding-top: 50px;
-}
+  body {
+    padding-top: 50px;
+  }
 </style>
 
 </head>
 <body>
 
   <nav class="navbar navbar-inverse navbar-fixed-top">
-      <div class="container">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="./index.html">Kim CNN In-Browser Demo</a>
-        </div>
-        <div id="navbar" class="collapse navbar-collapse">
-          <ul class="nav navbar-nav">
-            <li class="active"><a href="./index.html">Home</a></li>
-            <li><a href="./indexing-demo.html">Indexing</a></li>
-            <li><a href="./search-demo.html">Inference</a></li>
-            <li><a href="./kimcnn-demo.html">Feature Map Activations</a></li>
-            <li><a href="./filter-demo.html">Individual Filter Activations</a></li>
-          </ul>
-        </div><!--/.nav-collapse -->
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="./index.html">Kim CNN In-Browser Demo</a>
       </div>
-    </nav>
+      <div id="navbar" class="collapse navbar-collapse">
+        <ul class="nav navbar-nav">
+          <li class="active"><a href="./index.html">Home</a></li>
+          <li><a href="./indexing-demo.html">Indexing</a></li>
+          <li><a href="./search-demo.html">Inference</a></li>
+          <li><a href="./kimcnn-demo.html">Feature Map Activations</a></li>
+          <li><a href="./filter-demo.html">Individual Filter Activations</a></li>
+        </ul>
+      </div><!--/.nav-collapse -->
+    </div>
+  </nav>
 
-<div class="container">
+  <div class="container">
+    <div class="page-header">
+      <h1>Kim CNN In-Browser Demo</h1>
+      <p class="lead">CNNs for NLP in the Browser: Client-Side Deployment and Visualization Opportunities</p>
+    </div>
 
-<div class="page-header">
-<h1>Kim CNN In-Browser Demo</h1>
-<p class="lead">CNNs for NLP in the Browser: Client-Side Deployment and Visualization Opportunities</p>
-</div>
+    <p>We demonstrate a JavaScript implementation of a convolutional neural network that performs
+    feedforward inference completely in the browser. Such a deployment means that models
+    can run completely on the client, on a wide range of devices, without making backend
+    server requests. This design is useful for applications with stringent latency requirements
+    or low connectivity. Our evaluations show the feasibility of JavaScript as a deployment target.
+    Furthermore, an in-browser implementation enables seamless integration with the
+    JavaScript ecosystem for information visualization, providing opportunities to visually inspect
+    neural networks and better understand their inner workings.</p>
+  </div>
 
-<p>We demonstrate a JavaScript implementation of a convolutional neural network that performs
-feedforward inference completely in the browser. Such a deployment means that models
-can run completely on the client, on a wide range of devices, without making backend
-server requests. This design is useful for applications with stringent latency requirements
-or low connectivity. Our evaluations show the feasibility of JavaScript as a deployment target.
-Furthermore, an in-browser implementation enables seamless integration with the
-JavaScript ecosystem for information visualization, providing opportunities to visually inspect
-neural networks and better understand their inner workings.</p>
-
-</div>
-
-<!-- Bootstrap core JavaScript
-================================================== -->
-<!-- Placed at the end of the document so the pages load faster -->
-<script src="bootstrap/jquery.min.js"></script>
-<script src="bootstrap/bootstrap.min.js"></script>
-<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-<script src="bootstrap/ie10-viewport-bug-workaround.js"></script>
+  <!-- Bootstrap core JavaScript
+  ================================================== -->
+  <!-- Placed at the end of the document so the pages load faster -->
+  <script src="bootstrap/jquery.min.js"></script>
+  <script src="bootstrap/bootstrap.min.js"></script>
+  <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+  <script src="bootstrap/ie10-viewport-bug-workaround.js"></script>
 
 </body>
 </html>

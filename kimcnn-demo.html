@@ -36,43 +36,35 @@ crossorigin="anonymous"></script>
 <script type="text/javascript" src="filter.js"></script>
 
 <script>
+  $(document).ready(function() {
+    initializeParameters(modelData => {
+      // Querying
+      var searchButton = function() {
+        var q = document.querySelector("#query").value.split(" ");
+        if (q.length == 1 && q[0] == "") {
+          q = "it 's a remarkably solid and subtly satirical tour de force .".split(" ");
+        }
+        q = q.filter(function(x) { return x.length > 0 }).map(function(x) { return x.toLowerCase() });
 
-$(document).ready(function() {
-  initializeParameters();
-  SearchBar.initAutocomplete();
-});
+        // Get word vectors
+        searcher.showVecs(q, Array(), function(wordvecs) {
+          var startTime = window.performance.now();
+          updateMsg("Started processing sentence: " + q);
 
-// Querying
+          all_feature_activations(wordvecs, q, modelData);
+          updateMsg("Finished processing sentence in: " + (window.performance.now() - startTime) + "ms.");
+        });
+      };
 
-function searchButton() {
-  var q = document.querySelector("#query").value.split(" ");
-  if (q.length == 1 && q[0] == "") {
-    q = "it 's a remarkably solid and subtly satirical tour de force .".split(" ");
-  }
-  q = q.map(function(x) { return x.toLowerCase()})
-           .filter(function(x) { return x.length > 0 ? true : false; });
-
-  // Perform wordvec retrieval
-  searcher.showVecs(q, Array(), function(results) {
-    var startTime = window.performance.now();
-    updateMsg("Started processing sentence: " + q);
-
-    all_feature_activations(results, q, weights, bias, fc_weights, fc_bias);
-    updateMsg("Finished processing sentence in: " + (window.performance.now() - startTime) + "ms.");
+      $('#searchButton').click(searchButton);
+    });
+    SearchBar.initAutocomplete();
   });
-}
 </script>
 
 <style>
 body {
   padding-top: 50px;
-}
-p.wordvec {
-  border: 2px solid #A33;
-  background-color: #ECC;
-  padding: 20px;
-  color: black;
-  overflow: scroll;
 }
 </style>
 
@@ -124,7 +116,7 @@ p.wordvec {
   </div>
   <div class="row">
     <div class="col-md-12">
-      <button type="button" class="btn btn-primary pull-right" id="searchButton" style="float:right;margin-top:10px" onclick="searchButton()">Run</button>
+      <button type="button" class="btn btn-primary pull-right" id="searchButton" style="float:right;margin-top:10px">Run</button>
     </div>
   </div>
   <div class="row">

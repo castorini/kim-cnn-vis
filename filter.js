@@ -5,37 +5,47 @@ var filtersExample = [[[0.01, 0.02],[0.03, 0.04],[0.05, 0.06]],
                 [[0.23,0.24],[0.25, -0.2],[0.33,0.34],[0.15, -0.1],[0.43,0.44]]];
 var batch_size = 32;  // default
 
-// build an input matrix for CNN
+/**
+ * Convert word vectors to sentence embedding
+ * @param wordvecs - [[word, wordvec] ...]
+ * @returns Sentence embedding - matrix of sent length x VECTOR_LENGTH
+ */
 function build_input(results) {
-    var ret = results.map(function (result) {
-        if (result[1].length <= 0) { // the word is not a top10k one
-            // narraw random values down into range (-.25, .25]
-            rmatrix = [];
-            for (i = 0; i < VECTOR_LENGTH; i++) {
-                //rmatrix.push((Math.random()-0.5)/2);
-                rmatrix.push(0);
-            }
-            return rmatrix;
-        }
+  var ret = results.map(function (result) {
+    if (result[1].length === 0) { // the word is not a top10k one
+      // narrow random values down into range (-.25, .25]
+      rmatrix = [];
+      for (i = 0; i < VECTOR_LENGTH; i++) {
+        //rmatrix.push((Math.random()-0.5)/2);
+        rmatrix.push(0);
+      }
+      return rmatrix;
+    }
 
-        return result[1];
-    });
+    return result[1];
+  });
 
-    return ret;
+  return ret;
 }
 
+/**
+ * Perform convolution
+ * @param input - Sentence embedding - matrix of sent length x VECTOR_LENGTH
+ * @param weights
+ * @param bias
+ * @param len
+ * @param bs - batch size
+ * @returns {Array} - convolutional feature map
+ */
 function conv(input, weights, bias, len, bs) {
   var result = [];
   bs = bs || batch_size;
   var in_tensor = tf.tensor(input).as4D(bs, len, 300, 1);
 
-  //var in_tensor_with_pad = in_tensor;
-  //var pads = [tf.zeros([bs, 2, 300, 1]), tf.zeros([bs, 3, 300, 1]), tf.zeros([bs, 4, 300, 1])];
-
-  for (var i = 0; i < weights.length; i++) {  // 3
+  for (var i = 0; i < weights.length; i++) {  // Loop over once for each filter width (3, 4, 5)
     result[i] = [];
-    // console.log(weights[i])
 
+    // Reshape input tensor to filter width x VECTOR_LENGTH x # number of filters
     var temp = Array(i+3);
     for (var a = 0; a < i+3; a++) {
       temp[a] = Array(300);
@@ -48,13 +58,10 @@ function conv(input, weights, bias, len, bs) {
     }
 
     var in_filter = tf.tensor(temp).as4D(i+3, 300, 1, 100);
-    // in_filter.print()
     var stride = 1;
     var pad = 'valid';
-    //in_tensor_with_pad = tf.concat([pads[i], in_tensor, pads[i]], 1);
 
     result[i] = tf.conv2d(in_tensor, in_filter, stride, pad);
-    //result[i].print()
     var bt = tf.tensor(bias[i]).as1D();
     var height = result[i].shape[1];
     var stacked_bias = [];
@@ -74,15 +81,10 @@ function conv(input, weights, bias, len, bs) {
 function max_pooling(input, ignore) {
   var res = [];
   for (var i = 0; i < input.length; i++) {  // 3
-    res[i] = max_pooling_helper(input[i]);
+    res[i] = [input[i].argMax(1), input[i].max(1)];
   }
   // res shape = 3*100
   return res;
-}
-
-function max_pooling_helper(input) {
-  var axis = 1;
-  return [input.argMax(axis), input.max(axis)]; // 100*100
 }
 
 function fc1(input, weights, bias, bs) {
@@ -93,10 +95,10 @@ function fc1(input, weights, bias, bs) {
   bs = bs || batch_size;
 
   var combined = tf.concat(input, 0).as2D(300, bs);
-  var w_tensor = tf.tensor(weights).as2D(6, 300);
-  var mm = tf.matMul(w_tensor, combined).as2D(6, bs);
+  var w_tensor = tf.tensor(weights);
+  var mm = tf.matMul(w_tensor, combined).as2D(5, bs);
 
-  var b_tensor = tf.tensor(bias).as2D(6, 1);
+  var b_tensor = tf.tensor(bias).as2D(5, 1);
   var width = bs;
   var concat_bias = b_tensor;
   width--;
@@ -281,8 +283,8 @@ function analyze_sep_width(query, max_pool_all, max_pool, fc1_res, output, inter
 }
 
 function get_conv_res(wordvecs, weights, bias, max_len) {
-  var input = build_input(wordvecs);
-  var conv_res = conv(input, weights, bias, max_len, 1);
+  var sentenceEmbedding = build_input(wordvecs);
+  var conv_res = conv(sentenceEmbedding, weights, bias, max_len, 1);
   return conv_res;
 }
 
@@ -292,7 +294,7 @@ function display_conv(label, results, query, weights, bias, weights_fc1, bias_fc
         return;
     }
 
-    var L = [-1, 2, 3, 1, 4, 0];
+    var L = [0, 1, 2, 3, 4];
 
     var conv_res = get_conv_res(results, weights, bias);
 
@@ -349,7 +351,7 @@ function display_conv_batch(batch, max_len, label, results, query, weights, bias
     }
 
     var startTime = window.performance.now();
-    var L = [-1, 2, 3, 1, 4, 0];
+    var L = [0, 1, 2, 3, 4];
     var conv_res = conv(results, weights, bias, max_len);
 
     var args, pooling_res;
@@ -405,7 +407,7 @@ function display_single_conv(wordvecs, query, weights, bias, weights_fc1, bias_f
     }
 
     var startTime = window.performance.now();
-    var L = [-1, 2, 3, 1, 4, 0];
+    var L = [0, 1, 2, 3, 4];
     var batch_size = 1;
     var conv_res = get_conv_res(wordvecs, weights, bias, wordvecs.length);
     // conv_res is [w3 feat maps, w4 feat maps, w5 feat maps]
@@ -450,7 +452,13 @@ function display_sentence_coloring(highlight, label, predictedlabel, start, areS
   display_ww(highlight, label, predictedlabel, start, areSame, bias);
 }
 
-function all_feature_activations(wordvecs, query, weights, bias, fcw, fcb) {
+/**
+ *
+ * @param wordvecs - [[word, wordvec] ...]
+ * @param query - tokenized sentence as list of tokens
+ * @param modelData - object containing model parameters and dev dataset
+ */
+function all_feature_activations(wordvecs, query, modelData) {
   // for each width (3, 4, 5)
   // word to weight, word to filter#s
 
@@ -458,24 +466,20 @@ function all_feature_activations(wordvecs, query, weights, bias, fcw, fcb) {
       clean_up();
       return;
   }
-  var L = [-1, 2, 3, 1, 4, 0];
   var batch_size = 1;
-  var conv_res = get_conv_res(wordvecs, weights, bias, wordvecs.length);
+  var conv_res = get_conv_res(wordvecs, modelData.weights, modelData.bias, wordvecs.length);
 
-  var args, pooling_res;
   var max_pool_res = max_pooling(conv_res); // [args, pooling_res]
-
   var max_pool_res_real = [max_pool_res[0][1], max_pool_res[1][1], max_pool_res[2][1]];
 
-  var fc1_res = fc1(max_pool_res_real, fcw, fcb, batch_size);
+  var fc1_res = fc1(max_pool_res_real, modelData.fc_weights, modelData.fc_bias, batch_size);
   var output = soft_max(fc1_res);
   var res_index = tf.argMax(output, 1).dataSync();
 
-  var interested_weight_vec = fcw[res_index];
-  var predictedlabel = L[res_index];
+  var interested_weight_vec = modelData.fc_weights[res_index];
 
   var vis_res = analyze_sep_width(query, max_pool_res, max_pool_res_real, fc1_res, output,
-                  interested_weight_vec, fcb[res_index]);
+                  interested_weight_vec, modelData.fc_bias[res_index]);
 
   var ww = vis_res[0];
   var mp = vis_res[1];
