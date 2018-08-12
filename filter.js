@@ -1,8 +1,4 @@
 const VECTOR_LENGTH = 300;
-
-var filtersExample = [[[0.01, 0.02],[0.03, 0.04],[0.05, 0.06]],
-                [[-0.15,0.16],[0.2, -0.21],[-0.25,0.26],[0.3, -0.31]],
-                [[0.23,0.24],[0.25, -0.2],[0.33,0.34],[0.15, -0.1],[0.43,0.44]]];
 var batch_size = 32;  // default
 
 /**
@@ -116,24 +112,6 @@ function soft_max(z) {
   return tf.softmax(z.transpose()); //[100x6]
 }
 
-
-// where the max comes from [i, j]
-function get_max(input) {
-    // console.log(input);
-    if (input.length <= 0 || input[0].length <= 0) {
-        return -1;
-    }
-    var max = input[0][0];
-    var ans = [max, 0];
-    for (var i = 0; i<input.length; i++) {
-        if (input[i][0] > max) {
-            max = input[i][0];
-            ans = [max, i];
-        }
-    }
-    return ans;
-}
-
 function filter_max_index(max_pool) {
   var res = [];
   for (var dim = 0; dim < 3; dim++) { // 3
@@ -238,9 +216,6 @@ function analyze_sep_width(query, max_pool_all, max_pool, fc1_res, output, inter
   // init
   var res = Array(query.length);
 
-  // get weights
-  var cont = contribution(max_pool, interested_weight_vec, fc1_bias) // [ [100],[100],[100] ]
-
   var matchedIndex = filter_max_index(max_pool_all);
   var matchedWeight = filter_max_weight(max_pool_all);
 
@@ -263,7 +238,7 @@ function analyze_sep_width(query, max_pool_all, max_pool, fc1_res, output, inter
           continue;
         }
       }
-      var dim = i+3;
+
       if (idx < 0 || idx >= query.length) {
 
       } else {
@@ -288,62 +263,6 @@ function get_conv_res(wordvecs, weights, bias, max_len) {
   return conv_res;
 }
 
-function display_conv(label, results, query, weights, bias, weights_fc1, bias_fc1, ignore) {
-    if (query.length < 5) {
-        clean_up();
-        return;
-    }
-
-    var L = [0, 1, 2, 3, 4];
-
-    var conv_res = get_conv_res(results, weights, bias);
-
-    var args, pooling_res;
-    var max_pool_res = max_pooling(conv_res, ignore); // [args, pooling_res]
-
-    var max_pool_res_real = [max_pool_res[0][1], max_pool_res[1][1], max_pool_res[2][1]];
-
-    var fc1_res = fc1(max_pool_res_real, weights_fc1, bias_fc1);
-
-    var output = soft_max(fc1_res);
-
-    var res_index = tf.argMax(output).dataSync(); //TODO: change to data(), return promise
-
-    var interested_weight_vec = weights_fc1[res_index];
-
-    var predictedlabel = L[res_index];
-    // console.log(output);
-    // show_gradient_indicator();
-
-    var ww = analyze(query, max_pool_res, max_pool_res_real, fc1_res, output,
-                    interested_weight_vec, bias_fc1[res_index], ignore);
-    //console.log(ww)
-    var ret = [];
-    var highlight = [];
-    for (var i = 0; i < query.length; i++) {
-      highlight[highlight.length] = [query[i], ww[i]];
-    }
-    highlight[highlight.length] = ['\n', 0];
-/*
-    var conv_res_data = []
-    for (var i = 0; i < 3; i++) {
-      conv_res_data[i] = conv_res[i].dataSync();
-    }
-    var max_pool_res_data = []
-    for (var i = 0; i < 3; i++) {
-      max_pool_res_data[i] = [];
-      max_pool_res_data[i][0] = max_pool_res[i][0].dataSync();
-      max_pool_res_data[i][1] = max_pool_res[i][1].dataSync();
-    }*/
-    ret[0] = [highlight, label, predictedlabel];
-    ret[1] = conv_res; // [700, 800, 900]
-    ret[2] = max_pool_res; // [[2],[2],[2]]
-
-    //display_ww(highlight, label, predictedlabel);
-
-    return ret;
-}
-
 function display_conv_batch(batch, max_len, label, results, query, weights, bias, weights_fc1, bias_fc1, ignore, test) {
     if (query.length < 5) {
         clean_up();
@@ -354,7 +273,6 @@ function display_conv_batch(batch, max_len, label, results, query, weights, bias
     var L = [0, 1, 2, 3, 4];
     var conv_res = conv(results, weights, bias, max_len);
 
-    var args, pooling_res;
     var max_pool_res = max_pooling(conv_res, ignore); // [args, pooling_res]
 
     var max_pool_res_real = [max_pool_res[0][1], max_pool_res[1][1], max_pool_res[2][1]];
@@ -362,7 +280,6 @@ function display_conv_batch(batch, max_len, label, results, query, weights, bias
     var fc1_res = fc1(max_pool_res_real, weights_fc1, bias_fc1);  // longest time
 
     var output = soft_max(fc1_res);
-    // size = batch_size
     var res_index = tf.argMax(output, 1).dataSync(); //TODO: change to data(), return promise
     var lapsed = (window.performance.now() - startTime);
 
@@ -375,8 +292,6 @@ function display_conv_batch(batch, max_len, label, results, query, weights, bias
       var interested_weight_vec = weights_fc1[res_index[i]];
 
       var predictedlabel = L[res_index[i]];
-      // console.log(output);
-      // show_gradient_indicator();
 
       var ww = analyze(query[i], max_pool_res, max_pool_res_real, bias_fc1, output,
                       interested_weight_vec, bias_fc1[res_index[i]], ignore);
@@ -427,23 +342,9 @@ function display_single_conv(wordvecs, query, weights, bias, weights_fc1, bias_f
       return lapsed;
     }
 
-    var interested_weight_vec = weights_fc1[res_index];
     var predictedlabel = L[res_index];
     var queryString = query.join(' ');
     var actuallabel = sampleInputs.find(d => d.sentence === queryString).label;
-    // show_gradient_indicator();
-
-    // var ww = analyze(query, max_pool_res, max_pool_res_real, fc1_res, output,
-    //                 interested_weight_vec, bias_fc1[res_index]);
-    // // ww has same length as sentence
-    //
-    // var highlight = [];
-    // for (var i = 0; i < query.length; i++) {
-    //   highlight[highlight.length] = [query[i], ww[i]];
-    // }
-    // highlight[highlight.length] = ['\n', 0];
-    //
-    // display_ww(highlight, actuallabel, predictedlabel, [-1, -1], false, -1);
 
     $('#inference-result').html(`Predicted: ${predictedlabel} \t Actual: ${actuallabel}`);
 }
