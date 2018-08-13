@@ -4,7 +4,7 @@ function indexedDBOk() {
   return "indexedDB" in window;
 }
 
-function initializeDB() {
+function initializeDB(openSuccessCallback) {
   if (!indexedDBOk) return;
 
   var openRequest = indexedDB.open("index", 8);
@@ -35,12 +35,10 @@ function initializeDB() {
 
   openRequest.onsuccess = function (e) {
     db = e.target.result;
-    console.log("Initialization complete!");
+    openSuccessCallback();
   };
 
   openRequest.onerror = function (e) {
     console.log("Initialization error!");
   };
 }
-
-document.addEventListener("DOMContentLoaded", initializeDB, false);

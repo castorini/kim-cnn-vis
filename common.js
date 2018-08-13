@@ -1,9 +1,3 @@
-function initializeParameters(cb) {
-  setTimeout(function(){
-    setup(cb);
-  }, 200);
-}
-
 function updateMsg(msg) {
   document.getElementById('message').innerHTML = "<div class='alert alert-success alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>" + msg + "</div>";
 }
