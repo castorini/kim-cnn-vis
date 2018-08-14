@@ -1,18 +1,12 @@
 $(document).ready(function() {
   initializeDB(() => {
     setup(modelData => {
-      // segments is a list of [query, label]
       var segments = [];
       for (var i = 0; i < modelData.dev_sentences.length; i++) {
-        if (modelData.dev_sentences[i] == undefined) {
-          continue;
-        }
-        var sentence = modelData.dev_sentences[i];
-        var label = modelData.dev_labels[i];
-        var q = sentence.split(" ");
-
-        q = q.filter(function(x) { return x.length > 0 }).map(function(x) { return x.toLowerCase() });
-        segments[i] = [q, label];
+        segments.push({
+          tokenized_query: modelData.dev_sentences[i].split(" ").filter(x => x.length).map(x => x.toLowerCase()),
+          label: modelData.dev_labels[i]
+        })
       }
 
       var nn_res = [];
@@ -21,7 +15,6 @@ $(document).ready(function() {
 
       var showAll = function(ignore, b_index, test) {
         document.getElementById("sent").innerHTML = "";
-
         updateMsg("Started processing sentences.");
 
         batch_size = batch_size || 64;
@@ -33,87 +26,61 @@ $(document).ready(function() {
         var startTime = window.performance.now();
         let requests = currentSegment.map(function(q) {
           return new Promise(function(resolve, reject) {
-            searcher.showVecs(q[0], Array(), function(results) {
-              var ret = [q, results];
-              if (ret != undefined) {
-                resolve(ret);
-              } else {
-                resolve("failed");
-              }
+            searcher.showVecs(q.tokenized_query, Array(), function(results) {
+              q.word_vectors = results;
+              resolve(q);
             });
           });
         });
 
-        Promise.all(requests).then(function(responses) {
+        Promise.all(requests).then(function(inputs) {
           wordvec_time = window.performance.now() - startTime;
-          // [[[],#],[list of arrays]]
-          var labels = [];
-          var embeddings = [];
-          var qs = [];
+
+          // Build sentence embedding for each query
           var max_len = 0;
-          for (var i = 0; i < responses.length; i++) {
-            labels[i] = responses[i][0][1];
-            qs[i] = responses[i][0][0];
-            embeddings[i] = build_input(responses[i][1]);
-            if (responses[i][1].length > max_len) {
-              max_len = responses[i][1].length;
-            }
+          for (var i = 0; i < inputs.length; i++) {
+            inputs[i].embedding = buildSentenceEmbedding(inputs[i].word_vectors);
+            max_len = Math.max(max_len, inputs[i].word_vectors.length)
           }
 
-          var fill = new Array(300).fill(0);
-
           // Pad ending of embeddings with zeros
-          for (var i = 0; i < responses.length; i++) {
-            while (embeddings[i].length < max_len) {
-              var cur = embeddings[i].length;
-              embeddings[i][cur] = fill;
+          var fill = new Array(300).fill(0);
+          for (var i = 0; i < inputs.length; i++) {
+            while (inputs[i].embedding.length < max_len) {
+              inputs[i].embedding.push(fill);
             }
           }
 
           if (test) {
             if (batch_size === 1) {
-              var new_res = [];
-              for (var k = 0; k < embeddings[0].length; k++) {
-                new_res[k] = [qs[0][k], embeddings[0][k]]
-              }
-
-              var ret = display_single_conv(new_res, qs[0], modelData.weights, modelData.bias, modelData.fc_weights, modelData.fc_bias, true);
+              let timeElapsed = displaySingleConv(inputs[0].word_vectors, inputs[0].tokenized_query, modelData, true);
+              updateMsg("Finished processing " + inputs.length + " sentences in " + timeElapsed + "ms.");
+              test_res.push(timeElapsed);
 
               if (b_index === 100) {
-                updateMsg("Finished processing " + responses.length + " sentences in " + ret + "ms.");
-                if (ret != undefined) {
-                  test_res[test_res.length] = ret;
-                }
                 updateMsg("Done");
                 average();
               } else {
-                updateMsg("Finished processing " + responses.length + " sentences in " + ret + "ms. ");
-                if (ret != undefined) {
-                  test_res[test_res.length] = ret;
-                }
                 showAll(undefined, b_index+1, true)
               }
             } else {
-              var ret = display_conv_batch(batch_size, max_len, labels, embeddings, qs, modelData.weights, modelData.bias, modelData.fc_weights, modelData.fc_bias, ignore, true);
+              let timeElapsed = displayBatchConv(batch_size, inputs, modelData, true);
+              updateMsg("Finished processing " + inputs.length + " sentences in " + timeElapsed + "ms.");
+              test_res.push(timeElapsed);
 
               if (b_index === 3) { // (b_index+1)*batch_size+batch_size > dev_sentences.length
-                updateMsg("Finished processing " + responses.length + " sentences in " + ret + "ms.");
-                test_res[test_res.length] = ret;
                 updateMsg("Done");
                 average();
               } else {
-                updateMsg("Finished processing " + responses.length + " sentences in " + ret + "ms. ");
-                console.log(ret);
-                test_res[test_res.length] = ret;
                 showAll(undefined, b_index+1, true)
               }
             }
           } else {
             startTime = window.performance.now();
-            var ret = display_conv_batch(batch_size, max_len, labels, embeddings, qs, modelData.weights, modelData.bias, modelData.fc_weights, modelData.fc_bias, ignore, false);
+            let timeElapsed = displayBatchConv(batch_size, inputs, modelData, ignore, false);
 
             if ((b_index+1)*batch_size+batch_size > modelData.dev_sentences.length) {
-              updateMsg("Finished processing " + responses.length + " sentences in " + ret + "ms.");
+              updateMsg("Finished processing " + inputs.length + " sentences in " + ret + "ms.");
               for (var i = 0; i < ret.length; i++) {
                 nn_res[nn_res.length] = ret[i];
               }
