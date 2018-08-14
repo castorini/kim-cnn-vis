@@ -1,13 +1,11 @@
 var searcher = (function () {
   var phrases;
-  var phrasesAll;
-  var numDocs = 0;
   var sentence;
   var sentences;
   var labels;
 
   function wordvecsSearchInit(callback, q, results, i) {
-    if (i == q.length) {
+    if (i === q.length) {
       callback(results);
       return;
     }
@@ -16,14 +14,21 @@ var searcher = (function () {
       .objectStore("wordvecs")
       .openCursor(q[i]);
 
+    // TODO: this is forcing one retrieval to follow the next.
+    // would it more efficient to do this asynchronously?
     cursor.onsuccess = function (e) {
       var res = e.target.result;
       if (res) {
-        results[results.length] = Array(q[i], res.value);
-        res.continue;
+        results.push({
+          word: q[i],
+          word_vector: res.value
+        });
       } else {
-        // console.log("Word2Vec not found for word: " + phrases[i]);
-        results[results.length] = Array(q[i], Array());
+        // console.log("Word vector not found for word: " + phrases[i]);
+        results.push({
+          word: q[i],
+          word_vector: undefined
+        });
       }
       wordvecsSearchInit(callback, q, results, i + 1);
     };
@@ -46,23 +51,6 @@ var searcher = (function () {
     };
   }
 
-  function getithSentence(index, callback) {
-    var cursor = db.transaction(["dataset"], "readonly")
-      .objectStore("dataset")
-      .openCursor(index);
-
-    cursor.onsuccess = function (e) {
-      var res = e.target.result;
-      if (res) {
-        sentence = res.value.comment;
-        label = res.value.label;
-        callback(sentence, label);
-      } else {
-        console.log("No more sentences");
-      }
-    };
-  }
-
   function getAllSentences(callback, i) {
     var cursor = db.transaction(["dataset"], "readonly")
       .objectStore("dataset")
@@ -72,9 +60,8 @@ var searcher = (function () {
       var res = e.target.result;
       if (res) {
         sentence = res.value.comment;
-        label = res.value.label;
         sentences[sentences.length] = sentence;
-        labels[labels.length] = label;
+        labels[labels.length] = res.value.label;
         getAllSentences(callback, i+1);
       } else {
         callback(sentences, labels);
@@ -88,11 +75,6 @@ var searcher = (function () {
       searchAllParams(callback);
     },
 
-    getSentence: function (i, callback) {
-      sentence = "";
-      getithSentence(i, callback);
-    },
-
     getSentenceAll: function (callback) {
       sentences = [];
       labels = [];
@@ -102,15 +84,6 @@ var searcher = (function () {
     showVecs: function (q, res, callback) {
       phrases = q;
       wordvecsSearchInit(callback, q, res, 0);
-    },
-
-    showVecsAll: function (qs, callback) {
-      phrasesAll = qs;
-      wordvecsSearchInit(callback, 0);
-    },
-
-    setNumDocs: function (n) {
-      numDocs = n;
     },
   };
 

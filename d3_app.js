@@ -143,7 +143,7 @@ function show_rect(vectors, svg, x_offset, y_offset, class_name, index0, index1,
     return new_height;
 }
 
-function clean_up() {
+function cleanUp() {
     var svg = d3.select("#network");
     svg.selectAll("*").remove();
     coords = [[[]], [[]], [[]], [[]]];
@@ -185,7 +185,7 @@ function build_prev_dict(input, conv_res, args, polling_res, output) {
 
 function show_network(words, input, filters, conv_res, args, polling_res, output) {
     // clean up
-    clean_up();
+    cleanUp();
     var svg = d3.select("#network");
     var NUMBER_OF_WORDS = words.length;
     var NUMBER_OF_FILTERS = filters.length;
@@ -227,7 +227,7 @@ function show_network(words, input, filters, conv_res, args, polling_res, output
 
 function display_ww(input, label, plabel, start, same, bias) {
     // clean up
-    clean_up();
+    cleanUp();
 
     var div = d3.select(".sentences");
     if (start[0] != -1 && start[1] != -1) {
