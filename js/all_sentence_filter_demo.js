@@ -33,7 +33,6 @@ $(document).ready(function() {
         });
 
         Promise.all(requests).then(function(inputs) {
-          console.log('all promises resolved');
           wordvec_time = window.performance.now() - startTime;
 
           // Build sentence embedding for each query
@@ -78,16 +77,13 @@ $(document).ready(function() {
           } else {
             startTime = window.performance.now();
             let ret = displayBatchConv(batch_size, inputs, modelData, ignore, false);
+            for (var i = 0; i < ret.length; i++) {
+              nn_res.push(ret[i]);
+            }
             if ((b_index+1)*batch_size+batch_size > modelData.dev_sentences.length) {
-              updateMsg("Finished processing " + inputs.length + " sentences in " + ret + "ms.");
-              for (var i = 0; i < ret.length; i++) {
-                nn_res[nn_res.length] = ret[i];
-              }
               updateMsg("Done");
             } else {
-              for (var i = 0; i < ret.length; i++) {
-                nn_res[nn_res.length] = ret[i];
-              }
+              updateMsg("Finished processing batch " + b_index);
               showAll(undefined, b_index+1, false)
             }
           }

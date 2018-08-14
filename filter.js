@@ -127,7 +127,7 @@ function getConvFeatureMaps(wordvecs, weights, bias, max_len) {
   return featureMaps;
 }
 
-function displayBatchConv(batch_size, inputs, modelParams, ignore, test) {
+function displayBatchConv(batchSize, inputs, modelParams, ignore, test) {
     if (inputs[0].embedding.length < 5) {
         cleanUp();
         return;
@@ -136,7 +136,6 @@ function displayBatchConv(batch_size, inputs, modelParams, ignore, test) {
     var startTime = window.performance.now();
     var L = [0, 1, 2, 3, 4];
     var batchEmbedding = inputs.map(x => x.embedding);
-    var batchSize = inputs.length;
     var convFeatureMaps = conv(batchEmbedding, modelParams.weights, modelParams.bias, inputs[0].embedding.length, batchSize);
     var maxPoolPosAndVal = maxPooling(convFeatureMaps); // [args, pooling_res]
     var maxPoolVal = [maxPoolPosAndVal[0][1], maxPoolPosAndVal[1][1], maxPoolPosAndVal[2][1]];
@@ -150,17 +149,17 @@ function displayBatchConv(batch_size, inputs, modelParams, ignore, test) {
     }
 
     var ret = [];
-    for (var i = 0; i < batch_size; i++) {
+    for (var i = 0; i < batchSize; i++) {
       var predictedLabel = L[maxClassIndex[i]];
       var ww = analyze(inputs[i].tokenized_query, maxPoolPosAndVal, maxPoolVal, modelParams.fc_weights[maxClassIndex[i]], ignore);
 
       var highlight = [];
       for (var j = 0; j < inputs[i].tokenized_query.length; j++) {
-        highlight[highlight.length] = [inputs[i].tokenized_query[j], ww[j]];
+        highlight.push([inputs[i].tokenized_query[j], ww[j]]);
       }
-      highlight[highlight.length] = ['\n', 0];
+      highlight.push(['\n', 0]);
       ret[i] = [];
-      ret[i][0] = [highlight, label[i], predictedLabel];
+      ret[i][0] = [highlight, inputs[i].label, predictedLabel];
       ret[i][1] = convFeatureMaps; // [700, 800, 900]
 
       var dim1 = [tf.squeeze(maxPoolPosAndVal[0][0]).slice([i, 0], [1, 100]).dataSync(), tf.squeeze(maxPoolPosAndVal[0][1]).slice([i, 0], [1, 100]).dataSync()];

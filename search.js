@@ -60,9 +60,8 @@ var searcher = (function () {
       var res = e.target.result;
       if (res) {
         sentence = res.value.comment;
-        label = res.value.label;
         sentences[sentences.length] = sentence;
-        labels[labels.length] = label;
+        labels[labels.length] = res.value.label;
         getAllSentences(callback, i+1);
       } else {
         callback(sentences, labels);
