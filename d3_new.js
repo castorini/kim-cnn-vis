@@ -1,5 +1,5 @@
 
-function draw_heatmap(query, highlight, mp) {
+function drawHeatmap(query, highlight, mp) {
 
   $("#Matrix").empty();
 

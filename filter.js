@@ -30,7 +30,7 @@ function buildSentenceEmbedding(results) {
  * @param weights
  * @param bias
  * @param len
- * @param bs - batch size
+ * @param batchSize - batch size
  * @returns {Array} - convolutional feature map
  */
 function conv(input, weights, bias, len, batchSize) {
@@ -129,17 +129,18 @@ function getConvFeatureMaps(wordvecs, weights, bias, max_len) {
 
 function displayBatchConv(batch_size, inputs, modelParams, ignore, test) {
     if (inputs[0].embedding.length < 5) {
-        clean_up();
+        cleanUp();
         return;
     }
 
     var startTime = window.performance.now();
     var L = [0, 1, 2, 3, 4];
     var batchEmbedding = inputs.map(x => x.embedding);
-    var convFeatureMaps = conv(batchEmbedding, modelParams.weights, modelParams.bias, inputs[0].embedding.length);
+    var batchSize = inputs.length;
+    var convFeatureMaps = conv(batchEmbedding, modelParams.weights, modelParams.bias, inputs[0].embedding.length, batchSize);
     var maxPoolPosAndVal = maxPooling(convFeatureMaps); // [args, pooling_res]
     var maxPoolVal = [maxPoolPosAndVal[0][1], maxPoolPosAndVal[1][1], maxPoolPosAndVal[2][1]];
-    var hiddenLayerOutput = fc1(maxPoolVal, modelParams.fc_weights, modelParams.fc_bias);  // longest time
+    var hiddenLayerOutput = fc1(maxPoolVal, modelParams.fc_weights, modelParams.fc_bias, batchSize);  // longest time
     var output = softmax(hiddenLayerOutput);
     var maxClassIndex = tf.argMax(output, 1).dataSync(); //TODO: change to data(), return promise
     var lapsed = (window.performance.now() - startTime);
@@ -173,7 +174,7 @@ function displayBatchConv(batch_size, inputs, modelParams, ignore, test) {
 
 function displaySingleConv(wordvecs, query, modelParams, test) {
     if (query.length < 5) {
-        clean_up();
+        cleanUp();
         return;
     }
 
@@ -219,15 +220,15 @@ function allFeatureActivations(wordvecs, query, modelData) {
   // word to weight, word to filter#s
 
   if (query.length < 5) {
-      clean_up();
+      cleanUp();
       return;
   }
   var convFeatureMaps = getConvFeatureMaps(wordvecs, modelData.weights, modelData.bias, wordvecs.length);
   var maxPoolPosAndVal = maxPooling(convFeatureMaps); // [args, pooling_res]
-  var vis_res = analyzeSepWidth(query, maxPoolPosAndVal);
+  var visualizationResult = analyzeSepWidth(query, maxPoolPosAndVal);
 
-  var ww = vis_res[0];
-  var mp = vis_res[1];
+  var ww = visualizationResult[0];
+  var mp = visualizationResult[1];
 
-  draw_heatmap(query, ww, mp);
+  drawHeatmap(query, ww, mp);
 }

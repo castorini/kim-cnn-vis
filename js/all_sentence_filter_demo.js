@@ -15,7 +15,6 @@ $(document).ready(function() {
 
       var showAll = function(ignore, b_index, test) {
         document.getElementById("sent").innerHTML = "";
-        updateMsg("Started processing sentences.");
 
         batch_size = batch_size || 64;
         b_index = b_index || 0;
@@ -34,6 +33,7 @@ $(document).ready(function() {
         });
 
         Promise.all(requests).then(function(inputs) {
+          console.log('all promises resolved');
           wordvec_time = window.performance.now() - startTime;
 
           // Build sentence embedding for each query
@@ -77,8 +77,7 @@ $(document).ready(function() {
             }
           } else {
             startTime = window.performance.now();
-            let timeElapsed = displayBatchConv(batch_size, inputs, modelData, ignore, false);
-
+            let ret = displayBatchConv(batch_size, inputs, modelData, ignore, false);
             if ((b_index+1)*batch_size+batch_size > modelData.dev_sentences.length) {
               updateMsg("Finished processing " + inputs.length + " sentences in " + ret + "ms.");
               for (var i = 0; i < ret.length; i++) {
