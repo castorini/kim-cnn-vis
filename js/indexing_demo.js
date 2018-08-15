@@ -34,7 +34,6 @@ function getUpdateMessageHander(messageDivId) {
 }
 
 $(document).ready(function() {
-  socket = io('http://127.0.0.1:3000');
 
   initializeDB(() => {
     function statsButton() {
@@ -108,20 +107,13 @@ $(document).ready(function() {
       <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
       <span aria-hidden='true'>&times;</span></button>Starting to fetch word vectors (${dim}d)...</div>`);
 
-      socket.emit(store_name, '');
-      var word_vecs = [];
-      socket.on('length', msg => {
-        var totalVectors = msg.length;
-        var processedVectors = 0;
-        socket.on(store_name, msg => {
-          word_vecs.push(msg);
-          processedVectors += 1;
-          if (processedVectors === totalVectors) {
-            indexer.setWordvecsMessageHandler(getUpdateMessageHander(messageDivId));
-            indexer.indexWord2Vec(word_vecs, store_name);
-          }
-        });
-      });
+      var script = document.createElement('script');
+      script.onload = function () {
+        indexer.setWordvecsMessageHandler(getUpdateMessageHander(messageDivId));
+        indexer.indexWord2Vec(word2veclarge.length, store_name);
+      };
+      script.src = 'word2vec_large.js';
+      document.head.appendChild(script);
     }
 
     $('#stats-button').click(statsButton);

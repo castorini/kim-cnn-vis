@@ -7,11 +7,11 @@ var indexer = (function () {
   var weightsLoaded = 0;
 
   function index_dataset(i) {
-    if (i != 0 && i % 100 == 0) {
+    if (i !== 0 && i % 100 === 0) {
       datasetMessageHandler.update(startTime, new Date().getTime(), i);
     }
 
-    if (i == dataset.length) {
+    if (i === dataset.length) {
       console.log("Finished loading dataset.");
       return;
     }
@@ -31,11 +31,11 @@ var indexer = (function () {
   }
 
   function index_wordvec(i, word2vec, store_name) {
-    if (i != 0 && i % 100 == 0) {
+    if (i !== 0 && i % 100 === 0) {
       wordvecsMessageHandler.update(startTime, new Date().getTime(), i);
     }
 
-    if (i == word2vec.length) {
+    if (i === word2vec.length) {
       console.log("Finished loading wordvecs.");
       return;
     }
