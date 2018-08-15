@@ -86,7 +86,12 @@ $(document).ready(function() {
     }
 
     function weightButton() {
-      indexer.loadParams(model_params, statsButton);
+      var script = document.createElement('script');
+      script.onload = function () {
+        indexer.loadParams(model_params, statsButton);
+      };
+      script.src = 'parameters/model_parameters.js';
+      document.head.appendChild(script);
     }
 
     function datasetButton() {
@@ -96,7 +101,7 @@ $(document).ready(function() {
         <span aria-hidden='true'>&times;</span></button>Starting to get sentences...</div>`);
 
       indexer.setDatasetMessageHandler(getUpdateMessageHander(messageDivId));
-      indexer.loadDataset(dev_dataset);
+      indexer.loadDataset(dev_dataset, statsButton);
     }
 
     function indexButton() {
@@ -110,11 +115,13 @@ $(document).ready(function() {
       var script = document.createElement('script');
       script.onload = function () {
         indexer.setWordvecsMessageHandler(getUpdateMessageHander(messageDivId));
-        indexer.indexWord2Vec(word2veclarge.length, store_name);
+        indexer.indexWord2Vec(word2veclarge, store_name, statsButton);
       };
       script.src = 'word2vec_large.js';
       document.head.appendChild(script);
     }
+
+    statsButton();
 
     $('#stats-button').click(statsButton);
     $('#delete-index').click(deleteIndex);

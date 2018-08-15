@@ -1,9 +1,8 @@
 *~
 .DS_Store
+.idea/
+
 *.zip
 *.pptx
-kim_cnn/
-.idea/
 node_modules/
-onnx/kimcnn_static.onnx
-parameters/model_parameters.js
+onnx/*.onnx

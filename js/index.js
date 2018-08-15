@@ -6,13 +6,14 @@ var indexer = (function () {
   var dataset;
   var weightsLoaded = 0;
 
-  function index_dataset(i) {
+  function index_dataset(i, cb) {
     if (i !== 0 && i % 100 === 0) {
       datasetMessageHandler.update(startTime, new Date().getTime(), i);
     }
 
     if (i === dataset.length) {
       console.log("Finished loading dataset.");
+      cb();
       return;
     }
 
@@ -26,22 +27,23 @@ var indexer = (function () {
     };
 
     request.onsuccess = function (e) {
-      index_dataset(i + 1);
+      index_dataset(i + 1, cb);
     };
   }
 
-  function index_wordvec(i, word2vec, store_name) {
+  function index_wordvec(i, word2vec, storeName, cb) {
     if (i !== 0 && i % 100 === 0) {
       wordvecsMessageHandler.update(startTime, new Date().getTime(), i);
     }
 
     if (i === word2vec.length) {
       console.log("Finished loading wordvecs.");
+      cb();
       return;
     }
 
-    var transaction = db.transaction([store_name], "readwrite");
-    var store = transaction.objectStore(store_name);
+    var transaction = db.transaction([storeName], "readwrite");
+    var store = transaction.objectStore(storeName);
     var request = store.add(word2vec[i]["word2vec"], word2vec[i]["word"]);
 
     request.onerror = function (e) {
@@ -50,7 +52,7 @@ var indexer = (function () {
     };
 
     request.onsuccess = function (e) {
-      index_wordvec(i + 1, word2vec, store_name);
+      index_wordvec(i + 1, word2vec, storeName, cb);
     };
   }
 
@@ -63,9 +65,9 @@ var indexer = (function () {
       datasetMessageHandler = h;
     },
 
-    indexWord2Vec: function (word2vec, store_name) {
+    indexWord2Vec: function (word2vec, storeName, cb) {
       startTime = new Date().getTime();
-      index_wordvec(0, word2vec, store_name);
+      index_wordvec(0, word2vec, storeName, cb);
     },
 
     loadParams: function (params, cb) {
@@ -85,7 +87,7 @@ var indexer = (function () {
     loadDataset: function (w) {
       startTime = new Date().getTime();
       dataset = w;
-      index_dataset(0);
+      index_dataset(0, cb);
     },
   };
 

@@ -35,7 +35,9 @@ function initializeDB(openSuccessCallback) {
 
   openRequest.onsuccess = function (e) {
     db = e.target.result;
-    openSuccessCallback();
+    if (openSuccessCallback) {
+      openSuccessCallback();
+    }
   };
 
   openRequest.onerror = function (e) {
