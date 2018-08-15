@@ -189,7 +189,7 @@ $(document).ready(function() {
       $('#batchButton').click(batchButton);
       $('#byFilter').click(byFilter);
       $('#show_nw_checkbox').click(show_negative_weights);
-      $('#showAll').click(showAll(undefined, 0, false));
+      $('#showAll').click(() => showAll(undefined, 0, false));
     });
   });
 });
