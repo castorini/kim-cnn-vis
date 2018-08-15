@@ -84,7 +84,7 @@ var indexer = (function () {
       });
     },
 
-    loadDataset: function (w) {
+    loadDataset: function (w, cb) {
       startTime = new Date().getTime();
       dataset = w;
       index_dataset(0, cb);
