@@ -158,14 +158,17 @@ function displayBatchConv(batchSize, inputs, modelParams, ignore, test) {
         highlight.push([inputs[i].tokenized_query[j], ww[j]]);
       }
       highlight.push(['\n', 0]);
-      ret[i] = [];
-      ret[i][0] = [highlight, inputs[i].label, predictedLabel];
-      ret[i][1] = convFeatureMaps; // [700, 800, 900]
 
       var dim1 = [tf.squeeze(maxPoolPosAndVal[0][0]).slice([i, 0], [1, 100]).dataSync(), tf.squeeze(maxPoolPosAndVal[0][1]).slice([i, 0], [1, 100]).dataSync()];
       var dim2 = [tf.squeeze(maxPoolPosAndVal[1][0]).slice([i, 0], [1, 100]).dataSync(), tf.squeeze(maxPoolPosAndVal[1][1]).slice([i, 0], [1, 100]).dataSync()];
       var dim3 = [tf.squeeze(maxPoolPosAndVal[2][0]).slice([i, 0], [1, 100]).dataSync(), tf.squeeze(maxPoolPosAndVal[2][1]).slice([i, 0], [1, 100]).dataSync()];
-      ret[i][2] = [dim1, dim2, dim3]; // [[2],[2],[2]]
+
+      ret.push({
+        highlight: highlight,
+        label: inputs[i].label,
+        prediction: predictedLabel,
+        max_pool_res: [dim1, dim2, dim3] // [[2],[2],[2]]
+      });
     }
 
     return ret;

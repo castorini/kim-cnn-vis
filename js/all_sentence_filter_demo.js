@@ -105,7 +105,6 @@ $(document).ready(function() {
         updateMsg("Batch size set to " + batch_size);
       }
 
-      var filter_res = [];
       function byFilter(show_positive, ignore) {
         document.getElementById("sent").innerHTML = "";
         var startTime = window.performance.now();
@@ -113,28 +112,29 @@ $(document).ready(function() {
 
         var groupByFilter = []; // 3*100
         for (var d = 0; d < 3; d++) {
-          groupByFilter[d] = [];
+          groupByFilter.push([]);
           for (var f = 0; f < 100; f++) {
-            groupByFilter[d][f] = []; // 3*100*#sentences*2
+            groupByFilter[d].push([]); // 3*100*#sentences
           }
         }
 
         for (var i = 0; i < nn_res.length; i++) {  // number of sentences analyzed
-          var max_poll_res = nn_res[i][2];  // [[2],[2],[2]]
-
           for (var d = 0; d < 3; d++) {
             for (var f = 0; f < 100; f++) {
-              groupByFilter[d][f][i] = [max_poll_res[d][1][f], i]; // dth/3 dim, fth/100 filter
+              groupByFilter[d][f][i] = {
+                max_pool_res: nn_res[i].max_pool_res[d][1][f],
+                sentence_idx: i
+              }
             }
           }
         }
 
         for (var d = 0; d < 3; d++) {
           for (var f = 0; f < groupByFilter[d].length; f++) {
-            if (show_positive == undefined || show_positive === true) {
-              (groupByFilter[d][f]).sort(function(a, b){return b[0]-a[0]});
+            if (show_positive == undefined || show_positive) {
+              groupByFilter[d][f].sort((a, b) => b.max_pool_res - a.max_pool_res);
             } else {
-              (groupByFilter[d][f]).sort(function(a, b){return a[0]-b[0]});
+              groupByFilter[d][f].sort((a, b) => a.max_pool_res - b.max_pool_res);
             }
           }
         }
@@ -142,45 +142,37 @@ $(document).ready(function() {
         var prev_d = -1;
         var prev_f = -1;
         for (var d = 0; d < 3; d++) {
-          filter_res[d] = [];
           for (var f = 0; f < groupByFilter[d].length; f++) { // 100
-            filter_res[d][f] = [];
             for (var k = 0; k < 10; k++) {  // top 10 activations
-              var index = groupByFilter[d][f][k][1];
-              var draw = nn_res[index][0];
-              var max_poll_res = nn_res[index][2];
-
-              var matchedIndex = filter_max_index_non_tensor(max_poll_res);
+              var index = groupByFilter[d][f][k].sentence_idx;
+              var matchedIndex = filter_max_index_non_tensor(nn_res[index].max_pool_res);
               var idx = matchedIndex[d][f];
 
-              if (d == 0) {
+              if (d === 0) {
                 idx -= 2;
-              } else if (d == 1) {
+              } else if (d === 1) {
                 idx -= 3;
               } else {
                 idx -= 4;
               }
-              var len = draw[0].length;
               var highlight = [];
-              for (var i = 0; i < len; i++) {
-                highlight[highlight.length] = [draw[0][i][0], 0];
+              for (var i = 0; i < nn_res[index].highlight.length; i++) {
+                highlight[highlight.length] = [nn_res[index].highlight[i][0], 0];
               }
               var dim = d+3;
               for (var p = 0; p < dim; p++) {
-                if (idx+p < 0 || idx+p >= len-1) {
+                if (idx+p < 0 || idx+p >= nn_res[index].highlight.length-1) {
                   continue;
                 }
                 highlight[idx+p][1] = 1;
               }
 
               if (d !== prev_d || f !== prev_f) {
-                filter_res[d][f][k] = [highlight, draw, [d+3, f], true, modelData.bias[d][f].toFixed(2)];
-                display_sentence_coloring(highlight, draw[1], draw[2], [d+3, f], true, modelData.bias[d][f].toFixed(2));
+                display_sentence_coloring(highlight, nn_res[index].label, nn_res[index].prediction, [d+3, f], true, modelData.bias[d][f].toFixed(2));
                 prev_d = d;
                 prev_f = f;
               } else {
-                filter_res[d][f][k] = [highlight, draw, [-1, -1], true, -1];
-                display_sentence_coloring(highlight, draw[1], draw[2], [-1,-1], true, -1);
+                display_sentence_coloring(highlight, nn_res[index].label, nn_res[index].prediction, [-1,-1], true, -1);
               }
             }
           }
