@@ -29,11 +29,9 @@ $(document).ready(function() {
     var input = document.getElementById('query');
     var comboplete = new Awesomplete(input, {
       minChars: 0,
-      maxItems: 12,
+      maxItems: 10,
       list: sampleSentences,
-      sort: function (a, b) {
-        return a.length > b.length;
-      }
+      sort: false
     });
 
     Awesomplete.$('#query').addEventListener('click', function() {

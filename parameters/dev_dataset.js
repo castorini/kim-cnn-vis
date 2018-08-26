@@ -1,8 +1,44 @@
 dev_dataset = 
  [
 {
+  "label": 4,
+  "comment": "visually imaginative , thematically instructive and thoroughly delightful , it takes us on a roller-coaster ride from innocence to experience without even a hint of that typical kiddie-flick sentimentality ."
+},
+{
+  "label": 3,
+  "comment": "it 's a stunning lyrical work of considerable force and truth ."
+},
+{
+  "label": 4,
+  "comment": "more romantic , more emotional and ultimately more satisfying than the teary-eyed original ."
+},
+{
+  "label": 4,
+  "comment": "few films capture so perfectly the hopes and dreams of little boys on baseball fields as well as the grown men who sit in the stands ."
+},
+{
+  "label": 3,
+  "comment": "oscar wilde 's masterpiece , the importance of being earnest , may be the best play of the 19th century ."
+},
+{
+  "label": 0,
+  "comment": "the most hopelessly monotonous film of the year , noteworthy only for the gimmick of being filmed as a single unbroken 87-minute take ."
+},
+{
+  "label": 0,
+  "comment": "it all feels like a monty python sketch gone horribly wrong ."
+},
+{
+  "label": 1,
+  "comment": "it offers little beyond the momentary joys of pretty and weightless intellectual entertainment ."
+},
+{
   "label": 2,
   "comment": "in his first stab at the form , jacquot takes a slightly anarchic approach that works only sporadically ."
+},
+{
+  "label": 0,
+  "comment": "whaley 's determination to immerse you in sheer , unrelenting wretchedness is exhausting ."
 },
 {
   "label": 1,
@@ -35,14 +71,6 @@ dev_dataset =
 {
   "label": 3,
   "comment": "although laced with humor and a few fanciful touches , the film is a refreshingly serious look at young women ."
-},
-{
-  "label": 0,
-  "comment": "it all feels like a monty python sketch gone horribly wrong ."
-},
-{
-  "label": 3,
-  "comment": "it 's a stunning lyrical work of considerable force and truth ."
 },
 {
   "label": 2,
@@ -158,14 +186,6 @@ dev_dataset =
 },
 {
   "label": 4,
-  "comment": "more romantic , more emotional and ultimately more satisfying than the teary-eyed original ."
-},
-{
-  "label": 1,
-  "comment": "it offers little beyond the momentary joys of pretty and weightless intellectual entertainment ."
-},
-{
-  "label": 4,
   "comment": "it 's a remarkably solid and subtly satirical tour de force ."
 },
 {
@@ -203,10 +223,6 @@ dev_dataset =
 {
   "label": 1,
   "comment": "american chai encourages rueful laughter at stereotypes only an indian-american would recognize ."
-},
-{
-  "label": 4,
-  "comment": "visually imaginative , thematically instructive and thoroughly delightful , it takes us on a roller-coaster ride from innocence to experience without even a hint of that typical kiddie-flick sentimentality ."
 },
 {
   "label": 2,
@@ -395,10 +411,6 @@ dev_dataset =
 {
   "label": 1,
   "comment": "it has all the excitement of eating oatmeal ."
-},
-{
-  "label": 0,
-  "comment": "the most hopelessly monotonous film of the year , noteworthy only for the gimmick of being filmed as a single unbroken 87-minute take ."
 },
 {
   "label": 3,
@@ -821,10 +833,6 @@ dev_dataset =
   "comment": "this rather superficial arthouse middle-brow film knows how to please a crowd , and that 's about all it does well ."
 },
 {
-  "label": 0,
-  "comment": "whaley 's determination to immerse you in sheer , unrelenting wretchedness is exhausting ."
-},
-{
   "label": 2,
   "comment": "with an emotional sterility to match its outer space setting , soderbergh 's spectacular swing for the fence yields only a spectacular whiff ."
 },
@@ -1165,10 +1173,6 @@ dev_dataset =
   "comment": "it 's also , clearly , great fun ."
 },
 {
-  "label": 3,
-  "comment": "oscar wilde 's masterpiece , the importance of being earnest , may be the best play of the 19th century ."
-},
-{
   "label": 0,
   "comment": "it 's like watching a nightmare made flesh ."
 },
@@ -1359,10 +1363,6 @@ dev_dataset =
 {
   "label": 1,
   "comment": "it 's too self-important and plodding to be funny , and too clipped and abbreviated to be an epic ."
-},
-{
-  "label": 4,
-  "comment": "few films capture so perfectly the hopes and dreams of little boys on baseball fields as well as the grown men who sit in the stands ."
 },
 {
   "label": 1,
