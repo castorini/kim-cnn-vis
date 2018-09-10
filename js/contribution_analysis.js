@@ -90,8 +90,12 @@ function analyzeSepWidth(query, maxPoolPosAndVal, ignore) {
       var w = matchedWeight[i][j];
       if (ignore || Math.abs(w) <= 0.05) continue;
 
-      if (idx >= 0 && idx < query.length) {
-        tokenWeights[i][idx] = Math.max(tokenWeights[i][idx], w);
+      // Set the weight of all tokens in the window to the max weight
+      for (var offset = 0; offset < 3 + i; offset++) {
+        var tokenIdx = idx + offset;
+        if (tokenIdx >= 0 && tokenIdx < query.length) {
+          tokenWeights[i][tokenIdx] = Math.max(tokenWeights[i][tokenIdx], w);
+        }
       }
     }
   }
