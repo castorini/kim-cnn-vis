@@ -226,11 +226,8 @@ function allFeatureActivations(wordvecs, query, modelData) {
       return;
   }
   var convFeatureMaps = getConvFeatureMaps(wordvecs, modelData.weights, modelData.bias, wordvecs.length);
-  var maxPoolPosAndVal = maxPooling(convFeatureMaps); // [args, pooling_res]
-  var visualizationResult = analyzeSepWidth(query, maxPoolPosAndVal);
+  var maxPoolPosAndVal = maxPooling(convFeatureMaps); // [args, vals]
+  var windowWeights = analyzeSepWidth(query, maxPoolPosAndVal);
 
-  var ww = visualizationResult[0];
-  var mp = visualizationResult[1];
-
-  drawHeatmap(query, ww, mp);
+  drawHeatmap(query, windowWeights);
 }

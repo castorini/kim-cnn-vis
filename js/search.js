@@ -24,7 +24,6 @@ var searcher = (function () {
           word_vector: res.value
         });
       } else {
-        // console.log("Word vector not found for word: " + phrases[i]);
         results.push({
           word: q[i],
           word_vector: undefined

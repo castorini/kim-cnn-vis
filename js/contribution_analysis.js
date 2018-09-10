@@ -1,23 +1,15 @@
-function filterMaxIndex(max_pool) {
+function filterMaxIndex(maxPoolPosAndVal) {
   var res = [];
-  for (var dim = 0; dim < 3; dim++) { // 3
-    res[dim] = [];
-    var cur = max_pool[dim][0].dataSync();
-    for (var c = 0; c < 100; c++) { // 100
-      res[dim][c] = cur[c];
-    }
+  for (var dim = 0; dim < 3; dim++) {
+    res.push(maxPoolPosAndVal[dim][0].reshape([100]).dataSync());
   }
   return res;
 }
 
-function filterMaxWeight(max_pool) {
+function filterMaxWeight(maxPoolPosAndVal) {
   var res = [];
-  for (var dim = 0; dim < 3; dim++) { // 3
-    res[dim] = [];
-    var cur = max_pool[dim][1].dataSync();
-    for (var c = 0; c < 100; c++) { // 100
-      res[dim][c] = cur[c];
-    }
+  for (var dim = 0; dim < 3; dim++) {
+    res.push(maxPoolPosAndVal[dim][1].reshape([100]).dataSync());
   }
   return res;
 }
@@ -83,46 +75,26 @@ function analyze(tokenizedQuery, maxPoolPosAndVal, maxPoolVal, interestedWeightV
 }
 
 function analyzeSepWidth(query, maxPoolPosAndVal, ignore) {
-  // init
-  var res = Array(query.length);
-
   var matchedIndex = filterMaxIndex(maxPoolPosAndVal);
   var matchedWeight = filterMaxWeight(maxPoolPosAndVal);
 
-  var resByFilter = []; // 3*100
-  var mapping = [];
+  var tokenWeights = []; // 3 * length of query
 
   for (var i = 0; i < matchedIndex.length; i++) { // 3
-    resByFilter[i] = [];
-    mapping[i] = [];
+    tokenWeights[i] = [];
     for (var k = 0; k < query.length; k++) {
-      res[k] = 0;
-      mapping[i][k] = 0;
-      resByFilter[i][k] = 0;
+      tokenWeights[i][k] = 0;
     }
     for (var j = 0; j < matchedIndex[i].length; j++) {  // 100
       var idx = matchedIndex[i][j];
       var w = matchedWeight[i][j];
-      if (ignore) {
-        if (w <= 0.05 && w >= -0.05) {
-          continue;
-        }
-      }
+      if (ignore || Math.abs(w) <= 0.05) continue;
 
-      if (idx < 0 || idx >= query.length) {
-
-      } else {
-        mapping[i][idx] = Math.max(mapping[i][idx], w);
+      if (idx >= 0 && idx < query.length) {
+        tokenWeights[i][idx] = Math.max(tokenWeights[i][idx], w);
       }
-    }
-    for (var k = 0; k < query.length; k++) {
-      //resByFilter[i][k] = parseInt(res[k]*100);
-      if (k > query.length - (i + 3) + 1) {
-        break;
-      }
-      resByFilter[i][k] = mapping[i][k];
     }
   }
 
-  return [resByFilter, mapping];
+  return tokenWeights;
 }

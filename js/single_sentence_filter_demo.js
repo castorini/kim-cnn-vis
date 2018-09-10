@@ -9,7 +9,6 @@ $(document).ready(function() {
         searcher.showVecs(q, Array(), function(wordvecs) {
           var startTime = window.performance.now();
           updateMsg("Started processing sentence: " + q);
-          console.log('retrieved');
 
           allFeatureActivations(wordvecs, q, modelData);
           updateMsg("Finished processing sentence in: " + (window.performance.now() - startTime) + "ms.");
