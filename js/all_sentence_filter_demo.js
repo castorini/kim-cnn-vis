@@ -76,7 +76,7 @@ $(document).ready(function() {
             }
           } else {
             startTime = window.performance.now();
-            let ret = displayBatchConv(batch_size, inputs, modelData, ignore, false);
+            var ret = displayBatchConv(batch_size, inputs, modelData, ignore, false);
             for (var i = 0; i < ret.length; i++) {
               nn_res.push(ret[i]);
             }

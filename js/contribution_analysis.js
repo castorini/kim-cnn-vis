@@ -1,7 +1,7 @@
 function filterMaxIndex(maxPoolPosAndVal) {
   var res = [];
   for (var dim = 0; dim < 3; dim++) {
-    res.push(maxPoolPosAndVal[dim][0].reshape([100]).dataSync());
+    res.push(maxPoolPosAndVal[dim][0].squeeze().dataSync());
   }
   return res;
 }
@@ -9,7 +9,7 @@ function filterMaxIndex(maxPoolPosAndVal) {
 function filterMaxWeight(maxPoolPosAndVal) {
   var res = [];
   for (var dim = 0; dim < 3; dim++) {
-    res.push(maxPoolPosAndVal[dim][1].reshape([100]).dataSync());
+    res.push(maxPoolPosAndVal[dim][1].squeeze().dataSync());
   }
   return res;
 }
