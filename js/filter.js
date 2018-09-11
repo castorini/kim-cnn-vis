@@ -128,83 +128,82 @@ function getConvFeatureMaps(wordvecs, weights, bias, max_len) {
 }
 
 function displayBatchConv(batchSize, inputs, modelParams, ignore, test) {
-    if (inputs[0].embedding.length < 5) {
-        cleanUp();
-        return;
+  if (inputs[0].embedding.length < 5) {
+      cleanUp();
+      return;
+  }
+
+  var startTime = window.performance.now();
+  var L = [0, 1, 2, 3, 4];
+  var batchEmbedding = inputs.map(x => x.embedding);
+  var convFeatureMaps = conv(batchEmbedding, modelParams.weights, modelParams.bias, inputs[0].embedding.length, batchSize);
+  var maxPoolPosAndVal = maxPooling(convFeatureMaps); // [args, pooling_res]
+  var maxPoolVal = [maxPoolPosAndVal[0][1], maxPoolPosAndVal[1][1], maxPoolPosAndVal[2][1]];
+  var hiddenLayerOutput = fc1(maxPoolVal, modelParams.fc_weights, modelParams.fc_bias, batchSize);  // longest time
+  var output = softmax(hiddenLayerOutput);
+  var maxClassIndex = tf.argMax(output, 1).dataSync(); //TODO: change to data(), return promise
+  var lapsed = (window.performance.now() - startTime);
+
+  if (test) {
+    return lapsed;
+  }
+
+  var ret = [];
+  for (var i = 0; i < batchSize; i++) {
+    var predictedLabel = L[maxClassIndex[i]];
+    var ww = analyze(inputs[i].tokenized_query, maxPoolPosAndVal, maxPoolVal, modelParams.fc_weights[maxClassIndex[i]], ignore);
+
+    var highlight = [];
+    for (var j = 0; j < inputs[i].tokenized_query.length; j++) {
+      highlight.push([inputs[i].tokenized_query[j], ww[j]]);
     }
+    highlight.push(['\n', 0]);
 
-    var startTime = window.performance.now();
-    var L = [0, 1, 2, 3, 4];
-    var batchEmbedding = inputs.map(x => x.embedding);
-    var convFeatureMaps = conv(batchEmbedding, modelParams.weights, modelParams.bias, inputs[0].embedding.length, batchSize);
-    var maxPoolPosAndVal = maxPooling(convFeatureMaps); // [args, pooling_res]
-    var maxPoolVal = [maxPoolPosAndVal[0][1], maxPoolPosAndVal[1][1], maxPoolPosAndVal[2][1]];
-    var hiddenLayerOutput = fc1(maxPoolVal, modelParams.fc_weights, modelParams.fc_bias, batchSize);  // longest time
-    var output = softmax(hiddenLayerOutput);
-    var maxClassIndex = tf.argMax(output, 1).dataSync(); //TODO: change to data(), return promise
-    var lapsed = (window.performance.now() - startTime);
+    var dim1 = [tf.squeeze(maxPoolPosAndVal[0][0]).slice([i, 0], [1, 100]).dataSync(), tf.squeeze(maxPoolPosAndVal[0][1]).slice([i, 0], [1, 100]).dataSync()];
+    var dim2 = [tf.squeeze(maxPoolPosAndVal[1][0]).slice([i, 0], [1, 100]).dataSync(), tf.squeeze(maxPoolPosAndVal[1][1]).slice([i, 0], [1, 100]).dataSync()];
+    var dim3 = [tf.squeeze(maxPoolPosAndVal[2][0]).slice([i, 0], [1, 100]).dataSync(), tf.squeeze(maxPoolPosAndVal[2][1]).slice([i, 0], [1, 100]).dataSync()];
 
-    if (test) {
-      return lapsed;
-    }
+    ret.push({
+      highlight: highlight,
+      label: inputs[i].label,
+      prediction: predictedLabel,
+      max_pool_res: [dim1, dim2, dim3] // [[2],[2],[2]]
+    });
+  }
 
-    var ret = [];
-    for (var i = 0; i < batchSize; i++) {
-      var predictedLabel = L[maxClassIndex[i]];
-      var ww = analyze(inputs[i].tokenized_query, maxPoolPosAndVal, maxPoolVal, modelParams.fc_weights[maxClassIndex[i]], ignore);
-
-      var highlight = [];
-      for (var j = 0; j < inputs[i].tokenized_query.length; j++) {
-        highlight.push([inputs[i].tokenized_query[j], ww[j]]);
-      }
-      highlight.push(['\n', 0]);
-
-      var dim1 = [tf.squeeze(maxPoolPosAndVal[0][0]).slice([i, 0], [1, 100]).dataSync(), tf.squeeze(maxPoolPosAndVal[0][1]).slice([i, 0], [1, 100]).dataSync()];
-      var dim2 = [tf.squeeze(maxPoolPosAndVal[1][0]).slice([i, 0], [1, 100]).dataSync(), tf.squeeze(maxPoolPosAndVal[1][1]).slice([i, 0], [1, 100]).dataSync()];
-      var dim3 = [tf.squeeze(maxPoolPosAndVal[2][0]).slice([i, 0], [1, 100]).dataSync(), tf.squeeze(maxPoolPosAndVal[2][1]).slice([i, 0], [1, 100]).dataSync()];
-
-      ret.push({
-        highlight: highlight,
-        label: inputs[i].label,
-        prediction: predictedLabel,
-        max_pool_res: [dim1, dim2, dim3] // [[2],[2],[2]]
-      });
-    }
-
-    return ret;
+  return ret;
 }
 
 function displaySingleConv(wordvecs, query, modelParams, test) {
-    if (query.length < 5) {
-        cleanUp();
-        return;
-    }
+  if (query.length < 5) {
+    cleanUp();
+    return;
+  }
 
-    var startTime = window.performance.now();
-    var L = [0, 1, 2, 3, 4];
-    var batchSize = 1;
-    // convFeatureMaps is [w3 feat maps, w4 feat maps, w5 feat maps]
-    var convFeatureMaps = getConvFeatureMaps(wordvecs, modelParams.weights, modelParams.bias, wordvecs.length);
+  var startTime = window.performance.now();
+  var L = [0, 1, 2, 3, 4];
+  var batchSize = 1;
+  // convFeatureMaps is [w3 feat maps, w4 feat maps, w5 feat maps]
+  var convFeatureMaps = getConvFeatureMaps(wordvecs, modelParams.weights, modelParams.bias, wordvecs.length);
 
-    var maxPoolPosAndVal = maxPooling(convFeatureMaps); // list of 3 items of [args, max_values]
-    // console.log(maxPoolPosAndVal[0][1]) -> max pooling res of 3 dim filter, 100 max values
-    var maxPoolVal = [maxPoolPosAndVal[0][1], maxPoolPosAndVal[1][1], maxPoolPosAndVal[2][1]];
+  var maxPoolPosAndVal = maxPooling(convFeatureMaps); // list of 3 items of [args, max_values]
+  var maxPoolVal = [maxPoolPosAndVal[0][1], maxPoolPosAndVal[1][1], maxPoolPosAndVal[2][1]];
 
-    var hiddenLayerOutput = fc1(maxPoolVal, modelParams.fc_weights, modelParams.fc_bias, batchSize);
-    var output = softmax(hiddenLayerOutput);
+  var hiddenLayerOutput = fc1(maxPoolVal, modelParams.fc_weights, modelParams.fc_bias, batchSize);
+  var output = softmax(hiddenLayerOutput);
 
-    var maxClassIndex = tf.argMax(output, 1).dataSync();
-    var lapsed = (window.performance.now() - startTime);
+  var maxClassIndex = tf.argMax(output, 1).dataSync();
+  var lapsed = (window.performance.now() - startTime);
 
-    if (test) {
-      return lapsed;
-    }
+  if (test) {
+    return lapsed;
+  }
 
-    var predictedLabel = L[maxClassIndex];
-    var queryString = query.join(' ');
-    var actualLabel = sampleInputs.find(d => d.sentence === queryString).label;
+  var predictedLabel = L[maxClassIndex];
+  var queryString = query.join(' ');
+  var actualLabel = sampleInputs.find(d => d.sentence === queryString).label;
 
-    $('#inference-result').html(`Predicted: ${predictedLabel} \t Actual: ${actualLabel}`);
+  $('#inference-result').html(`Predicted: ${predictedLabel} \t Actual: ${actualLabel}`);
 }
 
 function display_sentence_coloring(highlight, label, predictedlabel, start, areSame, bias) {
